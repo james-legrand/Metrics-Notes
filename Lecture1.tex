@@ -5,7 +5,7 @@
 
 \begin{document}
 \vspace{-10pt}
-\chapter{Lecture 1: Basic Probability. Conditional expectation function.}
+\chapter{Basic Probability. Conditional expectation function.}
 \section{Random Variables}
 
 \begin{definition}[Cumulative distribution function]
@@ -57,7 +57,8 @@ where \( 0 \leq \tau \leq 1 \).
 \vspace{5pt}
 \textbf{Why inf and not min?}\\
 Because $F$ is right-continuous and nondecreasing, the superlevel sets of F are of the form $[a,\infty]$ where $a>-\infty$ or else the entire real line. When the superlevel set is the whole line, there is no min (among the reals), while the inf is -$ \infty$. For a = +$ \infty$ the superlevel set is empty and so the inf = +$\infty$. These cases can potentially arise when $\tau=0$ or $\tau = 1$ respectively.
-\textit{If $\tau \in (0,1)$ then we can replace inf with min.}
+\textit{If $\tau \in (0,1)$ then we can replace inf with min.}\\
+If $X$ is discrete, then using minimum and infimum are equivalent, since the support is finite and attains a minimum at some point. However, a contimuous $X$ with infinite support will not achieve a minimum, hence the infimum is needed.
 
 \begin{example}
 The CDF of an Exponential distribution with parameter \(\lambda\) is given by
