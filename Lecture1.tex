@@ -45,8 +45,8 @@ A continuous (in all dimensions) random vector $ X $ has joint pdf\index{Joint p
 \right] 
 = \frac{1}{2\pi} \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} e^{-\frac{1}{2}(x^2+y^2)} dxdy.
 \]
-By changing to polar coordinates, $x^2+y^2=r^2x^2+y^2=r^2$ and $dxdy=rdrd\theta dxdy=rdrd\theta $. Thus, the desired integral becomes:
-\[ \frac{1}{2\pi} \int_{0}^{2\pi} \int_{0}^{\infty} e^{-\frac{1}{2}r^2} rdrd\theta = \frac{1}{u}\]
+By changing to polar coordinates, $x^2+y^2=r^2$ and $dxdy=rdrd\theta$. Thus, the desired integral becomes:
+\[ \frac{1}{2\pi} \int_{0}^{2\pi} \int_{0}^{\infty} e^{-\frac{1}{2}ur^2} rdrd\theta = \frac{1}{u}\]
 Setting $u=1$ yields the desired result.
 \end{solution}
 \begin{definition}[$\tau$-th quantile]
@@ -88,7 +88,7 @@ The CDF of an Exponential distribution with parameter \(\lambda\) is given by
 \vspace{5pt}
 
 \begin{exercise}
-  Show that: \[ \E(Y)= \int_{0}^{\infty} [1 - F(y)]dy \]
+  Suppose that Y is a continuous random variable with density $f(y$) that is positive only if $y \geq 0$. If $F(y)$ is the distribution function, show that \[ \E(Y)= \int_{0}^{\infty} [1 - F(y)]dy \]
 \end{exercise}
 \begin{solution}
   \[E(Y) = \int_{0}^{\infty} yf(y)dy = \int_{0}^{\infty} \left( \int_{0}^{y} dt \right) f(y)dy = \int_{0}^{\infty} \left( \int_{t}^{\infty} f(y)dy \right) dt \] \[ = \int_{0}^{\infty} P(Y > y)dy = \int_{0}^{\infty} [1 - F(y)]dy\]
@@ -112,7 +112,12 @@ Two different distributions \textit{can} have all the same moments, but only if 
   \begin{itemize}
     \item $Var(aX + bY) = a^2 VarX + b^2 VarY + 2ab Cov(X,Y) $
     \item $\text{Var}(Y) = \E [\text{Var}(Y|X)] + \text{Var}(\E [Y|X])$ (i.e.: residual variance + regression variance)
-
+    \item $ Var \mX \equiv \E [ \mX \mX' ] - \E [ \mX ] \E [ \mX ]' $
+    \item $ Var ( \mX + \mY ) = Var ( \mX ) + Cov ( \mX , \mY ) + Cov ( \mX , \mY )' + Var ( \mY ) $;
+    \item $ Var (\mA \mX) = \mA Var ( \mX ) \mA' $.
+    \item $ Cov (\mA \mX, \mB \mY) = \mA Cov (\mX, \mY) \mB' $;
+    \item $ Cov (\mX, \mY) = Cov ( \mY , \mX )' $.
+  
   \end{itemize}
   \item The third central moment is the measure of lopsideness of the distribution. When standardised by the standard deviation it is known as the skewness. Any symmetric distribution will have skewness of 0.
   \item The fourth central moment is a measure of the heaviness of the tail. When standardised by the standard deviation, it is known as the kurtosis:
@@ -199,7 +204,7 @@ where $ \mathbf{\mu} = \E [\mX] $ and $ \mathbf{\Sigma}_{ij} = Cov (X_i, X_j) $
 
 \textbf{Properties}
 \begin{itemize}
-  \item A linear transformation of a normal is normal: if $ \mX \sim N_p (\mmu, \mSigma) $, then for any $ \mA \in \R^{q \times p} $ with full row rank (which implies $ q \leq p $), and any $ \mathbf{b} \in \R^q $, we have $ \mA \mX + \mathbf{b} \sim N_q (\mA \mmu + \mathbf{b} , \mA \mSigma \mA' ) $. In particular, $ \mSigma^{-1/2} (\mX - \mmu) \sim N (\mzero, \mI)$.
+  \item A linear transformation of a normal is normal: if $ \mX \sim N_p (\mmu, \mSigma) $, then for any $ \mA \in \R^{q \times p} $ with full row rank ($\implies q \leq p $), and any $ \mathbf{b} \in \R^q $, we have $ \mA \mX + \mathbf{b} \sim N_q (\mA \mmu + \mathbf{b} , \mA \mSigma \mA' ) $. In particular, $ \mSigma^{-1/2} (\mX - \mmu) \sim N (\mzero, \mI)$.
   \item The following transformations of $ \mX \sim N_p (\mmu, \mSigma) $ are independent iff $ \mA \mSigma \mB' = Cov (\mA \mX , \mB \mX) = \mzero $:
   \begin{itemize}
   \item $ \mA \mX \sim N (\mA \mmu , \mA \mSigma \mA') $ and $ \mB \mX \sim N (\mB \mmu , \mB \mSigma \mB') $,
@@ -219,7 +224,7 @@ where $ \mathbf{\mu} = \E [\mX] $ and $ \mathbf{\Sigma}_{ij} = Cov (X_i, X_j) $
 \hspace{10pt}
 \text{where $c>0$}
 \]
-When \( c \) is very small, \( \text{corr}(X, Y) \) is near \(-1\) and when \( c \) is very large, \( \text{corr}(X, Y) \) is near \( 1 \). If the correlation is a continuous function of \( c \), then there exists some \( c \) such that the correlation is \( 0 \), i.e. $X$ and $Y$ are uncorrelated (here $c \approx 1.54$). $X$ and $Y$ are uncorrelated, but clearly not independent since $X$ completely determines $Y$. To show $Y$ is normal:
+When \( c \) is very small, \( \text{corr}(X, Y) \approx -1\) and when \( c \) is very large, \( \text{corr}(X, Y) \approx 1 \). If the correlation is a continuous function of \( c \), then there exists some \( c \) such that the correlation is \( 0 \). $X$ and $Y$ are uncorrelated, but clearly not independent since $X$ completely determines $Y$. To show $Y$ is normal:
 
 \[
 \begin{aligned}
@@ -229,7 +234,7 @@ P(Y \leq x) &= P(|X| < c \text{ and } X \leq x) + P(|X| > c \text{ and } -X \leq
 \end{aligned}
 \]
 
-using the symmetry of \( |X| \) less than or equal to \( c \). Note that \( X - Y \) is not normally distributed due to the significant probability of \( X - Y = 0 \). However, the normal has no discrete part, i.e.: probability of any point is 0. Thus, \( X \) and \( Y \) are not jointly normally distributed even though they are individually normally distributed.
+using the symmetry of \( |X| \) and \(|X| \leq c \). Note that \( X - Y \) is not normally distributed due to the non-zero probability of \( X - Y = 0 \). However, a normal has no discrete part, i.e.: the probability of any point is 0. Thus, \( X \) and \( Y \) are not jointly normally distributed, even though they are individually normally distributed.
 \end{example}
 
 \subsection*{Chi-Squared (\(\chi^2\))}
@@ -434,7 +439,7 @@ Also, note that if we let \( A \to -\infty \) and \( B \to \infty \), the suppor
 \[\frac{d}{dc} E(|X-c|) = E\left(\frac{d}{dc} |X-c|\right) = E\left(\frac{-(X-c)}{|X-c|}\right)\]
 \[= E\left[1_{\{X < c\}} - 1_{\{X > c\}}\right] = P(X < c) - P(X \geq c)\]
 \[\frac{d}{dc} E(|X-c|) = 0 \implies P(X < c) = P(X > c) = \frac{1}{2} \]
-By definition of the median, c = med(X) \qed\\
+By definition of the median, $c = med(X)$ \qed\\
 
 \textbf{MAE vs MSE}\\\\
 \begin{minipage}[c]{0.5\textwidth}
@@ -458,7 +463,7 @@ If underprediction is marginally less or more costly as overprediction, it makes
 \[
 \tau 1(Y > g(X))(Y - g(X)) + (1 - \tau) 1(Y \leq g(X))(g(X) - Y)
 \]
-with \( \tau \in (0, 1) \). For example, parameter \( \tau < 1/2 \) would correspond to situations where the underprediction is less costly than overprediction. Following the same logic as above, we can show that the corresponding best predictor would be \( \tau \)-th quantile \( \tau(X) \) of the conditional distribution of \( Y \) given \( X \).\\
+with \( \tau \in (0, 1) \). For example, parameter \( \tau < 1/2 \) would correspond to situations where the underprediction is less costly than overprediction. Following the same logic as above, we can show that \textit{the corresponding best predictor would be \( \tau \)-th quantile \( \tau(X) \) of the conditional distribution of \( Y \) given \( X \)}.\\
 Below we have (from left to right): $\tau$ = 1 (no cost to overprediction), $\tau$ = 0 (no cost to underprediction) and $\tau$ = 0.3 (cost to both, but relatively more to overprediction.)\\\\
 \includegraphics[width=\textwidth]{./Images/weightedMAD.png}
 
