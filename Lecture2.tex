@@ -70,7 +70,7 @@ m(x_1, \boldsymbol{x_2}) &= \E(h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) \
 
 the average causal equation, averaged over the conditional distribution of the unobserved component $\boldsymbol{\epsilon}$. 
 
-Applying the marginal effect operator \footnote[1]{Alexei uses $\frac{\partial}{\partial x_1}$ throughout, this is equivalent to the marginal effect operator used here.}, the regression derivative is:
+Applying the marginal effect operator \footnote[1]{Alexei uses $\frac{\partial}{\partial x_1}$ throughout, this is equivalent to the marginal effect operator used here with continuous $x_1$.}, the regression derivative is:
 \begin{align*}
 \nabla_1 m(x_1, \boldsymbol{x_2}) &= \int_{\mathbb{R}^{\ell}} \nabla_1 h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2}) d\boldsymbol{\epsilon} + \int_{\mathbb{R}^{\ell}} h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) \nabla_1 f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2}) d\boldsymbol{\epsilon}\\
 &= ACE(x_1, \boldsymbol{x_2}) + \int_{\mathbb{R}^{\ell}} h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) \nabla_1 f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2}) d\boldsymbol{\epsilon}
@@ -189,19 +189,17 @@ Solving for the minimum:
 \frac{\partial e'e}{\partial \hat\beta}&=-2X'y+2X'X\hat\beta=0 \\
  &\implies X'X\hat\beta=X'y\\
  &\implies (X'X)^{-1}(X'X)\hat\beta=(X'X)^{-1}X'y\\
+ &\implies I_K\hat\beta=(X'X)^{-1}X'y\\
  &\implies \hat\beta = (X'X)^{-1}X'y 
 \end{align*}
 Here we have assumed that the inverse of $X'X$ exists, i.e. $X$ is full rank\footnote[2]{The inverse of $X'X$ may not exist, it does not exist in the following two cases: 1) When $n < k$; we have more independent variables than observations 2) One or more of the independent variables are a linear combination of the other variables i.e. perfect multicollinearity.}. To check this is a minimum, take second derivative which gives us $2X'X$ which is clearly positive semi-definite (when $X$ is full rank). Note that $X'X$ is always square ($k \times k$) and always symmetric.\\
 
 We can further show that $X'e=0$, consider the normal form equations $X'X\hat\beta=X'y$:
-
 \begin{align*}
     (\mathbf{X}'\mathbf{X})\hat{\boldsymbol{\beta}} &= \mathbf{X}'(\mathbf{X}\hat{\boldsymbol{\beta}} + \mathbf{e}) \\
     (\mathbf{X}'\mathbf{X})\hat{\boldsymbol{\beta}} &= (\mathbf{X}'\mathbf{X})\hat{\boldsymbol{\beta}} + \mathbf{X}'\mathbf{e} \\
     \mathbf{X}'\mathbf{e} &= \mathbf{0}
 \end{align*}
-    
-
 \begin{prop}[Properties of OLS]
 From $X'e$=0 we can derive a number of properties.
 \begin{enumerate}
