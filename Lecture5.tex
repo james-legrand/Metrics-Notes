@@ -1,0 +1,65 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\vspace{-10pt}
+\setcounter{chapter}{4}
+
+\chapter{Finite sample tests of linear hypotheses}
+\vspace{-10pt}
+\section{Linear hypotheses}
+\section{The joint distribution of $\boldsymbol{\hat\sigma^2}$ and $\boldsymbol{\hat\beta}$}
+Recall the definition of the variance estimator: \[\hat\sigma^2 = \frac{\boldsymbol{\hat\epsilon}'\boldsymbol{\hat\epsilon}}{n-k}\]
+To express this in terms of the population $\boldsymbol{\epsilon}$'s examine the following, where we denote the residual maker matrix by $\mathbf{M_X}=\mathbf{I}-\mathbf{X}(\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}$:
+\begin{align*}
+    (n-k)\hat\sigma^2&=\boldsymbol{\hat\epsilon}'\boldsymbol{\hat\epsilon}\\
+    &= (\mathbf{M_X}\mathbf{y})'\mathbf{M_X}\mathbf{y} \\
+    &= (\mathbf{M_X}(\mathbf{X}\boldsymbol{\beta}+\boldsymbol{\epsilon}))'\mathbf{M_X}(\mathbf{X}\boldsymbol{\beta}+\boldsymbol{\epsilon})\\
+    &= \boldsymbol{\epsilon}'\mathbf{M'_X}\mathbf{M_X}\boldsymbol{\epsilon} \hspace{20pt} \text{(since $\mathbf{M_XX}=\mathbf{0}$)}\\
+    &= \boldsymbol{\epsilon}'\mathbf{M_X}\boldsymbol{\epsilon} \hspace{39pt} \text{(since $\mathbf{M'_XM_X}=\mathbf{M_XM_X}=\mathbf{M_X}$)}
+\end{align*}
+ Since $\mathbf{M_X}$ is symmetric, it is positive definite when all eigenvalues are positive. Since it is also idempotent, $\mathbf{M^2_X}=\mathbf{M_X}$, all eigenvalues are either zero or one, meaning $\mathbf{M_X}$ is positive semi-definite.\footnote[1]{Alternatively since \( \mathbf{M_X^2} = \mathbf{M_X} \) and \( \mathbf{M_X}' = \mathbf{M_X} \), note that \( \mathbf{v}'\mathbf{M_Xv} = \mathbf{v}'\mathbf{M_X^2v} = \mathbf{v}'\mathbf{M_X}'\mathbf{M_Xv} = (\mathbf{v}'\mathbf{M_X})'(\mathbf{M_Xv}) = \|\mathbf{M_Xv}\|^2 \) for all \( \mathbf{v} \in \mathbb{R}^n \).
+}
+
+\begin{theorem}[Spectral decomposition]
+    For every $n \times n$ real symmetric matrix, the eigenvalues are real and the eigenvectors can be chosen real and orthonormal. Thus a real symmetric matrix $\mathbf {A}$ can be decomposed as
+    \[ \mathbf {A} =\mathbf {Q} \mathbf {\Lambda } \mathbf {Q'}\]
+    where $\mathbf {Q}$ is an orthogonal matrix whose columns are the real, orthonormal eigenvectors of $\mathbf {A}$, and $\mathbf {\Lambda}$ is a diagonal matrix whose entries are the eigenvalues of $\mathbf {A}$. 
+\end{theorem}
+
+The spectral decomposition of $\mathbf{M_X}$ is $\mathbf{M_X}=\mathbf{H}\mathbf{\Lambda}\mathbf{H'}$ where $\mathbf{HH'}=\mathbf{I_n}$ and $\mathbf{\Lambda}$ is diagonal with the eigenvalues of $\mathbf{M_X}$ along the diagonal. Since $\mathbf {M_X}$ is idempotent with rank $n-k$, it has $n-k$ eigenvalues equalling 1 and $k$ eigenvalues equalling 0, so: 
+\[\mathbf{\Lambda} = \begin{bmatrix}
+    \mathbf{I}_{n-k} & \mathbf{0} \\
+    \mathbf{0} & \mathbf{0}_k
+    \end{bmatrix} \]
+    
+In the normal regression $\boldsymbol{\epsilon} \sim N(0,\mathbf{I_n} \sigma^2)$, we want to find the distribution of $\mathbf{H'}\boldsymbol{\epsilon}$. A linear combination of normals is also normal, meaning $\mathbf{H'}\boldsymbol{\epsilon}$ is normal with mean $\E[\mathbf{H'}\boldsymbol{\epsilon}]=\mathbf{H'}\E[\boldsymbol{\epsilon}]=0$ and variance Var$(\mathbf{H'}\boldsymbol{e})=\mathbf{H'}\mathbf{I_n} \sigma^2 \mathbf{H} = \sigma^2 \mathbf{H'}\mathbf{H} = \mathbf{I_n} \sigma^2$. Thus $\mathbf{H'}\boldsymbol{\epsilon} \sim N(0,\mathbf{I_n} \sigma^2)$.
+
+Let $\mathbf{u}=\mathbf{H'}\boldsymbol{\epsilon}$, and partition $\underset{n \times 1}{\mathbf{u}}=\begin{bmatrix}
+    \underset{(n-k) \times 1}{\mathbf{u_1}}\\
+    \underset{k \times 1}{\mathbf{u_2}}
+\end{bmatrix}$ where $\mathbf{u_1} \sim N(0,\mathbf{I_n} \sigma^2)$, then we have
+
+\begin{align*}
+    (n-k)\hat\sigma^2 &= \boldsymbol{\epsilon}'\mathbf{M_X} \boldsymbol{\epsilon}\\
+    &= \boldsymbol{\epsilon}' \mathbf{H}\mathbf{\Lambda} \mathbf{H'} \boldsymbol{\epsilon}\\
+    &= \mathbf{u}' \begin{bmatrix}
+        \mathbf{I}_{n-k} & \mathbf{0} \\
+        \mathbf{0} & \mathbf{0}_k
+        \end{bmatrix} \mathbf{u}\\
+    &= [\mathbf{u'_1} \hspace{5pt} \mathbf{u'_2}] \begin{bmatrix}
+        \mathbf{I}_{n-k} & \mathbf{0} \\
+        \mathbf{0} & \mathbf{0}_k
+        \end{bmatrix} \begin{bmatrix}
+            \mathbf{u_1}\\
+            \mathbf{u_2}
+        \end{bmatrix}\\
+    &=\mathbf{u'_1} \mathbf{u_1}
+\end{align*}
+where $\mathbf{u'_1} \mathbf{u_1}$ is the product of two standard normals with dimension $n-k$, thus it is distributed $\chi^2_{n-k}$. Since $\boldsymbol{\epsilon}$ is independent of $\boldsymbol{\hat\beta}$ it follows that $\hat\sigma^2$ is independent of $\boldsymbol{\hat\beta}$ as well.
+\begin{theorem} 
+In normal regression, \[\frac{(n-k)\hat\sigma^2}{\sigma^2}\sim\chi^2_{n-k}\] and is independent of $\boldsymbol{\hat\beta}$.
+\end{theorem}
+\end{document}
