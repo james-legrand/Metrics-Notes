@@ -16,24 +16,14 @@ R300 Econometrics}
 
 \tableofcontents
 \newpage
-\chapter{Lecture 1: Basic Probability. Conditional expectation function.}
-\section{Review of continuous distributions}
 
-\begin{definition}[Cumulative distribution function]
-  The cumulative distribution function of X is  defined as $ F_X(x) \equiv P(X \leq x) $. 
-  By the Fundamental Theorem of Calculus, $ \frac{d}{dx} F_X(x) = f_X(x) $ for a continuous r.v.\ at continuity points of $ f_X $. A function $ F $ is a cdf iff:
-  \begin{enumerate}
-  \item $ \lim_{x \to -\infty} F(x) = 0 $ and $ \lim_{x \to \infty} F(x) = 1 $;
-  \item $ F (\cdot) $ nondecreasing;
-  \item $ F (\cdot) $ right-continuous; i.e., $ \forall x_0 $, $ \lim_{x \downarrow x_0} F(x) = F(x_0) $.
-  \end{enumerate}
-\end{definition}
 
-\section{Conditional expectation function (CEF)}
-\subsection{Conditional quantile function}
-\chapter{Causal interpretation of regression. Least Squares.}
-\section{Regression and causality}
-\section{Estimating population regression by least squares}
+% Include Lecture1.pdf
+\includepdf[pages=-, addtotoc={1, chapter, 1, Basic probability. Conditional expectation function, lect1}]{Lecture1.pdf}
+
+% Include Lecture2.pdf
+\includepdf[pages=-, addtotoc={1, chapter, 1, Causal interpretation of regression. Least
+Squares., lect2}]{Lecture2.pdf}
 
 \newpage
 % Nicely formatted boxes
