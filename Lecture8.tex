@@ -115,11 +115,11 @@ where $h_{ii}$ is the i-th diagonal element of the projection matrix. Because th
 
 Whilst $\hat V$ is biased, here we can see that it is also consistent. Notice that $ \hat \Phi $ is not consistent for $\Phi$, since there are more elements to estimate as the sample gets large. However, $\hat \epsilon_i$ is consistent for $\epsilon_i$. We know \[X'\hat \Phi X = \frac{1}{n}\sum_{i=1}^{n}  x_ix_i'\hat \epsilon_i^2 \] and since plim $\hat \epsilon_i ^2 = \phi_i$ we get plim $X'\hat \Phi X = X' \Phi X$.
 
-In summary, $\hat V$ is biased since $\E(\hat\epsilon^2_i)$ is a biased estimate of $\epsilon$.
+In summary, $\hat V$ is biased since $\\hat\epsilon^2_i$ is a biased estimate of $\epsilon^2$.
 \end{note}
 
 \section{Serial correlation (and heteroskedasticity)}
-As with heteroskedasticity, OLS remains consistent and asymptotically normal, but the default standard errors are wrong. This cannot happen if the data are i.d.d. - if OLS0 holds it must be the case that $\Omega = Var(\epsilon|X)$ is diagonal. If the data are dependent, then $\Omega$ is typically no longer diagonal.
+As with heteroskedasticity, OLS remains consistent and asymptotically normal, but the default standard errors are wrong. This cannot happen if the data are i.i.d. - if OLS0 holds it must be the case that $\Omega = Var(\epsilon|X)$ is diagonal. If the data are dependent, then $\Omega$ is typically no longer diagonal.
 
 \begin{definition}[Strict Stationarity]
     A sequence of random variables $\{Z_t\}^{\infty}_{t=-\infty}$ is strictly stationary if, for any finite nonnegative integer $m$,
