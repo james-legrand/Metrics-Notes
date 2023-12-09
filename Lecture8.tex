@@ -213,10 +213,10 @@ Now we can estimate the covariance matrix of $\hat \beta_{OLS}$ as
     Let $z_1, \dots, z_T$ be any sequence of $T$ numbers, and let $P$ be a $m\times m$ matrix of sample covariances:
     \[ P=
     \begin{bmatrix}
-        \frac{1}{T} \sum_{l=1}^{T}z_t^2 & \frac{1}{T} \sum_{l=2}^{T}z_tz_{t-1} & \ddots & \sum_{l=m+1}^{T}z_tz_{t-m}\\
-        \frac{1}{T} \sum_{l=2}^{T}z_tz_{t-1} & \frac{1}{T} \sum_{l=1}^{T}z_t^2 & \ddots & \ddots\\
-        \ddots & \ddots & \ddots & \frac{1}{T} \sum_{l=2}^{T}z_tz_{t-1}\\
-        \sum_{l=m+1}^{T}z_tz_{t-m} & \ddots & \frac{1}{T} \sum_{l=2}^{T}z_tz_{t-1} &  \frac{1}{T} \sum_{l=1}^{T}z_t^2
+        \frac{1}{T} \sum_{t=1}^{T}z_t^2 & \frac{1}{T} \sum_{t=2}^{T}z_tz_{t-1} & \ddots & \frac{1}{T}\sum_{t=m+1}^{T}z_tz_{t-m}\\
+        \frac{1}{T} \sum_{t=2}^{T}z_tz_{t-1} & \frac{1}{T} \sum_{t=1}^{T}z_t^2 & \ddots & \ddots\\
+        \ddots & \ddots & \ddots & \frac{1}{T} \sum_{t=2}^{T}z_tz_{t-1}\\
+        \frac{1}{T}\sum_{t=m+1}^{T}z_tz_{t-m} & \ddots & \frac{1}{T} \sum_{t=2}^{T}z_tz_{t-1} &  \frac{1}{T} \sum_{t=1}^{T}z_t^2
     \end{bmatrix}\]
     Consider the $m \times (2T-1)$ matrix:
     \[
@@ -247,10 +247,10 @@ Now we can estimate the covariance matrix of $\hat \beta_{OLS}$ as
             0 & \cdots & 0 & z_T \\
         \end{bmatrix}}_{(2T-1)\times m}\\
         &= \frac{1}{T}\begin{bmatrix}
-             \sum_{l=1}^{T}z_t^2 &  \sum_{l=2}^{T}z_tz_{t-1} & \ddots & \sum_{l=m+1}^{T}z_tz_{t-m}\\
-             \sum_{l=2}^{T}z_tz_{t-1} &  \sum_{l=1}^{T}z_t^2 & \ddots & \ddots\\
-            \ddots & \ddots & \ddots &  \sum_{l=2}^{T}z_tz_{t-1}\\
-            \sum_{l=m+1}^{T}z_tz_{t-m} & \ddots &  \sum_{l=2}^{T}z_tz_{t-1} &   \sum_{l=1}^{T}z_t^2
+             \sum_{t=1}^{T}z_t^2 &  \sum_{t=2}^{T}z_tz_{t-1} & \ddots & \sum_{t=m+1}^{T}z_tz_{t-m}\\
+             \sum_{t=2}^{T}z_tz_{t-1} &  \sum_{t=1}^{T}z_t^2 & \ddots & \ddots\\
+            \ddots & \ddots & \ddots &  \sum_{t=2}^{T}z_tz_{t-1}\\
+            \sum_{t=m+1}^{T}z_tz_{t-m} & \ddots &  \sum_{t=2}^{T}z_tz_{t-1} &   \sum_{t=1}^{T}z_t^2
         \end{bmatrix}
         =P_{m\times m}
     \end{align*}
