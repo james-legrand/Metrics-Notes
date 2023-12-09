@@ -38,7 +38,7 @@ C(x_2, \boldsymbol{\epsilon}) = y(1) - y(0).
 This is random as both potential outcomes \( y(0) \) and \( y(1) \) are different across individuals. 
 
 \begin{example}
-    Suppose there are two individals Yinfeng and Charles, and both have the possiblity of being a PhD graduate or dropping out. Suppose Yinfeng would earn £8/hour without a PhD and £12/hour as a PhD grad, while Charles would earn £20/hour without and £30/hour with a PhD. The causal effect of a PhD on wages is £4/hour for Yinfeng and £10/hour for Charles.
+    Suppose there are two individuals Yinfeng and Charles, and both have the possibility of being a PhD graduate or dropping out. Suppose Yinfeng would earn £8/hour without a PhD and £12/hour as a PhD grad, while Charles would earn £20/hour without and £30/hour with a PhD. The causal effect of a PhD on wages is £4/hour for Yinfeng and £10/hour for Charles.
 \end{example}
 
 In a sample, we cannot observe both outcomes from the same individual, we only observe the realised value. As the causal effect varies across individuals and is not observable, it cannot be measured on the individual level. We therefore focus on aggregate causal effects, in particular what is known as the average causal effect.
@@ -75,7 +75,7 @@ Applying the marginal effect operator \footnote[1]{Alexei uses $\frac{\partial}{
 \nabla_1 m(x_1, \boldsymbol{x_2}) &= \int_{\mathbb{R}^{\ell}} \nabla_1 h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2}) d\boldsymbol{\epsilon} + \int_{\mathbb{R}^{\ell}} h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) \nabla_1 f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2}) d\boldsymbol{\epsilon}\\
 &= ACE(x_1, \boldsymbol{x_2}) + \int_{\mathbb{R}^{\ell}} h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) \nabla_1 f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2}) d\boldsymbol{\epsilon}
 \end{align*}
-In general we see that the regression dervative does not equal the average causal effect. They are only equal in the special case when the second term equals zero, which occurs when the conditional density of $\boldsymbol{\epsilon}$ given $( x_1, \boldsymbol{x_2})$ does not depend on $x_1$ ($\nabla_1 f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2})=0$). When this condition holds then the regression derivative equals the ACE, which means that regression analysis can be interpreted causally, in the sense that it uncovers average causal effects.\\
+In general we see that the regression derivative does not equal the average causal effect. They are only equal in the special case when the second term equals zero, which occurs when the conditional density of $\boldsymbol{\epsilon}$ given $( x_1, \boldsymbol{x_2})$ does not depend on $x_1$ ($\nabla_1 f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2})=0$). When this condition holds then the regression derivative equals the ACE, which means that regression analysis can be interpreted causally, in the sense that it uncovers average causal effects.\\
 
 \begin{definition}[Condiional Independence Assumption (CIA)]
     Conditional on $\mathbf{x_2}$, the random variables $x_1$ and $\boldsymbol{\epsilon}$ are statistically independent.
@@ -96,7 +96,7 @@ Nerlove investigated returns to scale in a regulated industry (U.S. electricity)
     \item These local monopolies face competitive factor prices
     \item Electricity prices are set by the government
 \end{enumerate}
-Notably Y is exogenously given (by consumer demand). Nerlove assumes firms pick $K,L$ to minmise the cost of producing $Y=AK^{\alpha}L^{\beta}$, i.e. $K,L$ both depend on $A,Y$, in particular $f(A|K,L)$ depends on $K$. Thus a regression of $Y$ on $K,L$ will not identify the $ACE$.
+Notably Y is exogenously given (by consumer demand). Nerlove assumes firms pick $K,L$ to minimise the cost of producing $Y=AK^{\alpha}L^{\beta}$, i.e. $K,L$ both depend on $A,Y$, in particular $f(A|K,L)$ depends on $K$. Thus a regression of $Y$ on $K,L$ will not identify the $ACE$.
 
 \[ \min_{K, L} p_K K + p_L L \hspace{5pt} s.t. \hspace{5pt} Y=AK^{\alpha}L^{\beta}\]
 The Lagrangian and FOCs for this problem are:
@@ -105,7 +105,7 @@ The Lagrangian and FOCs for this problem are:
 
 \[ \implies K = \frac{\alpha p_L}{\beta p_K} L \]
 
-We can subsititute this into the production function to solve for L and K, giving:
+We can substitute this into the production function to solve for L and K, giving:
 \[ TC = p_K \left(\frac{\alpha p_L}{\beta p_K} \left(\frac{Y}{A\left(\frac{\alpha p_L}{\beta p_K}\right)^\alpha}\right)^{\frac{1}{\alpha + \beta}}\right) + p_L \left(\left(\frac{Y}{A\left(\frac{\alpha p_L}{\beta p_K}\right)^\alpha}\right)^{\frac{1}{\alpha + \beta}}\right) \]
 
 \[ TC = p_L \left( \frac{Y \left(\frac{p_L \alpha}{p_K \beta}\right)^{-\alpha}}{A} \right)^{\frac{1}{r}} \left( \frac{r}{\beta} \right)  = r \alpha^{-\alpha/r} \beta^{-\beta/r} A^{-1/r} Y^{1/r} p_K^{\alpha/r} p_L^{\beta/r} \]
@@ -134,9 +134,9 @@ If CIA holds, regression captures the causal effect of $x$'s on $y$. However eve
 
 In the regression context:
 \[ \beta = \arg \min_{b} \E (y-m(x;b))^2\]
-The sample analgoue of expectation is the average: 
+The sample analogue of expectation is the average: 
 \[ \hat{\beta} = \arg \min_{b} \frac{1}{n}\sum_{i=1}^{n}(y-m(x;b))^2\]
-When $m(x;b)$ is linear in $b$, the method is called OLS. We assume that the pbservations of the data $(y_i,x_i)$ are independent and come from the same joint distribution. Let
+When $m(x;b)$ is linear in $b$, the method is called OLS. We assume that the observations of the data $(y_i,x_i)$ are independent and come from the same joint distribution. Let
 $$
 \underbrace{X_i}_{K \times 1} = \begin{bmatrix} x_{i1} \\ \vdots \\ x_{iK} \end{bmatrix},
 \underbrace{\beta}_{K \times 1} = \begin{bmatrix} \beta_{1} \\ \vdots \\ \beta_{K} \end{bmatrix},
