@@ -13,7 +13,7 @@
   A function $ F $ is a cdf iff:
   \begin{enumerate}
   \item $ \lim_{x \to -\infty} F(x) = 0 $ and $ \lim_{x \to \infty} F(x) = 1 $;
-  \item $ F (\cdot) $ nondecreasing;
+  \item $ F (\cdot) $ non-decreasing;
   \item $ F (\cdot) $ right-continuous; i.e., $ \forall x_0 $, $ \lim_{x \downarrow x_0} F(x) = F(x_0) $.
   \end{enumerate}
 \end{definition}
@@ -56,9 +56,9 @@ where \( 0 \leq \tau \leq 1 \).
 \end{definition}
 \vspace{5pt}
 \textbf{Why inf and not min?}\\
-Because $F$ is right-continuous and nondecreasing, the superlevel sets of F are of the form $[a,\infty]$ where $a>-\infty$ or else the entire real line. When the superlevel set is the whole line, there is no min (among the reals), while the inf is -$ \infty$. For a = +$ \infty$ the superlevel set is empty and so the inf = +$\infty$. These cases can potentially arise when $\tau=0$ or $\tau = 1$ respectively.
+Because $F$ is right-continuous and non-decreasing, the superlevel sets of F are of the form $[a,\infty]$ where $a>-\infty$ or else the entire real line. When the superlevel set is the whole line, there is no min (among the reals), while the inf is -$ \infty$. For a = +$ \infty$ the superlevel set is empty and so the inf = +$\infty$. These cases can potentially arise when $\tau=0$ or $\tau = 1$ respectively.
 \textit{If $\tau \in (0,1)$ then we can replace inf with min.}\\
-If $X$ is discrete, then using minimum and infimum are equivalent, since the support is finite and attains a minimum at some point. However, a contimuous $X$ with infinite support will not achieve a minimum, hence the infimum is needed.
+If $X$ is discrete, then using minimum and infimum are equivalent, since the support is finite and attains a minimum at some point. However, a continuous $X$ with infinite support will not achieve a minimum, hence the infimum is needed.
 
 \begin{example}
 The CDF of an Exponential distribution with parameter \(\lambda\) is given by
@@ -120,7 +120,7 @@ Two different distributions \textit{can} have all the same moments, but only if 
     \item $ Cov (\mX, \mY) = Cov ( \mY , \mX )' $.
   
   \end{itemize}
-  \item The third central moment is the measure of lopsideness of the distribution. When standardised by the standard deviation it is known as the skewness. Any symmetric distribution will have skewness of 0.
+  \item The third central moment is the measure of lopsidedness of the distribution. When standardised by the standard deviation it is known as the skewness. Any symmetric distribution will have skewness of 0.
   \item The fourth central moment is a measure of the heaviness of the tail. When standardised by the standard deviation, it is known as the kurtosis:
   \[
   \text{Kurt}[X] = \E\left[ \left( \frac{X - \mu}{\sigma} \right)^4 \right]= \frac{\mu_4}{\mu^2_2}.
@@ -285,7 +285,7 @@ PDF: \[ \displaystyle t_\nu = \frac{Z}{\sqrt{X/\nu}} = c\left(1+\frac{x^2}{\nu}\
 \end{minipage}
 
 \textbf{Why does the $\nu$-th moment of $t_{\nu}$ not exist?}\\
-Consider the $\nu$-th raw moment: $\int x^{\nu}c\left(1+\frac{x^2}{\nu}\right)^{-\frac{\nu+1}{2}}dx \approx \int c \nu^{\frac{\nu+1}{2}}x^{-1}dx$ when $x$ is large. This integral diverges, meaning the $\nu$-th raw moment does not exist. A more rigourous proof requires the use of the Beta and Gamma functions.
+Consider the $\nu$-th raw moment: $\int x^{\nu}c\left(1+\frac{x^2}{\nu}\right)^{-\frac{\nu+1}{2}}dx \approx \int c \nu^{\frac{\nu+1}{2}}x^{-1}dx$ when $x$ is large. This integral diverges, meaning the $\nu$-th raw moment does not exist. A more rigorous proof requires the use of the Beta and Gamma functions.
 
 \textbf{Properties}
 
@@ -377,7 +377,7 @@ $$ \E [X | \mathcal{L} ] = \E [ \E (X | \mathcal{M} ) | \mathcal{L} ] = \E [ \E 
     E(Y - g(X))^2 &= E[Y - E(Y|X) + E(Y|X) - g(X)]^2 \\
     &= E[Y - E(Y|X)]^2 + 2E[(Y - E(Y|X))(E(Y|X) - g(X))] + E[E(Y|X) - g(X)]^2 
   \end{align*}\\
-  Using the law of iterated expectaions: $E(Z) = E(E(Z|X))$
+  Using the law of iterated expectations: $E(Z) = E(E(Z|X))$
   \begin{align*}
     E[(Y - E(Y|X))(E(Y|X) - g(X))] &= E(E[(Y - E(Y|X))(E(Y|X) - g(X))]|X) \\
     \intertext{Bring terms explained fully by X outside expectation}
@@ -403,7 +403,7 @@ $$ \E [X | \mathcal{L} ] = \E [ \E (X | \mathcal{M} ) | \mathcal{L} ] = \E [ \E 
 \begin{theorem}
   The conditional median $med(Y|X)$ is the expected absolute error = $E(|Y - g(X)||X = x)$ minimizing predictor of $ Y $ based on knowledge of $ X $.
 \end{theorem}
-The following proof is a complete version of the outline Alexey presents in the notes. A brief (similar) proof is given at the end.\\
+The following proof is a complete version of the outline Alexei presents in the notes. A brief (similar) proof is given at the end.\\
 \begin{proof}
 \begin{align*}
   E(|Y - g(X)||X = x) &= \int_{-\infty}^{\infty} |y - g(x)| f_{Y|X}(y|x) dy\\
