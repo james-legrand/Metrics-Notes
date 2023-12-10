@@ -1,0 +1,214 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+\usepackage{parskip}
+\input{preamble.tex}
+\title{%
+R300 Econometrics}
+\author{Metrics Enjoyers}
+\date{Michaelmas Term, 2023-2024}
+
+\setuptoc{toc}{leveldown}
+\setcounter{chapter}{3}
+
+\begin{document}
+\chapter{Gauss-Markov Theorem. Estimation of \(\sigma^2\). Distribution of OLS in normal regression}
+
+\section{Gauss-Markov Theorem}
+\begin{theorem}Consider an \(n\times1\) random vector \(Y\) and an \(n\times k\) random matrix \(X\).
+   \\  \\ Assume (no need for iid, large n or normality): 
+\begin{itemize}
+    \item \(\bold{GM1}\) No perfect multicollinearity: \(\text{rank}(X) = k\)
+    \item \(\bold{GM2}\) Strict Exogeneity \(E(Y|X)=X\beta\), equivalently \(E(\epsilon|X)=0\)
+    \item \(\bold{GM3}\) Homoskedasticity and no serial correlation \(Var(Y|X)=\sigma^2 I\), 
+    \\ equivalently \(Var(\epsilon|X)=\sigma^2 I\)
+\end{itemize}
+    Then, the OLS estimator \(\hat{\beta}_{OLS}\) has the \underline{minimum conditional variance} in the class of estimators that, conditional on every X, are linear in Y and unbiased.
+    Thus \(\hat{\beta}_{OLS}\) is the Best Linear conditionally Unbiased Estimator (BLUE).
+\end{theorem}
+
+A linear estimator of \(\beta\) is any estimator of the form \(\tilde{\beta}=A(X)Y\) where \(A(X)\) is a \(k\times n\) matrix.
+For OLS \(\tilde{\beta}_{OLS}=A(X)Y=(X'X)^{-1}X'Y\)
+
+\begin{definition}
+    Minimum conditional variance implies:
+    \[Var(\tilde{\beta}|X) - Var(\hat{\beta}_{OLS}|X) \quad \text{is positive semi-definite} \quad \forall \tilde{\beta}\]
+    This \(k\times k\) matrix \(A\) is positive semi-definite iff \(z'Az\geq0\) for all \(k\times1\) vectors \(z\).
+    Thus for any \(z\): \[z'Var(\tilde{\beta}|X)z\geq z'Var(\hat{\beta}_{OLS}|X)z\]
+    Note this is equivalent to: \[Var(z'\tilde{\beta}|X) \geq Var(z'\hat{\beta}_{OLS}|X)\]
+    Thus \underline{\smash{any linear combination}} of the elements of \(\tilde{\beta}\) has a conditional variance that is at least as large as the conditional variance of the corresponding linear combination of the elements of \(\hat{\beta}_{OLS}\). 
+    
+    In particular, any component of \(\tilde{\beta}\) has a conditional variance that is at least as large as the conditional variance of the corresponding component of \(\hat{\beta}_{OLS}\).
+\end{definition}
+
+\newpage
+
+\section{GM PROOF}
+
+\vspace{5mm}
+
+\begin{proof}
+\vspace{5mm}
+\begin{lemma}
+We know \[\hat{\beta}_{OLS}=(X'X)^{-1}X'Y\] is conditioanlly (and unconditionally) unbiased under GM2, and is a linear function of Y.
+We also know under GM3 that \[Var(\hat{\beta}_{OLS}|X)=\sigma^2(X'X)^{-1}\]
+\end{lemma}
+Now consider any other linear conditionally unbiased estimator \(\tilde{\beta}=A(X)Y\).
+\[E(\tilde{\beta}|X)=E(AY|X)=AE(Y|X)=AX\beta \quad \text{under GM3}\]
+As we assume conditioanlly unbiased, for any \(\beta\)
+\[AX\beta=\beta \implies AX=I\]
+\begin{lemma}
+    \[Var(\tilde{\beta}|X)=Var(AY|X)=AVar(Y|X)A'=A\sigma^2I_nA'=\sigma^2AA'\]
+\end{lemma}
+
+Decomposing A:
+\[A=A-(X'X)^{-1}X'+(X'X)^{-1}X'=W+(X'X)^{-1}X'\]
+Thus: \[Var(\tilde{\beta}|X)=\sigma^2(W+(X'X)^{-1}X')(W+(X'X)^{-1}X')'\]
+\[=\sigma^2(W+(X'X)^{-1}X')(W'+X(X'X)^{-1})\]
+
+But \[WX=AX-(X'X)^{-1}X'X=I-I=0\]
+
+Therefore,
+\[Var(\tilde{\beta}|X)=\sigma^2WW'+\sigma^2(X'X)^{-1}\]
+\[= Var(\hat{\beta}_{OLS}|X)+\sigma^2WW'\]
+
+\begin{lemma}
+    \(\quad \sigma^2WW' \quad \text{is positive semi-definite}\)
+    \\
+    \\
+    For any k-dimensional vector \(z\), denote the k-dimensional vector \(W'z\) as \(\alpha=(\alpha_1,...,\alpha_k)'\)
+    \[z'\sigma^2WW'z=\sigma^2(z'W)(W'z)=\sigma^2\alpha'\alpha=\sigma^2\sum_{i=1}^k\alpha_i^2\geq0\]
+
+\end{lemma}
+
+Thus \(Var(\tilde{\beta}|X) - Var(\hat{\beta}_{OLS}|X)\) is psd for any linear conditionally unbiased estimator \(\tilde{\beta}=AY\).
+
+\end{proof}
+
+\newpage
+
+\section{Estimation of \(\sigma^2\)}
+
+Given the following but how to estimate?:
+\[Var(\hat{\beta}_{OLS}|X)=\sigma^2(X'X)^{-1}\]
+We are given X, thus only need to estimate \(\sigma^2\).
+
+Note: \(\sigma^2=E(\epsilon_i^2|X)\) and since trivially \(\sigma^2=E(\sigma^2)\) we have:
+\[\sigma^2=E(E(\epsilon_i^2|X))=E(\epsilon_i^2)\]
+
+This suggests the MOM estimator:
+\[\hat{\sigma}^2_{MOM}=\frac{1}{n}\sum_{i=1}^n{\epsilon}_i^2\]except we don't know \(\epsilon_i\) as \(\beta\) is unknown.
+
+But with \(\hat{\beta}=\hat{\beta}_{OLS}\) we can use the sample analague \(\hat{\epsilon}_i=y_i-x_i'\hat{\beta}_{OLS}\) and thus:
+\vspace{5mm}
+\begin{theorem} The \underline{biased} (ML) estimator of \(\sigma^2\) is:
+    \[\hat{\sigma}^2=\frac{1}{n}\sum_{i=1}^n{\hat{\epsilon}}_i^2\left(=\frac{1}{n}\sum_{i=1}^n\hat{\epsilon}'_i\hat{\epsilon}_i\right)\]
+\end{theorem}
+
+\subsection{Unbiased Estimator of \(\sigma^2\)}
+
+We first compute the bias of \(E(\hat{\sigma}^2|X)\) to then correct for it:
+
+\vspace{5mm}
+
+\begin{lemma}
+    \[\hat{\epsilon}=M_XY=M_X(X\beta+\epsilon)=M_X\epsilon\]
+\end{lemma}
+
+Then  \[E(\hat{\sigma}^2|X) = E(\hat{\epsilon}'\hat{\epsilon}|X)\]
+\[=E(\epsilon'M_X'M_X\epsilon|X) = E(\epsilon'M_X\epsilon|X) = E(tr(\epsilon'M_X\epsilon)|X) , \quad \text{since argument is a scalar}\] \[\because\text{trace multiplications are commutative if conformations exists}\implies\]
+\[=E(tr(M_X\epsilon\epsilon')|X)=tr(E(\epsilon'M_X\epsilon|X)) = tr(M_XE(\epsilon\epsilon'|X)) = tr(M_X\sigma^2I_n) = \sigma^2tr(M_X)\]
+
+\begin{lemma}
+    \[tr(M_X)=n-k\]
+\end{lemma}
+\vspace{5mm}    
+\begin{proof}
+    \[M_X=(I-X(X'X)^{-1}X')\]
+    \[tr(M_X)=tr(I_n-X(X'X)^{-1}X')=tr(I_n)-((X'X)^{-1}X'X)\]
+    \[tr(I_n)-tr(I_k)\]
+    \[=n-k\]
+\end{proof}
+
+Thus \[E(\hat{\sigma}^2|X)=\frac{n-k}{n}\sigma^2\]
+
+\begin{theorem}
+    \[\hat{\sigma}^2_{u}=\frac{n}{n-k}\hat{\sigma}^2_{ML}= \frac{\hat{{\epsilon}}^{\prime}\hat{{\epsilon}}}{n-k}\] is an unbiased estimator of \(\sigma^2\)
+    is an unbiased estimator of \(\sigma^2\)
+\end{theorem}
+
+\section{Estimation of standard errors}
+
+By default STATA computes s.e. of component \(\hat{\beta}_j\) of \(\hat{\beta}_{OLS}\) as 
+the square roots from the i-th diagonal element of \(\hat{\sigma}^2(X'X)^{-1}\) or more explicitly with the partitioned regression formulae:
+\[\hat{se}(\hat{\beta}_i)=\frac{\hat{\sigma_u}}{\sqrt{X_i'M_{-i}X_i}}\]
+where \(X_i\) is the i-th column of X (i-th regressor) and \(M_{-i}\) is the residual maker matrix in the regression on all the other explanatory variables but \(X_i\).
+
+\section{Distribution of OLS}
+
+Knowing the mean and variance of OLS is \underline{not sufficient} to test hypotheses about \(\beta\). We need to also know the distribution.
+In small samples this is easy to derive with the following assumption:
+\[\bold{Normal \ Regression:} \epsilon|X ~ N(0,\sigma^2I_n)\]
+This subsumes GM2 and GM3 and adds normality. 
+
+\vspace{5mm}
+
+\begin{claim} There are several properties of the multivariate Gaussian which become useful in derivations.
+    \begin{itemize}
+        
+        \item If \(\bold{Z\sim N(0,\sigma^2I_n)}\) and \(\bold{A}\) be any deterministic \(r\times n\) matrix, then \(\bold{AZ \sim N(0,\sigma^2AA')}\). In particular \underline{\smash{any linear combinations of normals is normal}}.
+        \item The Normal distribution \(N(0,\sigma^2I_n)\) is \underline{\smash{invariant to rotations/orthogonal transformations}}. If \(\bold{Z \sim N(0,\sigma^2I_n)}\) and \(\bold{Q}\) is any \(n\times n\) orthogonal matrix, then \(\bold{QZ \sim N(0,\sigma^2I_n)}\), i.e. \(QZ\) has the same distribution as \(Z\).
+    \end{itemize}
+\end{claim}
+\vspace{5mm}
+\begin{theorem}
+    Using the first property and the normal regression assumption, we obtain:
+    \[\hat\beta_{OLS}|X = \beta + (X'X)^{-1}X'\epsilon|X \sim N(\beta,\sigma^2(X'X)^{-1})\]
+\end{theorem}
+
+\end{document}
+
+% Nicely formatted boxes
+%\begin{theorem}
+%  This is a theorem.
+%  \end{theorem}
+%  \begin{proof}[Theorem 1]
+%  This is a proof.
+%  \end{proof}
+%  \begin{example}
+%  This is an example.
+%  \end{example}
+%  \begin{explanation}
+%  This is an explanation.
+%  \end{explanation}
+%  \begin{claim}
+%  This is a claim.
+%  \end{claim}
+%  \begin{corollary}
+%  This is a corollary.
+%  \end{corollary}
+%  \begin{prop}
+%  This is a proposition.
+%  \end{prop}
+%  \begin{lemma}
+%  This is a lemma.
+%  \end{lemma}
+%  \begin{question}
+%  This is a question.
+%  \end{question}
+%  \begin{solution}
+%  This is a solution.
+%  \end{solution}
+%   \begin{question}
+%  This is another question.
+%  \end{question}
+%  \begin{solution}
+%  This is another solution.
+%  \end{solution}
+%  \begin{exercise}
+%  This is an exercise.
+%  \end{exercise}
+%  \begin{definition}[Test]
+%  This is a definition.
+%  \end{definition}
+%  \begin{note}
+%  This is a note.
+%  \end{note}
