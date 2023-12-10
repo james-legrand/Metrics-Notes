@@ -1,0 +1,223 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\vspace{-10pt}
+\setcounter{chapter}{1}
+
+\chapter{Causal interpretation of regression. Least Squares.}
+\vspace{-10pt}
+\section{Regression and Causality}
+A variable $x_1$ can be said to have a causal effect on the response variable $y$ if the latter changes when all other inputs are held constant. We can write a full model for the response variable $y$ as: \[ y = h(x_1, \mathbf{x_2},\boldsymbol{\epsilon}) \] where $x_1$ and $\mathbf{x_2}$ are the observed variables, $\boldsymbol{\epsilon}$ is an $\ell \times 1$ unobserved random factor and $h$ is a functional relationship. 
+
+\begin{definition}[Causal effect]\label{def:causaleffect}
+In the model $y = h(x_1, \mathbf{x_2},\boldsymbol{\epsilon})$ the \textbf{causal effect} of $x_1$ on $y$ is  \[C(x_1, \mathbf{x_2},\boldsymbol{\epsilon})=\nabla_{1}h(x_1, \mathbf{x_2},\boldsymbol{\epsilon}), \] the change in $y$ due to a change in $x_1$, holding $\mathbf{x_2}$ and $\boldsymbol{\epsilon}$ constant.
+\end{definition}
+
+\begin{note}
+This is just a definition, and does not necessarily describe causality in a fundamental or experimental sense. It might be more appropriate to label this a structural effect (the effect within the structural model).
+\end{note}
+
+\begin{example}
+    Suppose firms have Cobb-Douglas production functions: \[y = AK^{\alpha}L^{\beta}\] where $ K,L$ are observed capital and labour, $A$ is an unobserved production technology and $y$ is output. Here $x_1=K, x_2=L, \epsilon=A$. Then the causal effect of capital on output is 
+    \[C(K,L,A)= y'(K,L,A) = \alpha AK^{\alpha -1}L^{\beta}.\] Even for firms with identical inputs, this effect differs due to unobserved $A$.
+\end{example}
+
+Sometimes it is useful to write this relationship as a potential outcomes function \[y(x_1) = h(x_1, \mathbf{x_2},\boldsymbol{\epsilon}) \] where the notation implies that $y(x_1)$ is holding $\mathbf{x_2}$ and $\boldsymbol{\epsilon}$ constant. A popular example arises in the analysis of treatment effects with a binary regressor \( x_1 \). Let \( x_1 = 1 \) indicate treatment (e.g., a medical procedure) and \( x_1 = 0 \) indicate non-treatment. In this case \( y(x_1) \) can be written
+\[
+y(0) = h(0, x_2, \boldsymbol{\epsilon}), \hspace{5pt}
+y(1) = h(1, x_2, \boldsymbol{\epsilon})
+\]
+
+where \( y(0) \) and \( y(1) \) are known as the latent outcomes associated with non-treatment and treatment, respectively. The causal effect of treatment for the individual is the change in their health outcome due to treatment; the change in \( y \) as we hold both \( x_2 \) and \( \boldsymbol{\epsilon} \) constant:
+\[
+C(x_2, \boldsymbol{\epsilon}) = y(1) - y(0).
+\]
+This is random as both potential outcomes \( y(0) \) and \( y(1) \) are different across individuals. 
+
+\begin{example}
+    Suppose there are two individuals Yinfeng and Charles, and both have the possibility of being a PhD graduate or dropping out. Suppose Yinfeng would earn £8/hour without a PhD and £12/hour as a PhD grad, while Charles would earn £20/hour without and £30/hour with a PhD. The causal effect of a PhD on wages is £4/hour for Yinfeng and £10/hour for Charles.
+\end{example}
+
+In a sample, we cannot observe both outcomes from the same individual, we only observe the realised value. As the causal effect varies across individuals and is not observable, it cannot be measured on the individual level. We therefore focus on aggregate causal effects, in particular what is known as the average causal effect.
+
+\begin{definition}[Average causal effect]
+    In the model $y = h(x_1, \mathbf{x_2},\boldsymbol{\epsilon})$ the \textbf{average causal effect} of $x_1$ on $y$ conditional on $\mathbf{x_2}$ is 
+    \begin{align*}
+        ACE(x_1, \mathbf{x_2}) &= \E(C(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) \, | \, x_1, \boldsymbol{x_2}) \\
+       &= \int_{\mathbb{R}^{\ell}} \nabla_1 h(x_1, \mathbf{x_2},\boldsymbol{\epsilon}) (\boldsymbol{\epsilon} \, | \,x_1, \boldsymbol{x_2}) d\boldsymbol{\epsilon}    
+    \end{align*}
+        where $f(\boldsymbol{\epsilon} \, | \, x_!, \boldsymbol{x_2})$ is the conditional density of $\boldsymbol{\epsilon}$ given $x_1, \boldsymbol{x_2}$.
+\end{definition}
+
+\begin{example}
+
+In the Cobb-Douglas example, the ACE of capital on output will be:
+\[ ACE(K,L)=\E(\alpha AK^{\alpha-1}L^{\beta}|K,L)=\alpha \E(A|K,L)K^{\alpha -1}L^{\beta} \]
+
+\end{example}
+
+\begin{example}
+Considering again Yinfeng and Charles, suppose half our population are Yinfeng's and the other half Charles's, then the average causal effect of a PhD is $(10+4)/2=$£$7$/hour. This is not the individual causal effect, it is the average of the causal effect across all individuals in the population.
+\end{example}
+We can think of $ACE(x_1, \mathbf{x_2})$ as the average effect in the general population. When we conduct regression analysis we might hope that regression reveals the $ACE$, i.e.: what is the relationship between $ACE(x_1, \mathbf{x_2})$ and the regression derivative $\nabla_1 m(x_1, \mathbf{x_2})$? The model $h(x_1, \mathbf{x_2},\boldsymbol{\epsilon})$ implies that the CEF is
+\begin{align*}
+m(x_1, \boldsymbol{x_2}) &= \E(h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) \, | \, x_1, \boldsymbol{x_2})\\
+&= \int_{\mathbb{R}^{\ell}} h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2}) d\boldsymbol{\epsilon},
+\end{align*}
+
+the average causal equation, averaged over the conditional distribution of the unobserved component $\boldsymbol{\epsilon}$. 
+
+Applying the marginal effect operator \footnote[1]{Alexei uses $\frac{\partial}{\partial x_1}$ throughout, this is equivalent to the marginal effect operator used here with continuous $x_1$.}, the regression derivative is:
+\begin{align*}
+\nabla_1 m(x_1, \boldsymbol{x_2}) &= \int_{\mathbb{R}^{\ell}} \nabla_1 h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2}) d\boldsymbol{\epsilon} + \int_{\mathbb{R}^{\ell}} h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) \nabla_1 f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2}) d\boldsymbol{\epsilon}\\
+&= ACE(x_1, \boldsymbol{x_2}) + \int_{\mathbb{R}^{\ell}} h(x_1, \boldsymbol{x_2}, \boldsymbol{\epsilon}) \nabla_1 f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2}) d\boldsymbol{\epsilon}
+\end{align*}
+In general we see that the regression derivative does not equal the average causal effect. They are only equal in the special case when the second term equals zero, which occurs when the conditional density of $\boldsymbol{\epsilon}$ given $( x_1, \boldsymbol{x_2})$ does not depend on $x_1$ ($\nabla_1 f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2})=0$). When this condition holds then the regression derivative equals the ACE, which means that regression analysis can be interpreted causally, in the sense that it uncovers average causal effects.\\
+
+\begin{definition}[Condiional Independence Assumption (CIA)]
+    Conditional on $\mathbf{x_2}$, the random variables $x_1$ and $\boldsymbol{\epsilon}$ are statistically independent.
+\end{definition}
+
+\vspace{10pt}
+
+The CIA implies $f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2})=f(\boldsymbol{\epsilon} \, | \, \boldsymbol{x_2})$ does not depend on $x_1$, and thus $\nabla_1 f(\boldsymbol{\epsilon} \, | \, x_1, \boldsymbol{x_2})=0$. Thus the CIA implies that the regression derivative equals the ACE.
+
+\begin{theorem}
+    In the structural model $y = h(x_1, \mathbf{x_2},\boldsymbol{\epsilon})$, the CIA implies \[ \nabla_1 m(x_1, \boldsymbol{x_2})=ACE(x_1, \boldsymbol{x_2}) \] the regression derivative equals the average causal effect for $x_1$ on $y$ conditional on $\mathbf{x_2}$.
+\end{theorem}
+
+\begin{example}[Nerlove: Returns to scale in electriciy supply]
+Nerlove investigated returns to scale in a regulated industry (U.S. electricity) using Cobb-Douglas production. The market had the following features:
+\begin{enumerate}
+    \item Privately owned local monopolies supply electricity on demand 
+    \item These local monopolies face competitive factor prices
+    \item Electricity prices are set by the government
+\end{enumerate}
+Notably Y is exogenously given (by consumer demand). Nerlove assumes firms pick $K,L$ to minimise the cost of producing $Y=AK^{\alpha}L^{\beta}$, i.e. $K,L$ both depend on $A,Y$, in particular $f(A|K,L)$ depends on $K$. Thus a regression of $Y$ on $K,L$ will not identify the $ACE$.
+
+\[ \min_{K, L} p_K K + p_L L \hspace{5pt} s.t. \hspace{5pt} Y=AK^{\alpha}L^{\beta}\]
+The Lagrangian and FOCs for this problem are:
+\[ \mathcal{L} = p_K K + p_L L + \lambda(Y - AK^\alpha L^\beta) \]
+\[ \frac{\partial \mathcal{L}}{\partial K} = p_K - \lambda \alpha AK^{\alpha-1}L^\beta = 0 , \hspace{10pt} \frac{\partial \mathcal{L}}{\partial L} = p_L - \lambda \beta AK^\alpha L^{\beta-1} = 0 \]
+
+\[ \implies K = \frac{\alpha p_L}{\beta p_K} L \]
+
+We can substitute this into the production function to solve for L and K, giving:
+\[ TC = p_K \left(\frac{\alpha p_L}{\beta p_K} \left(\frac{Y}{A\left(\frac{\alpha p_L}{\beta p_K}\right)^\alpha}\right)^{\frac{1}{\alpha + \beta}}\right) + p_L \left(\left(\frac{Y}{A\left(\frac{\alpha p_L}{\beta p_K}\right)^\alpha}\right)^{\frac{1}{\alpha + \beta}}\right) \]
+
+\[ TC = p_L \left( \frac{Y \left(\frac{p_L \alpha}{p_K \beta}\right)^{-\alpha}}{A} \right)^{\frac{1}{r}} \left( \frac{r}{\beta} \right)  = r \alpha^{-\alpha/r} \beta^{-\beta/r} A^{-1/r} Y^{1/r} p_K^{\alpha/r} p_L^{\beta/r} \]
+
+Taking logs we obtain the following log-linear relationship for each firm:
+
+\[ \log(TC_i)=\mu_i + \frac{1}{r}\log(Y_i)+\frac{\alpha}{r}\log(p_K)+\frac{\beta}{r}\log(p_L)\]
+
+where $\mu_i = \log[r(A_i {\alpha}^{\alpha} {\beta}^{\beta})^{-\frac{1}{r}}]$. Coefficients in this equation are elasticities, for example $\frac{\beta}{r}$ is the elasticity of total cost with respect to the wage rate, i.e.: the percentage change in in total cost when the wage rate changes by 1\%. The degree of returns to scale (the reciprocal of the output elasticity of total costs), is independent of the level of output.\\
+To estimate this define $\mu \equiv \E[\mu_i]$, $\epsilon_i \equiv \mu - \mu_i$ so $\E[\epsilon_i]=0$, firms with positive $\epsilon_i$ are high-cost firms.
+
+\[ \log(TC_i)=\beta_0 + \beta_1 log(Y_i)+\beta_2 \log(p_K)+\beta_3\log(p_L),\] where
+\[\beta_0 = \mu, \beta_1 = \frac{1}{r}, \beta_2 = \frac{\alpha}{r}, \beta_3 = \frac{\beta}{r}\]
+
+This equation is overidentified, the 4 coefficients are not free parameters, they are a function of three technology parameters ($\alpha,\beta,\mu$). Clearly $\beta_2+\beta_3=1$ (as expected, cost function is linearly homogenous in factor prices). To fix this we can subtract $p_L$ from each side and consider relative prices: 
+\[\log\left(\frac{TC_i}{p_L}\right)=\beta_0 + \beta_1 log(Y_i)+\beta_2 \log\left(\frac{p_K}{p_L}\right) \]
+To test constant returns to scale ($r=1$), just $t$-test $\beta_1 = 1$ in this restricted model.
+\end{example}
+
+\section{Estimating population regression by least squares}
+If CIA holds, regression captures the causal effect of $x$'s on $y$. However even if it doesn't, it still provides the best predictor of $y$ given $x$'s. We assume the regression function $\E[y|x]=m(x)$ is parametrised by a finite dimensional vector $\beta = [\beta_1, ..., \beta_k]^{T}$, so that estimating the population regression $m(x;\beta)$ is equivalent to estimating $\beta$. One approach to estimation is using the analogy principle.
+
+\begin{definition}[Analogy principle]
+    Consider finding an estimator that satisfies the same properties in the sample that the parameter satisfies in the population; i.e., seek to estimate $ \beta(P) $ with $ \beta(P_n) $ where $ P_n $ is the empirical distribution\index{Empirical distribution} which puts mass $ \tfrac{1}{n} $ at each sample point. Note this distribution converges uniformly to $ P $.
+\end{definition}
+
+In the regression context:
+\[ \beta = \arg \min_{b} \E (y-m(x;b))^2\]
+The sample analogue of expectation is the average: 
+\[ \hat{\beta} = \arg \min_{b} \frac{1}{n}\sum_{i=1}^{n}(y-m(x;b))^2\]
+When $m(x;b)$ is linear in $b$, the method is called OLS. We assume that the observations of the data $(y_i,x_i)$ are independent and come from the same joint distribution. Let
+$$
+\underbrace{X_i}_{K \times 1} = \begin{bmatrix} x_{i1} \\ \vdots \\ x_{iK} \end{bmatrix},
+\underbrace{\beta}_{K \times 1} = \begin{bmatrix} \beta_{1} \\ \vdots \\ \beta_{K} \end{bmatrix},
+$$
+$$
+\underbrace{Y}_{n \times 1} = \begin{bmatrix} y_{1} \\ \vdots \\ y_{n} \end{bmatrix},
+\underbrace{\epsilon}_{n \times 1} = \begin{bmatrix} \epsilon_{1} \\ \vdots \\ \epsilon_{n} \end{bmatrix},
+\underbrace{X}_{n \times K} = \begin{bmatrix} X_{1}' \\ \vdots \\ X_{n}' \end{bmatrix}.
+$$
+When our model contains a constant, one of the columns of $X$ will contain only ones. Our linear model can thus be represented as: 
+\[ Y=X\beta +\epsilon \]
+When estimating we select the $\hat\beta$ such that the sum of squared residuals ($e'e$) is minimised\footnote[1]{Note that $e \not = \epsilon$, residuals $e$ are observed, whilst disturbances $\epsilon$ are unobserved.}.
+\begin{align*}
+    e'e &= (y-X\hat\beta)'(y-X\hat\beta)\\
+    &= (y'-\hat\beta'X')(y-X\hat\beta)\\
+    &= y'y -\hat\beta'X'y-y'X\hat\beta + \hat\beta'X'X\hat\beta\\
+    &= y'y - 2\hat\beta'X'y + \hat\beta'X'X\hat\beta
+\end{align*}
+Where $y'X\hat\beta = (y'X\hat\beta)'= \hat\beta'X'y$ since the transpose of a scalar is itself. 
+
+\begin{note}
+    \textbf{Matrix differentiation}
+\begin{equation}
+\frac{\partial \mathbf{a}' \mathbf{b}}{\partial \mathbf{b}} = \frac{\partial \mathbf{b}' \mathbf{a}}{\partial \mathbf{b}} = \mathbf{a}
+\end{equation}
+
+when \(\mathbf{a}\) and \(\mathbf{b}\) are \(K \times 1\) vectors.
+
+\begin{equation}
+\frac{\partial \mathbf{b}' \mathbf{Ab}}{\partial \mathbf{b}} = 2\mathbf{Ab} = 2\mathbf{A}' \mathbf{b}
+\end{equation}
+
+when \(\mathbf{A}\) is any symmetric matrix.
+
+\begin{equation}
+\frac{\partial 2 \mathbf{b}' \mathbf{X}' \mathbf{y}}{\partial \mathbf{b}} = \frac{\partial 2 \mathbf{b}' (\mathbf{X}' \mathbf{y})}{\partial \mathbf{b}} = 2\mathbf{X}' \mathbf{y}
+\end{equation}
+
+and
+
+\begin{equation}
+\frac{\partial \mathbf{b}' \mathbf{X}' \mathbf{X}\beta}{\partial \mathbf{b}} = \frac{\partial 2 \mathbf{A}\beta}{\partial \mathbf{b}} = 2\mathbf{A}\beta = 2\mathbf{X}' \mathbf{X}\beta
+\end{equation}
+
+when \(\mathbf{X}'\mathbf{X}\) is a \(K \times K\) matrix.
+\end{note}
+
+Solving for the minimum: 
+\begin{align*}
+\frac{\partial e'e}{\partial \hat\beta}&=-2X'y+2X'X\hat\beta=0 \\
+ &\implies X'X\hat\beta=X'y\\
+ &\implies (X'X)^{-1}(X'X)\hat\beta=(X'X)^{-1}X'y\\
+ &\implies I_K\hat\beta=(X'X)^{-1}X'y\\
+ &\implies \hat\beta = (X'X)^{-1}X'y 
+\end{align*}
+Here we have assumed that the inverse of $X'X$ exists, i.e. $X$ is full rank\footnote[2]{The inverse of $X'X$ may not exist, it does not exist in the following two cases: 1) When $n < k$; we have more independent variables than observations 2) One or more of the independent variables are a linear combination of the other variables i.e. perfect multicollinearity.}. To check this is a minimum, take second derivative which gives us $2X'X$ which is clearly positive semi-definite (when $X$ is full rank). Note that $X'X$ is always square ($k \times k$) and always symmetric.\\
+
+We can further show that $X'e=0$, consider the normal form equations $X'X\hat\beta=X'y$:
+\begin{align*}
+    (\mathbf{X}'\mathbf{X})\hat{\boldsymbol{\beta}} &= \mathbf{X}'(\mathbf{X}\hat{\boldsymbol{\beta}} + \mathbf{e}) \\
+    (\mathbf{X}'\mathbf{X})\hat{\boldsymbol{\beta}} &= (\mathbf{X}'\mathbf{X})\hat{\boldsymbol{\beta}} + \mathbf{X}'\mathbf{e} \\
+    \mathbf{X}'\mathbf{e} &= \mathbf{0}
+\end{align*}
+\begin{prop}[Properties of OLS]
+From $X'e$=0 we can derive a number of properties.
+\begin{enumerate}
+    \item The observed values of $X$ are uncorrelated with the residuals.
+    \item The sum of the residuals is zero.
+    \item The sample mean of the residuals is zero.
+    \item The regression hyperplane passes through the sample means of observables.
+    \item The predicted values of $y$ are uncorrelated with the residuals.
+\end{enumerate}
+Where 2-5 hold when the regression includes a constant term.
+\end{prop}
+\begin{proof} Using $X'e=0$
+\begin{enumerate}
+    \item $\mathbf{X}'\mathbf{e} = 0$ implies that for every column $\mathbf{x}_k$ of $\mathbf{X}$, $\mathbf{x}_k'\mathbf{e} = 0$. In other words, each regressor has zero sample correlation with the residuals. Note that this does not mean that $\mathbf{X}$ is uncorrelated with the disturbances; we'll have to assume this.
+    \item  If there is a constant, then the first column in \(\mathbf{X}\) (i.e. \(\mathbf{X}_1\)) will be a column of ones. This means that for the first element in the \(\mathbf{X}'\mathbf{e}\) vector (i.e. \(\mathbf{X}_{11} e_1 + \mathbf{X}_{12} e_2 + \ldots + \mathbf{X}_{1n} e_n\)), to be zero, it must be the case that \(\sum_{i} e_i = 0\).
+    \item     This follows straightforwardly from the previous property i.e. \(\bar{e} = \frac{\sum e_i}{n} = 0\).
+    \item     This follows from the fact that \(\bar{e} = 0\). Recall that \(e = y - \mathbf{X}\hat{\boldsymbol{\beta}}\). Dividing by the number of observations, we get \(\bar{e} = \bar{y} - \bar{\mathbf{X}}\hat{\boldsymbol{\beta}} = 0\). This implies that \(\bar{y} = \bar{\mathbf{X}}\hat{\boldsymbol{\beta}}\).
+    \item     \(\hat{y}'e = (\mathbf{X}\hat{\boldsymbol{\beta}})'e = \hat{\boldsymbol{\beta}}'\mathbf{X}'e = 0\) 
+\end{enumerate}
+\end{proof}
+\end{document}
