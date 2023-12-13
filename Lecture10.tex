@@ -1,0 +1,219 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\vspace{-10pt}
+\setcounter{chapter}{9}
+
+\chapter{Probit. Maximum Likelihood.}
+\vspace{-10pt}
+\section{Binary choice}
+Suppose we don't have a continuous dependent variable, rather it is binary: $y_i = \{0,1\}$. We could still use OLS here, let's check out the assumptions:
+\begin{itemize}
+    \item [(OLS0)]  $(y_i, x_i)\text{ is an i.i.d. sequence}$
+    \subitem \textcolor{teal}{$\checkmark$ Binary $y_i$ doesn't break this, we can still have an i.i.d. sequence}
+    \item [(OLS1)] $ E(x_i x_i')$  is finite non-singular
+    \subitem \textcolor{teal}{$\checkmark$ Binary $y_i$ doesn't affect this}
+    \item [(OLS2)] $E(y_i|x_i) = x_i'\beta$
+    \subitem \textcolor{magenta}{? $E(y_i|x_i)=1\times P(y_i=1|x_i)+0\times P(y_i=0|x_i)=P(y_i=1|x_i) \overset{?}{=}x_i'\beta$ 
+    \subitem Hence, for OLS2 to hold we need use the linear probability model.}
+    \item [(OLS3)] Var $(y_i|x_i)= \sigma^2$
+    \subitem \textcolor{purple}{$\bigtimes$ $Var(y_i|x_i) = E(y_i^2|x_i)-E(y_i|x_i)^2=E(y_i|x_i)-E(y_i|x_i)^2=x_i'\beta(1-x_i'\beta)$
+    \subitem using $y^2=y$. Hence OLS3 cannot hold, we do have heteroskedasticity.}
+    \item [(OLS4)] $E\epsilon_i^4 < \infty, \quad E\|x_i\|^4 < \infty$
+    \subitem \textcolor{teal}{$\checkmark$ May still hold}
+\end{itemize}
+We can fix the heteroskedasticity with GLS or White standard errors, but the linear probability model is more of a problem. This model does not restrict predicted probabilities to be between 0 and 1, and the use of any other model will violate OLS2 meaning OLS will not be consistent.\\
+The standard alternative is to use a function of the form \[ P(y_i=1|x_i)=F(x_i'\beta)\] where F($\cdot$) is a known CDF, typically assumed to be symmetric about zero, so that $F(u)=1-F(-u)$. The standard choices for F are
+\begin{itemize}
+    \item Logistic: $F(u) = \frac{e^u}{1+e^u}$, known as the \textbf{logit} model
+    \item Normal: $F(u) = \Phi(u)$, known as the \textbf{probit} model
+\end{itemize}
+This is identical to the latent variable model
+\begin{align*}
+    y_i*&=x_i'\beta+\epsilon_i\\
+    \epsilon_i &\sim F(\cdot)\\
+    y_i &= \begin{cases}
+        1 \quad \text{ if } y_i*>0\\
+        0 \quad \text{otherwise}
+    \end{cases}
+\end{align*}
+Since then
+\begin{align*}
+    P(y_i=1|x_i)&=P(y_i*>0|x_i)\\
+    &= P(x_i'\beta+\epsilon_i>0|x_i)\\
+    &= P(\epsilon_i>-x_i\beta |x_i)\\
+    &= 1-F(-x_i'\beta)\\
+    &= F(x_i'\beta)
+\end{align*}
+\section{Maximum likelihood estimation}
+The probit model is typically estimated by the method of maximum likelihood (ML). Consider the typical setup:
+\begin{align*}
+    z_1,\dots, z_n \overset{i.i.d.}{\sim} f(\cdot|\theta) \quad & \rightarrow \quad L(\theta) = \prod_{i=1}^{n}f(z_i|\theta)\\
+    \log L(\theta) = \ell(\theta)  \quad &=  \quad \sum_{i=1}^{n}\log f(z_i|\theta)\\
+    \hat\theta_{ML  \quad} &=  \quad \arg \underset{\theta}{\max}\ell(\theta)
+\end{align*}
+This is known as a \textit{parametric model}, it requires the specification of the distribution of the data up to an unknown parameter $\theta$.\\
+A key property is that the expected log-likelihood is maximised at the true value of the parameter vector $\theta_0$. Set $Z= (z_1,\dots,z_n)$.
+\begin{theorem}
+    $\theta_0 = \arg \underset{\theta}{\max} \E(\log L (\theta)|Z)$
+\end{theorem}
+The proof is presented in Lecture 11 using KL divergence. This motivates estimating $\theta$ by finding the value which maximises log-likelihood.
+\begin{example}[OLS using MLE]
+    \[
+      f(Y_1,\dots, Y_n|X,\beta,\sigma^2) \quad : \quad L = \prod_{i=1}^{n}\frac{1}{\sqrt{2 \pi \sigma^2}}e^{-\frac{(Y_i-X_i'\beta)^2}{2\sigma^2}}  
+    \]
+    \begin{align*}
+    \implies \ell = \log L &=\sum_{i=1}^{n}\log\left(\frac{1}{\sqrt{2 \pi \sigma^2}}\right) -\frac{(Y_i-X_i'\beta)^2}{2\sigma^2}\\
+    &= n \log\left(\frac{1}{\sqrt{2 \pi \sigma^2}}\right) - \frac{\sum_{i=1}^{n}(Y_i-X_i'\beta)^2}{2\sigma^2}\\
+    &= \frac{n}{2}\log(2\pi) - \frac{n}{2}\log(\sigma^2) - \frac{\sum_{i=1}^{n}(Y_i-X_i'\beta)^2}{2\sigma^2}
+    \end{align*}
+Hence, the FOCs are:
+\begin{align}
+    \frac{\partial \ell}{\partial \beta} &= - \frac{\sum_{i=1}^{n}(-X_i)(Y_i-X_i'\beta)}{\sigma^2}=0\\
+    \frac{\partial ell}{\partial \sigma^2} &= -\frac{n}{2\sigma^2 } + \frac{\sum_{i=1}^{n}(Y_i-X_i'\beta)^2}{2\sigma^4}=0
+\end{align}
+\begin{minipage}{.5\textwidth}
+\begin{align*}
+    (10.1) \quad& \implies \sum_{i=1}^{n}X_iY_i-X_iX_i'\hat\beta_{ML}=0\\
+    & \implies X'Y -X'X\hat\beta_{ML}=0\\
+    & \implies\hat\beta_{ML} = (X'X)^{-1}X'Y = \hat\beta_{OLS}
+\end{align*}
+\end{minipage}
+\begin{minipage}{.5\textwidth}
+    \begin{align*}
+        (10.2) \quad& \implies  n \sigma^2 = \sum_{i=1}^{n}(Y_i-X_i'\hat\beta_{ML})^2\\
+        & \implies \sigma^2 = \frac{1}{n}\sum_{i=1}^{n}(Y_i-X_i'\hat\beta_{ML})^2
+    \end{align*}
+\end{minipage}
+Thus, $\hat\beta_{OLS}$ is actually the MLE for $\beta$, so it has the desirable properties discussed in Lecture 11. However, the ML estimator for the variance is biased due to not correcting for the loss in degrees of freedom from estimating $\hat\beta_{ML}$.
+\end{example}
+
+Consider the problem of estimating $\theta$ if you have a vector of data $Z$ with the joint density of its elements given by $f(z|\theta)$.
+\begin{definition}[Score]
+    The score of the likelihood function is the vector of partial derivatives with respect to the parameters. 
+    \[\frac{\partial}{\partial \theta} \log f(Z|\theta) \]
+\end{definition}
+
+\begin{theorem}
+    If $\log f(Z|\theta)$ is second differentiable and the support of $Z$ doesn't depend on $\theta$ then the score has mean zero:
+    \[\E \left[\frac{\partial}{\partial \theta} \log f(Z|\theta)\right]=0\]
+\end{theorem}
+\begin{proof}
+    \begin{align*}
+        \E \left[\frac{\partial}{\partial \theta} \log f(Z|\theta)\right] &= \int_{\R} \frac{\frac{\partial}{\partial \theta}f(z|\theta)}{f(z|\theta)}f(z|\theta)dz\\
+        &= \frac{\partial}{\partial \theta}\int_{\R}f(z|\theta)dz\\
+        &= \frac{\partial}{\partial \theta} 1\\
+        &=0
+    \end{align*}
+\end{proof}
+\begin{definition}[Fisher information]
+    The covariance matrix of the score  is known as the Fisher information\[ I(\theta)=Var\left(\frac{\partial}{\partial \theta}\log f(Z|\theta)\right)=\E\left[\left(\frac{\partial}{\partial \theta}\log f(Z|\theta)\right)^2|\theta\right]\]
+\end{definition}
+\begin{note}
+Because the likelihood of $\theta$ given $Z$ is always proportional to the probability $f(Z|\theta)$; their logarithms necessarily differ by a constant that is independent of $\theta$, and the derivatives are necessarily equal. Thus one can substitute in $\log L(\theta) = \ell (\theta)$ for $\log f(Z|\theta)$ in the above definitions.
+\end{note}
+
+The Fisher information is a way of measuring the amount of information that an observable $Z$ carries about the unknown parameter $\theta$. If $f$ is sharply peaked with respect to changes in $\theta$, it is easy to indicate the "correct" value of $\theta$ from the data, or equivalently, that the data $Z$ provides a lot of information about the parameter $\theta$. If $f$ is flat and spread-out, then it would take many samples of $Z$ to estimate the true value of $\theta$.
+Note that $I(\theta)\geq0$. Near the ML estimate, low Fisher information suggests the maximum appears flat, that is, there are many nearby values with similar log-likelihood. Conversely, high Fisher information indicates the maximum is sharp.
+\begin{claim}
+If we have $n$ i.i.d. distributions (from n samples) then the Fisher information will be $n$ times the Fisher information of a single sample from the common distribution.
+    \[I_n(\theta) = nI_1(\theta)\]
+\end{claim}
+
+\begin{lemma}[Information equality]
+    The variance of the score is equal to the negative expected value of the Hessian matrix of the log-likelihood.
+    \[ I(\theta)=Var\left(\frac{\partial}{\partial \theta}\log f(Z|\theta)\right)=-\E\left(\frac{\partial^2}{\partial \theta \partial \theta'}\log f(Z|\theta)\right)\]
+\end{lemma}
+
+\begin{proof}
+    Let $\boldsymbol{Z}$ be an $m$-component column vector of random variables, not necessarily i.i.d. To ease notation, we denote their joint density as $f(\boldsymbol{Z}|\boldsymbol{\theta})\equiv f$. Also note all expectations are conditional on $\boldsymbol{\theta}$, and integrals are multiple integrals over $z_1, \dots, z_n$.
+    \begin{align*}
+        \mathbb{E} \frac{\partial^2 \log f}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}'} &= \mathbb{E} \left[ \frac{\partial}{\partial \boldsymbol{\theta}}\left( \frac{\partial \log f}{\partial \boldsymbol{\theta}'}\right)\right]\\
+        &= \mathbb{E} \left[ \frac{\partial}{\partial \boldsymbol{\theta}}\left( \frac{1}{f}\frac{\partial f}{\partial \boldsymbol{\theta}'}\right)\right]\\
+        &= \mathbb{E}\left[-\frac{1}{f^2}\frac{\partial f}{\partial \boldsymbol{\theta}}\frac{\partial f}{\partial \boldsymbol{\theta}'}+\frac{1}{f}\frac{\partial^2f}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}'}\right]\\
+        &= -\mathbb{E}\left[\left(\frac{1}{f}\frac{\partial f}{\partial \boldsymbol{\theta}}\right)\left(\frac{1}{f}\frac{\partial f}{\partial \boldsymbol{\theta}'}\right)\right] + \mathbb{E}\left[\frac{1}{f}\frac{\partial^2f}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}'}\right]
+    \end{align*}
+To obtain the information equality, we need to show the second term is zero.
+\begin{align*}
+    \mathbb{E}\left[\frac{1}{f}\frac{\partial^2f}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}'}\right] &= \int_{\mathbb{R}} f \frac{1}{f}\frac{\partial^2f}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}'} d\boldsymbol{Z}\\
+    &= \int_{\mathbb{R}}\frac{\partial^2f}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}'} d\boldsymbol{Z}\\
+    &= \int_{\mathbb{R}}\frac{\partial}{\partial \boldsymbol{\theta}}\left(\frac{\partial f}{\partial \boldsymbol{\theta}'}\right) d\boldsymbol{Z}\\
+    &= \frac{\partial}{\partial \boldsymbol{\theta}}\int_{\mathbb{R}}\frac{\partial f}{\partial \boldsymbol{\theta}'} d\boldsymbol{Z} \quad \text{(we can interchange these because we are economists)}\\
+    &= \frac{\partial}{\partial \boldsymbol{\theta}}\frac{\partial}{\partial \boldsymbol{\theta}'}\int_{\mathbb{R}} f d\boldsymbol{Z} \quad \text{(what even is a regularity condition)}\\
+    &= \frac{\partial}{\partial \boldsymbol{\theta}}\frac{\partial}{\partial \boldsymbol{\theta}'} 1\\
+    &= 0
+\end{align*}
+\end{proof}
+
+\begin{note}
+    All we are assuming here is that we can interchange the order of differentiation and integration; a set of sufficient conditions for this are:
+    \begin{enumerate}
+        \item The function $\frac{\partial}{\partial \boldsymbol{\theta}}f(\boldsymbol{Z}|\boldsymbol{\theta})$ is continuous in $\boldsymbol{Z}$ and in $\boldsymbol{\theta} \in \Theta$ where $\Theta$ is an open set.
+        \item The integral $\int f(\boldsymbol{Z}|\boldsymbol{\theta})d\boldsymbol{Z}$ exists.
+        \item $\int\left|\frac{\partial}{\partial \boldsymbol{\theta}}f(\boldsymbol{Z}|\boldsymbol{\theta})\right|d\boldsymbol{Z}<M<\infty$ for all $\boldsymbol{\theta} \in \Theta$
+    \end{enumerate}
+\end{note}
+\textbf{Misspecification and the information equality}\\
+Suppose our random variables have joint density $f$ as before, but we specify that they have joint density $g$ instead. As before \[ \mathbb{E}_f \frac{\partial^2 \log g}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}'} = -\mathbb{E}_f\left[\left(\frac{1}{g}\frac{\partial g}{\partial \boldsymbol{\theta}}\right)\left(\frac{1}{g}\frac{\partial g}{\partial \boldsymbol{\theta}'}\right)\right] + \mathbb{E}_f\left[\frac{1}{g}\frac{\partial^2g}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}'}\right] \] where the $f$ subscript denotes the fact that we are taking the expectation with respect to the true distribution. Previously we made progress because the integrand contained $f\tfrac{1}{f}=1$, however we now have $f\tfrac{1}{g}$ which doesn't simplify. In general, under misspecification \[\mathbb{E}_f\left[\frac{1}{g}\frac{\partial^2g}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}'}\right] \not = 0\] and the IE doesn't hold. Note: this does not exclude the possibility that this expected value is after all zero and the IE holds, it just generally isn't.
+\begin{theorem}[Cramer-Rao lower bound]
+    If $\boldsymbol{\tilde{\theta}}$ is an unbiased estimator of $\boldsymbol{\theta}$, then we have the following bound on its variance \[Var(\boldsymbol{\tilde{\theta}|Z})\geq [I(\boldsymbol{\theta})]^{-1}\]
+\end{theorem}
+These are both matrices, meaning this inequality tells us the difference between the left and right hand sides is positive semi-definite.\\
+This result is similar to the Gauss-Markov theorem which established a lower bound for unbiased estimators in homoskedastic linear regression.
+\begin{example}[Information bound for normal regression]
+    We will apply the CRLB conditionally on X. Define the expected Hessian 
+    \[ \E(H) = 
+        \begin{bmatrix}
+            \E \left(\frac{\partial^2\ell}{\partial \beta \partial \beta '}|X\right) & \E \left(\frac{\partial^2\ell}{\partial \beta \partial \sigma^2}|X\right)\\
+            \E \left(\frac{\partial^2\ell}{\partial \sigma^2 \partial \beta' }|X\right) & \E \left(\frac{\partial^2\ell}{\partial \sigma^2 \partial \sigma^2}|X\right)
+        \end{bmatrix}
+    \]
+    Recall the log likelihood
+    \[
+        \ell = \frac{n}{2}\log(2\pi) - \frac{n}{2}\log(\sigma^2) - \frac{\sum_{i=1}^{n}(Y_i-X_i'\beta)^2}{2\sigma^2}
+    \]
+    Thus we have second derivatives
+    \begin{alignat*}{2}
+        \frac{\partial^2\ell}{\partial \beta \partial \beta '} &= \frac{\partial}{\partial \beta'}\frac{\sum_{i=1}^{n}X_i(Y_i-X_i'\beta)}{\sigma^2} &&= -\frac{1}{\sigma^2} \sum_{i=1}^{n}X_iX_i' = \frac{1}{\sigma^2} X'X\\
+        \frac{\partial^2\ell}{\partial \beta \partial \sigma^2} &= \frac{\partial}{\partial \sigma^2}\frac{\sum_{i=1}^{n}X_i(Y_i-X_i'\beta)}{\sigma^2} &&= -\frac{\sum_{i=1}^{n}X_i(Y_i-X_i'\beta)}{\sigma^4} = -\frac{1}{\sigma^4}X'(Y-X\beta)\\
+        \frac{\partial^2\ell}{\partial \sigma^2 \partial \sigma^2} &= \frac{n}{2}\frac{1}{\sigma^4} -\frac{\sum_{i=1}^{n}(Y_i-X_i'\beta)^2}{\sigma^6} &&= \frac{n}{2}\frac{1}{\sigma^4} -\frac{1}{\sigma^6}(Y-X\beta)'(Y-X\beta)
+    \end{alignat*}
+    \begin{align*}
+        \implies \E(H) &= \begin{bmatrix}
+            \E\left[\frac{1}{\sigma^2} X'X|X\right] & \E\left[-\frac{1}{\sigma^4}X'(Y-X\beta)|X\right]\\
+            \E\left[-\frac{1}{\sigma^4}X'(Y-X\beta)|X\right] & \E\left[\frac{n}{2}\frac{1}{\sigma^4} -\frac{1}{\sigma^6}(Y-X\beta)'(Y-X\beta)|X\right]
+        \end{bmatrix}\\
+        &=\begin{bmatrix}
+            \frac{1}{\sigma^2} X'X & 0\\
+            0 & \frac{n}{2}\frac{1}{\sigma^4} -\frac{n \sigma^2}{\sigma^6}
+        \end{bmatrix}\\
+        &=\begin{bmatrix}
+            \frac{1}{\sigma^2} X'X & 0\\
+            0 & -\frac{n}{2}\frac{1}{\sigma^4} 
+        \end{bmatrix}
+    \end{align*}
+The block diagonal matrix can be inverted to find the lower bound on asymptotic conditional variance 
+\[
+    [I(\theta)]^{-1} = \begin{bmatrix}
+        \sigma^2 (X'X)^{-1} & 0\\
+        0 & \frac{2 \sigma^4}{n} 
+    \end{bmatrix}
+\]
+\end{example}
+The variance of $\hat \beta_{OLS}= \hat \beta_{ML}$ meets the CRLB. Thus we have the following theorem
+\begin{theorem}
+    In the normal regression, OLS is the Best Unbiased Estimator (BUE).
+\end{theorem}
+This result should be distinguished from the Gauss-Markov Theorem that $\hat\beta_{OLS}$ is minimum variance among those estimators that are unbiased and linear in $y$. Theorem 10.2.4 says that $\hat\beta_{OLS}$ is minimum variance in a larger class of estimators that includes non-linear unbiased estimators. This stronger statement is obtained under the normality assumption which is not assumed in the Gauss-Markov Theorem. Put differently, the Gauss-Markov Theorem does not exclude the possibility of some non-linear estimator beating OLS, but this possibility is ruled out by the normality assumption.
+
+As we have already seen, the ML estimator of $\sigma^2$ is biased, so the CRLB does not apply. But the OLS estimator $\hat\sigma^2$ of $\sigma^2$ is unbiased, does it achieve the bound? We know $\frac{(n-k)\hat\sigma^2}{\sigma^2} \sim \chi^2(n-k)$, and $Var(\chi^2(p)=2p)$. Thus
+\begin{align*}
+    & Var\left(\frac{(n-k)\hat\sigma^2}{\sigma^2}\right)= 2(n-k)\\
+    \implies& \frac{(n-k)^2}{\sigma^4}Var(\hat\sigma^2) = 2(n-k)\\
+    \implies& Var(\hat\sigma^2) = \frac{2\sigma^4}{n-k}
+\end{align*}
+Therefore $\hat\sigma^2$ does not attain the CRLB $2\sigma^4/n$. However it can be shown that an unbiased estimator with variance lower than $\hat\sigma^2$ does not exist.
+\end{document}
