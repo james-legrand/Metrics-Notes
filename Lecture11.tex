@@ -88,7 +88,7 @@ And with the Lindeberg-Levy CLT:
 \[-\sqrt{n}\Psi(\theta_0)\xrightarrow{d}N\left(0,Var\left(\frac{\partial}{\partial\theta}\log f(z_i,\theta_0)\right)\right)=N\left(0,\frac{1}{n}I(\theta_0)\right)\]
 Next, by Khinchine's LLN:
 \[\Psi'(\theta_0)\xrightarrow{p}\frac{\partial^2}{\partial\theta^2}\E_{\theta_0}\log f(z;\theta_0)\bigg|_{\theta=\theta_0}\]
-Finally, \((\hat{\theta_ML}-\theta_0)\Psi''(\tilde{\theta})\xrightarrow{p}0\) i.e. is \(o_p(1)\), since \(\hat{theta}_{ML}-\theta_0 = o_p(1)\) and \(\Psi''(\tilde{\theta})\) converges to a finite constant (Amemiya 1985, p. 67,ch 4).
+Finally, \(({\hat\theta_ML}-\theta_0)\Psi''(\tilde{\theta})\xrightarrow{p}0\) i.e. is \(o_p(1)\), since \(\hat{\theta}_{ML}-\theta_0 = o_p(1)\) and \(\Psi''(\tilde{\theta})\) converges to a finite constant (Amemiya 1985, p. 67,ch 4).
 \\ Therefore by Slutsky's theorem:
 \[\sqrt{n}(\hat{\theta}_{ML}-\theta_0)=\frac{-\sqrt{n}\Psi(\theta_0)}{\Psi'(\theta_0)+(\hat{\theta}_{ML}-\theta_0)\Psi''(\tilde{\theta})/2}\xrightarrow{d}\frac{N(0,\frac{1}{n}I(\theta_0))}{\E_{\theta_0}\frac{\partial^2}{\partial\theta^2}\log f(z;\theta_0)}\]
 \[\therefore \sqrt{n}(\hat{\theta}_{ML}-\theta_0)\xrightarrow{d}\frac{N(0,\frac{1}{n}I(\theta_0))}{-\frac{1}{n}I(\theta_0)}=N(0,nI^{-1}(\theta_0))\]
