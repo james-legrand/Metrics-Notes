@@ -31,8 +31,8 @@ If \(w_i\) \(l\)-dimensional and \(x_i\) \(k\)-dimensional:
 \item If \(l>k\), then we have \textbf{overidentification}
 \end{itemize} 
 
-The relevance condition, \(E[w_ix_i']\) full column rank, \underline{rules out} underidentification. This is because now l rows will be less than k columns, and since column rank = row rank, we must have deficient column rank.
-\\ If \(l<k\) we have more equations than unknowns and \(E[w_ix_i']\) is no longere invertible. We could throw away extra variables but better instead to use 2SLS, since we want to extract as much exogenous variation from our endogenous variables as possible.
+The relevance condition, \(E[w_ix_i']\) full column rank, \underline{rules out} underidentification. This is because now l rows will be fewer than k columns, and since column rank = row rank, we must have deficient column rank.
+\\ If \(l<k\) we have more equations than unknowns and \(E[w_ix_i']\) is no longer invertible. We could throw away extra variables but better instead to use 2SLS, since we want to extract as much exogenous variation from our endogenous variables as possible.
 
 \section{2SLS}
 
@@ -48,19 +48,20 @@ This suggest the following procedure:
 
 \begin{definition} \textbf{\underline{2SLS}}
     \\
-    \\ \underline{\smash{Stage 1:}}
-    \\ Regress \(X_{n\times k} \text{ on } W_{n\times l}\) to get \(\hat\pi=(W'W)^{-1}W'X\)
-    \\ Use the results to form \(\hat X = W\hat\pi\)
-    \\ Note: \(\hat X=W\hat\pi=W(W'W)^{-1}W'X=P_W X\)
+    \\ \underline{\smash{Stage 1:}} \\
+    \begin{itemize}
+    \item Regress \(X_{n\times k} \text{ on } W_{n\times l}\) to get \(\hat\pi=(W'W)^{-1}W'X\)
+    \item Use the results to form \(\hat X = W\hat\pi\) \\
+    \end{itemize}
+    Note: \(\hat X=W\hat\pi=W(W'W)^{-1}W'X=P_W X\)
     \\ For the exogenous variables columns in \(\hat X\) this will correspond exactly to the original values, but for the endogenous variables columns, they will be formed as a linear combination of both the relevant instruments and exogenous variables.
-    \\
-    \\ \underline{\smash{Stage 2:}}
+    \\ \\ \underline{\smash{Stage 2:}} \\
     \\ Regress \(Y_{n\times 1} \text{ on } \hat X_{n\times k}\) to find:
      \[\hat\beta_{2SLS}=(\hat X'\hat X)^{-1}\hat X'Y=(X'P_W'P_WX)^{-1}X'P_W'Y\]
      \[=(X'P_WX)^{-1}X'P_WY\]
 \end{definition}
 \vspace{5mm}
-Consider the following IV assumptions for the model \(y_i=x_i'\beta+\epsilon_i\):
+Consider the following \textbf{\underline{\smash{IV assumptions}}} for the model \(y_i=x_i'\beta+\epsilon_i\):
 \begin{itemize}
     \item (IV0) \(y_i, x_i, w_i\) is an i.i.d sequence
     \item (IV1) \(E[w_iw_i']<\infty\) non-singular; \(E[w_ix_i']\) has full column rank (relevance)
@@ -88,11 +89,11 @@ Thus \[\hat\beta_{2SLS}-\beta\xrightarrow{p}0\]
 In general \(dim W\neq dim X\). In the case where they do: \(\hat\beta_{2SLS}\equiv\hat\beta_{IV}\), since \(W'X\) now invertible.
 The 2SLS procedure ensures that \(dim \hat X=dimX\), so that \(\hat\beta_{2SLS}\equiv\hat\beta_{IV}\), using \(\hat X\) as an instrument.
 Explicitly: \((X'P_WX)^{-1}X'P_WY=(X'P_W'X)^{-1}X'P_W'Y=(\hat X'X)^{-1}(\hat X'Y)=\hat\beta_{IV}\)
-
-\begin{theorem}
-    Let \(C=E[w_iw_i']\) and \(D=E[w_ix_i']\). Under IV0-1-2'-3':
+\\
+\begin{theorem} \textbf{2SLS asymptotic distribution} \\ \\
+    Under IV0-1-2'-3':
     \[\sqrt{n}(\hat\beta_{2SLS}-\beta)\xrightarrow{d}N(0,(D'C^{-1}D)^{-1}D'C^{-1}VC^{-1}D(D'C^{-1}D)^{-1})\]
-    where \(V=Var(w_i\epsilon_i)\)
+    where \(V=Var(w_i\epsilon_i)\), \(C=E[w_iw_i']\) and \(D=E[w_ix_i']\). 
 \end{theorem}
 \vspace{5mm}
 \begin{proof}
@@ -121,12 +122,10 @@ Thus much of the asymptotic variance cancels, leaving
 We apply this proof to argue \(D'C^{-1}D\) is full column rank, and hence invertible.
 \end{note}
 
+\subsection{Linear Hypothesis Testing with \(\beta_{2SLS}\)}
 We can estimate the asymptotic variance of \(\sqrt{n}(\hat\beta_{2SLS}-\beta)\) by:
 \[\hat V=\hat\sigma^2(\tfrac{1}{n}\hat X' \hat X)^{-1}\]
 where \(\hat\sigma^2=\tfrac{1}{n}\hat\epsilon'\hat\epsilon\) and \(\hat\epsilon=Y-\hat X'\hat\beta_{2SLS}\)
-
-Under (IV3') (hetereoskedasticity) we can use White's estimate as in earlier discussions:
-\[\hat V_{het}= \frac{1}{n}\sum_{i=1}^n \hat\epsilon_i^2 w_i w_i'\]
 
 Homoskedasticity or robust variance estimates of \(\hat\beta_{2SLS}\) can be used to form F-statistics for testing linear hypotheses in the usual way.
 Asymptotically, such F-statistics would be distributed as \(\chi^2(p)/p\), where \(p\) is the number of restrictions. However, finite sample distribution of the F-statistics would not be \(F(p,n-k)\) even if \(\epsilon_i\) is normally distributed.
@@ -135,6 +134,11 @@ Asymptotically the Wald statistic for testing \(H_0:R\beta=r\) is:
 \[W=(R\hat\beta_{2SLS}-r)'[R\hat V_{2SLS}R']^{-1}(R\hat\beta_{2SLS}-r)\xrightarrow{d}\chi^2(p)\]
 where \(p\) is the number of restrictions.
 
+\begin{note}
+    Under (IV3') (hetereoskedasticity) we can use White's estimate as in earlier discussions:
+\[\hat V_{het}= \frac{1}{n}\sum_{i=1}^n \hat\epsilon_i^2 w_i w_i'\]
+\end{note}
+
 \section{Control function approach}
 
 This is an alternative approach to 2SLS, which is useful when we have multiple endogenous variables.
@@ -142,10 +146,10 @@ This is an alternative approach to 2SLS, which is useful when we have multiple e
 Consider again the model:
 \[y_i=x_{1i}'\beta_1+x_{2i}'\beta_2+\epsilon_i\]
 where \(x_{1i}\) is exogenous and \(x_{2i}\) is endogenous.
-\\ Instead of extracting the exogenous part \(w_i'\pi\) of \(x_i\) and use it in the second stage, we could instead extract the endogenous part of \(x_i\) (the control function) and add it to the regression as an additional regressor.
-
+\\ \\ Instead of extracting the \textit{exogenous} part \(w_i'\pi\) of \(x_i\) to use in the second stage, we could instead extract the \textbf{endogenous part} of \(x_i\) (the control function) and add it to the regression as an additional regressor.
+\vspace{5mm}
 \begin{theorem}
-The two approaches are equivalent. \(\hat\beta_{CF}\equiv\hat\beta_{2SLS}\)
+The two approaches are equivalent in a linear model (but not in non-linear) \(\hat\beta_{CF}\equiv\hat\beta_{2SLS}\)
 \end{theorem}
 \vspace{5mm}
 \begin{proof}
