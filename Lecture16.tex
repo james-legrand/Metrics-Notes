@@ -1,0 +1,253 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\vspace{-10pt}
+\setcounter{chapter}{15}
+
+\chapter{Generalised Method of Moments.}
+\section{GMM setup}
+The basic principle of the method of moments is to choose the parameter estimate so that the corresponding sample moments are equal to the corresponding population moments. Moment equation models take the following form. Let $\mathbf{g}_i(\boldsymbol{\beta})$ be a known $\ell \times1$ function of the $i^{th}$ observation, and a $k\times1$ parameter $\boldsymbol{\beta}$. Denote the true parameter value in population as $\boldsymbol{\beta}_0$. A moment equation model is summarised by the moment equations \[\E[\mathbf{g}_i(\boldsymbol{\beta}_0)]=0.\]
+\begin{example}
+    \textbf{Mean:} $g_i(\mu)=y_i-\mu$. \\
+    \textbf{Instrumental Variables:} $\mathbf{g}_i(\boldsymbol{\beta})=\mathbf{w}_i({y}_i-\mathbf{x}_i'\boldsymbol{\beta})$. (Exogeneity of $w_i$) \\
+    \textbf{Linear Regression:} $\mathbf{g}_i(\boldsymbol{\beta})=\mathbf{x}_i({y}_i-\mathbf{x}_i'\boldsymbol{\beta})$. (uncorrelatedness of $x_i$ and $u_i$) 
+\end{example}
+
+When $\ell=k$, the moment equations are just identified (k equations for k unknowns), and we solve the moment equations for $\boldsymbol{\hat\beta}$ \[\bar{g_n}=\frac{1}{n}\sum_{i=1}^{n}g_i(\hat \beta)=0.\]
+
+When $\ell<k$ the system is  under-identified we typically have no solution to the system, and cannot hope to solve for $\boldsymbol{\hat\beta}$. \\
+When $\ell>k$ the system is over-identified there are an infinite number of solutions to the system (more variables than unknowns), each one giving us a different MOM estimate of $\boldsymbol{\beta}$. 2SLS solved this problem by using the k dimensional vector $\hat\pi w_i$ obtained from the first stage regression. Alternatively, GMM aims to minimise the distance between the sample and population moments. That is,
+\begin{definition}[GMM estimator]
+    \[\hat\beta_{GMM}=\arg \min_{\boldsymbol{\beta}} \left(\frac{1}{n}\sum_{i=1}^{n}g_i(\boldsymbol{\beta})\right)' W_n \left(\frac{1}{n}\sum_{i=1}^{n}g_i(\boldsymbol{\beta})\right)=\arg \min_{\boldsymbol{\beta}} \bar{g_n}' W_n \bar{g_n}.\]
+    where $W_n$ is a positive-definite $l\times l$ weighting matrix.
+\end{definition}
+ The object we are minimising is called the GMM criterion function, further denoted as $J_n (\beta)$. If the criterion function is unweighted: $W_n=I_{\ell}$, then $J_n(\beta)=\bar{g_n(\beta)}' \bar{g_n(\beta)}=||\bar{g_n(\beta)}||^2$, the square of the Euclidean length. Since we restrict attention to positive definite weight matrices W, the criterion $J_n$ is always non-negative.
+ \begin{note}
+    In the just identified case, the GMM estimator is the same as the MOM estimator, regardless of the choice of $W_n$. $\hat\beta_{MOM}$ solves $\bar g_n(\beta_{MOM})=0$, hence $J_n(\beta_{MOM})=0$. Since $J_n(\beta)\geq 0$, $\hat\beta_{MOM}$ is also the GMM estimator.
+ \end{note}
+
+ GMM is known as an extremum estimator, since it is obtained by minimising a criterion function. Another example of an extremum estimator is MLE.
+
+ \begin{example}[Overidentified IV]
+    Given the moment conditions $\E[z_i(y_i-x_i'\beta)]=0$ where $z_i$ is $ \ell \times 1$ and $x_i$ is $k \times 1$, we can construct the GMM criterion function as follows:
+\[
+        J_n(\beta) = (Z'y-Z'X\beta)'W_n(Z'y-Z'X\beta)
+\]
+The GMM estimator minimises this criterion function, the FOCs are: 
+\begin{align*}
+    0 &= \frac{\partial J_n(\beta)}{\partial \beta} \\
+    &= \frac{\partial}{\partial \beta}\left(y'ZW_nZ'y - y'ZW_nZ'X\beta - \beta'X'ZW_nZ'y + \beta'X'ZW_nZ'X\beta \right)\\
+    &= -2X'ZW_nZ'y + 2X'ZW_nZ'X\beta \\
+    \implies \hat\beta_{GMM} &= (X'ZW_nZ'X)^{-1}X'ZW_nZ'y
+\end{align*}
+While the estimator depends on $W_n$, the dependence is only up to scale.  For example, if we multiply $W_n$ by a constant $c>0$, then $\hat\beta_{GMM}$ is unchanged. When W is fixed by the user we call $\hat\beta_{GMM}$ the \textbf{one-step GMM estimator}.
+The GMM estimator is similar to the 2SLS estimator, in fact they are equal when $W_n=(Z'Z)^{-1}$.
+ \end{example}
+ \begin{theorem}
+    If $W_n = (Z'Z)^{-1}$, then $\hat\beta_{GMM} = \hat\beta_{2SLS}$. Furthermore if $k=\ell$, then $\hat\beta_{GMM} = \hat\beta_{IV}$.
+ \end{theorem}
+\begin{example}[CAPM]
+   Consider the case where a representative agent makes decisions about consumption and investment to maximise lifetime discounted expected utility conditional on their information set. Suppose the agent has CRRA utility
+   \[
+\E\left(\sum_{i=1}^{\infty}\delta^i_0 U(c_{t+i}|\mathcal{I}_t)\right), \quad U(c_{t}) := \frac{c_{t}^{\gamma_0}-1}{\gamma_0}
+   \]
+   The budget constraint is
+   \[
+    c_t +p_tq_t = r_tq_{t-1} + w_t
+   \]
+   where $p_t$ is the price of a financial asset, $q_t$ is the amount of asset owned at time t, $r_t$ is the gross return to the asset, and $w_t$ is the wage. The FOC (euler equation) for this problem is:
+   \[p_t c_t^{\gamma_0-1} = \E_t\left(\delta_0 r_{t+1}c_{t+1}^{\gamma_0-1}|\mathcal{I}_t\right)\]
+We thus have the conditional moment condition:  
+\[
+    \E_t\left(\delta_0 \frac{r_{t+1}}{p_t} \frac{c_{t+1}^{\gamma_0-1}}{c_{t}^{\gamma_0-1}}|\mathcal{I}_t\right)=0
+\]
+This implies an infinite number of unconditional moment conditions, we select the following (arbitrarily):
+\[
+    \E_t\left(z_t \left[\delta_0 \frac{r_{t+1}}{p_t} \frac{c_{t+1}^{\gamma_0-1}}{c_{t}^{\gamma_0-1}}\right]\right)=0
+\]
+Where z is any vector of variables known by time t (EG consumption growth, returns in recent periods etc.) This is $dim(z_t)$ equations for 2 unknowns $\gamma_0$ and $\delta_0$. We can estimate this model using GMM.
+\end{example}
+\begin{note}
+    A conditional moment condition is much stronger than an unconditional condition, the conditional condition implies an infinite set of unconditional moments:
+    \begin{align*}
+        \E[f(z_i)g(x_i,\beta_0)]&=\E[\E[f(z_i)g(x_i,\beta_0)|z_i]]\\
+        &=\E[f(z_i)\E[g(x_i,\beta_0)|z_i]]\\
+        &=0
+    \end{align*}  
+    above we arbitrarily selected $f(z_i)=z_i$, but any function of any subset of variables in $z_i$ will do. See \href{https://eml.berkeley.edu/~powell/e241a_sp06/mmnotes.pdf}{here} for a brief discussion of the optimal choice, however this is beyond the scope of this course.
+\end{note}
+\section{Asymptotic properties of GMM}
+\begin{itemize}
+    \item [(GMM0)]  $\frac{1}{n}\sum_{i=1}^{n}g_i(\beta)\overset{p}{\to} \E g_i(\beta)$ and $\frac{1}{n}\sum_{i=1}^{n} \frac{\partial}{\partial \beta'}g_i(\beta)\overset{p}{\to} \E \frac{\partial}{\partial \beta'} g_i(\beta)$, uniformly over $\beta$ from a compact subset $B$ of $\R^k$.
+    \item [(GMM1)] $\E \frac{\partial}{\partial \beta'} g_i(\beta)$ has rank k (i.e. full column rank) in a neighbourhood of $\beta_0$. Furthermore $W_n \overset{p}{\to} W$, a positive definite matrix.
+    \item [(GMM2)] $\E g_i(\beta_0)=0$ and $\beta_0$ is the only root of equation $\E g_i(\beta)=0$ for $\beta \in B$.
+    \item [(GMM3)] $\frac{1}{n}\sum_{i=1}^{n}g_i(\beta)g_i(\beta)' \overset{p}{\to} V(\beta)$ uniformly  $\beta \in B$ and $\frac{1}{\sqrt{n}}\frac{1}{n}\sum_{i=1}^{n}g_i(\beta_0) \overset{d}{\to}N(0,V(\beta_0))$ with $V(\beta_0)>0$.
+    \item [(GMM4)] $\E g_i(\beta)$ and $g_i(\beta)$ are continuously differentiable, and $\frac{\partial}{\partial \beta'} \E g_i(\beta) = \E \frac{\partial}{\partial \beta'}g_i(\beta)$.
+\end{itemize}
+\textbf{GMM0} does not require iid-ness of the data, it just says that an LLN should hold. As discussed with serial correlation, there exist LLNs for dependent data.
+\begin{theorem}
+    Under (GMM0)-(GMM4)
+    \begin{enumerate}
+        \item $\hat\beta_{GMM} \overset{p}{\to} \beta_0$
+        \item $\sqrt{n}(\hat\beta_{GMM}-\beta_0) \overset{d}{\to} N(0,(D'_0WD_0)^{-1}D_0'WV_0WD_0(D'_0WD_0)^{-1})$ where $D_0=\E \frac{\partial}{\partial \beta'}g_i(\beta_0)$ and $V_0=V(\beta_0)$ is the variance of the asymptotic distribution of .
+    \end{enumerate}
+\end{theorem}
+\begin{proof}
+    \begin{enumerate}
+        \item By GMM0 and GMM1 $W_n \to W>0$ and $\frac{1}{n}\sum_{i=1}^{n} g_i(\beta) \to \E g_i(\beta)$ in probability, then 
+        \begin{align*}
+            J_n(\beta) &= \left(\frac{1}{n}\sum_{i=1}^{n}g_i(\boldsymbol{\beta})\right)' W_n \left(\sum_{i=1}^{n}g_i(\boldsymbol{\beta})\right)\\
+            &\overset{p}{\to} \E g_i(\beta)'W\E g_i(\beta) \geq 0
+        \end{align*}
+        Using GMM2, we have that $\beta_0$ is the only root of $\E g_i(\beta)=0$, hence $\beta_0$ is the minimiser of $J_n(\beta)$, and $\hat\beta_{GMM} \overset{p}{\to} \beta_0$.
+
+        \item Given that $\hat \beta_{GMM} \overset{p}{\to} \beta_0$, and that $\frac{\partial}{\partial \beta}g_i$ is differentiable, we can compute the taylor expansion as follows:
+        \[
+        \frac{\partial}{\partial \beta}J_n(\hat\beta_{GMM}) \approx \frac{\partial}{\partial \beta}J_n(\beta_0) + \frac{\partial^2}{\partial \beta \partial \beta'}J_n(\hat\beta_{GMM})(\hat\beta_{GMM}-\beta_0)
+        \]
+        Since the LHS = 0 by definition of $\hat\beta_{GMM}$, we have that
+        \[
+            \sqrt{n}(\hat\beta_{GMM}-\beta_0) \approx -\left(\frac{\partial^2}{\partial \beta \partial \beta'}J_n(\hat\beta_{GMM})\right)^{-1}\left(\sqrt{n}\frac{\partial}{\partial \beta}J_n(\beta_0)\right)
+        \]
+        Consider the first term in the above expression, we can write it as follows:
+        \begin{align*}
+            \frac{\partial^2}{\partial \beta \partial \beta'}J_n(\hat\beta_{GMM}) &= \frac{\partial^2}{\partial \beta \partial \beta'}\left(\frac{1}{n}\sum_{i=1}^{n}g_i(\hat\beta_{GMM})\right)' W_n \left(\frac{1}{n}\sum_{i=1}^{n}g_i(\hat\beta_{GMM})\right)\\
+            &= \frac{1}{n}\sum_{i=1}^{n}\frac{\partial^2}{\partial \beta \partial \beta'}g_i(\hat\beta_{GMM})' W_n g_i(\hat\beta_{GMM}) + \frac{1}{n}\sum_{i=1}^{n}g_i(\hat\beta_{GMM})' W_n \frac{\partial^2}{\partial \beta \partial \beta'}g_i(\hat\beta_{GMM})\\
+            &+2\sum_{j,r=1}^{l}\left(\frac{1}{n} \sum_{i=1}^{n} \frac{\partial^2}{\partial \beta \partial \beta'}g_{ij}(\beta_0)\right)W_{n,jr}\left(\frac{1}{n}\sum_{i=1}^{n} g_{ir}(\beta_0)\right)\\
+            &= 2\left( \frac{1}{n}\sum_{i=1}^{n} \frac{\partial}{\partial \beta'}g_i(\hat\beta_{GMM})\right)' W_n \left( \frac{1}{n}\sum_{i=1}^{n} \frac{\partial}{\partial \beta'}g_i(\hat\beta_{GMM})\right) + o_p(1)\\
+            &\overset{d}{\to} 2\left(\E \frac{\partial}{\partial \beta'}g_i(\beta_0)\right)' W \left(\E \frac{\partial}{\partial \beta'}g_i(\beta_0)\right)\\
+            &:=2D_0'WD_0
+        \end{align*}
+
+$g_{ij}$ and $g_{ir}$ are the $j^{th}$ and $r^{th}$ elements of $g_i$ respectively, and $W_{n,jr}$  is the element in the j-th row and r-th column of $W_n$. The cross term is $o_p(1)$ since the final term converges to $\E g_{ir}(\beta_0) = 0$ by GMM2.
+
+
+        Consider the final term in the above expression, we can write it as follows:
+        \begin{align*}
+            \sqrt{n}\frac{\partial}{\partial \beta}J_n(\beta_0) &= \sqrt{n}\frac{\partial}{\partial \beta}\left(\frac{1}{n}\sum_{i=1}^{n}g_i(\beta_0)\right)' W_n \left(\frac{1}{n}\sum_{i=1}^{n}g_i(\beta_0)\right)\\
+            &= 2\left(\frac{1}{n}\sum_{i=1}^{n}\frac{\partial}{\partial \beta'}g_i(\beta_0)\right)' W_n \left(\frac{1}{\sqrt{n}}\sum_{i=1}^{n}g_i(\beta_0)\right)\\
+            &\overset{d}{\to} 2\left(\E \frac{\partial}{\partial \beta'}g_i(\beta_0)\right)' W \left(N(0,\E[g_i(\beta_0)g_i(\beta_0)'])\right)\\
+            &:= 2D_0'WN(0,V_0)
+     \end{align*}
+%#Add code to explain how first derivative works
+%Add code to explain convergence steps, note mean of final term is zero hence CLT works. Maybe look at each term individually
+    \end{enumerate}
+
+Combining these two results, we have that 
+\begin{align*}
+    \sqrt{n}(\hat\beta_{GMM}-\beta_0) &\overset{d}{\to} (2D_0'WD_0)^{-1}2D_0'WN(0,V_0)\\
+    &\sim     N(0,(D'_0WD_0)^{-1}D_0'WV_0WD_0(D'_0WD_0)^{-1})
+\end{align*}
+\end{proof}
+
+\section{Efficient GMM}
+The question remains as to how we pick W, and thus $W_n$. A simple choice is the identity matrix, i.e. $W_n = I_{\ell}$, or another fixed positive definite matrix. However these choices result in a loss of efficiency. 
+\begin{theorem}
+    The efficient choice of weighting matrix (that minimises asymptotic variance) is \[ W= V_0^{-1}\] where $V_0$ is the asymptotic variance of $\sqrt{n}\bar{g_n}(\beta_0)$.
+\end{theorem}
+Intuitively $\hat\beta_{GMM}$ is trying to set each component of the $\ell$ dimensional vector $\frac{1}{n}\sum_{i=1}^{n}g_i(\hat\beta_{GMM})$ as close to zero as possible. However, if some components have particularly large variance (and are thus less informative), then it makes sense to place less weight on them.
+
+\begin{proof}
+    If $W = V_0^{-1}$, then we can simplify the asymptotic variance as follows:
+    
+    \begin{align*}
+        (D'_0WD_0)^{-1}D_0'WV_0WD_0(D'_0WD_0)^{-1} &= (D'_0V_0^{-1}D_0)^{-1}D_0'V_0^{-1}V_0V_0^{-1}D_0(D'_0V_0^{-1}D_0)^{-1}\\
+        &= (D'_0V_0^{-1}D_0)^{-1}D_0'V_0^{-1}D_0(D'_0V_0^{-1}D_0)^{-1}\\
+        &= (D'_0V_0^{-1}D_0)^{-1}
+    \end{align*}
+
+    It remains to show that the difference between the inefficient and efficient weighting matrices $(D'_0WD_0)^{-1}D_0'WV_0WD_0(D'_0WD_0)^{-1} - (D'_0V_0^{-1}D_0)^{-1}$ is positive semi-definite. For my first trick, I will pull the following matrix out of my ass: $A = I_{\ell}-V_0^{-1/2}D_0(D_0'V_0^{-1}D_0)^{-1}D_0'V_0^{-1/2}$. Observe:
+    \begin{align*}
+       & (D'_0WD_0)^{-1}D_0'WV_0^{1/2}AV_0^{1/2}WD_0 (D'_0WD_0)^{-1}\\
+        &= (D'_0WD_0)^{-1}D_0'WV_0^{1/2}\left(I_{\ell}-V_0^{-1/2}D_0(D_0'V_0^{-1}D_0)^{-1}D_0'V_0^{-1/2}\right)V_0^{1/2}WD_0 (D'_0WD_0)^{-1}\\
+        &= (D'_0WD_0)^{-1}D_0'WV_0^{1/2}V_0^{1/2}WD_0 (D'_0WD_0)^{-1}\\ &\quad- (D'_0WD_0)^{-1}D_0'WV_0^{1/2}V_0^{-1/2}D_0(D_0'V_0^{-1}D_0)^{-1}D_0'V_0^{-1/2}V_0^{1/2}WD_0 (D'_0WD_0)^{-1}\\
+        &= (D'_0WD_0)^{-1}D_0'WV_0WD_0 (D'_0WD_0)^{-1}\\ &\quad - \cancel{(D'_0WD_0)^{-1}D_0'WD_0}(D_0'V_0^{-1}D_0)^{-1}\cancel{D_0'WD_0 (D'_0WD_0)^{-1}}\\
+        &= (D'_0WD_0)^{-1}D_0'WV_0WD_0 (D'_0WD_0)^{-1} - (D_0'V_0^{-1}D_0)^{-1}
+    \end{align*}
+    Note that A is the residual maker matrix onto the space spanned by $D_0V^{-1/2}$, is  symmetric and idempotent, and thus positive semi-definite. 
+    The difference therefore has the form $B'AB=B'A'AB=(AB)'(AB)$ and is clearly positive s.d. .
+\end{proof}
+\textbf{Estimation of $V_0$} \\
+We can estimate $V_0$ and then estimate GMM in a two step procedure. The first step uses a consistent (but not necessarily efficient) estimate of $\beta$ to construct the optimal weighting matrix $W_n$. The second step uses this weighting matrix $W_n = \hat V_0^{-1}$ to estimate $\beta$ efficiently. This is known as the two-step GMM estimator.\\
+In the case of i.i.d. $g_i(\beta)$, we can estimate $\hat\beta$ consistently with a sub optimal weighting matrix and compute
+\begin{align*}
+    \hat V_0 &= \frac{1}{n} \sum_{i=1}^{n}g_i(\hat\beta)g_i(\hat\beta)' \quad \text{or}\\
+    \hat V_0 &= \frac{1}{n} \sum_{i=1}^{n}\left(g_i(\hat\beta)-\bar{g_n}(\hat\beta)\right)\left(g_i(\hat\beta)-\bar{g_n}(\hat\beta)\right)'
+\end{align*}
+If the data are serially correlated, a version of the Newey-West estimator can be used to estimate $V_0$.\\
+\begin{align*}
+    \hat \Gamma_j &= \frac{1}{n}\sum_{i=j+1}^{n}g_i(\hat\beta)g_{i-j}(\hat\beta)' \quad \text{and obtain}\\
+    \hat V_0 &= \frac{1}{n}\sum_{j=0}^{G}\frac{G+1-j}{G+1}\left(\hat\Gamma_j+\hat\Gamma_j ' \right) 
+\end{align*}
+\begin{example}[2SLS under homoskedasticity]
+    Consider linear regression $y_i = x_i'\beta_0+\epsilon_i$ with k endogenous variables and $\ell>k$ instruments. The moment conditions $g_i(\beta) = z_i(y_i-x_i'\beta)$ are distributed as:
+    \[
+        \frac{1}{\sqrt{n}}\sum_{i=1}^{n}g_i(\beta_0)= \frac{1}{\sqrt{n}}\sum_{i=1}^{n} z_i \epsilon_i \to N(0,\sigma^2\E[z_iz_i'])
+    \]
+    under IV3 (homoskedasticity). Hence $V_0=\sigma^2\E[z_iz_i'] = \sigma^2Z'Z$. The efficient weighting matrix is therefore $W_n = (Z'Z)^{-1}$, since the weighting matrix is invariant to scale (so we can drop the $\sigma^2$).
+    From the previous example we know that the GMM estimator is given by $\hat\beta_{GMM} = (X'ZW_nZ'X)^{-1}X'ZW_nZ'y$, substituting in the efficient weighting matrix we obtain: \[
+        \hat\beta_{GMM} = (X'Z(Z'Z)^{-1}Z'X)^{-1}X'Z(Z'Z)^{-1}Z'y = (X'P_ZX)^{-1}X'P_Zy = \hat\beta_{2SLS}\]
+    and thus, 2SLS can be viewed as efficient GMM under homoskedasticity.\\
+    However, under heteroskedasticity, 2SLS is inefficient relative to GMM which would instead be based on :
+    \begin{align*}
+        W_n &= \left(\frac{1}{n}\sum_{i=1}^{n}\hat\epsilon_i^2z_iz_i'\right)^{-1}\quad \text{or its centred version}\\
+        W_n &= \left(\frac{1}{n}\sum_{i=1}^{n}\left(\hat\epsilon_i z_i - \frac{1}{n}\sum_{i=1}^{n}\hat\epsilon_i z_i\right)\left(\hat\epsilon_i z_i - \frac{1}{n}\sum_{i=1}^{n}\hat\epsilon_i z_i\right)'\right)^{-1}
+    \end{align*}
+    $\hat \epsilon$ can be obtained using any consistent (but inefficient) method, like 2SLS or unweighted GMM. If the model is correctly specified such that $\E z_i\epsilon_i=0$, then the centred and un-centred versions of $W_n$ are asymptotically equivalent.
+\end{example}
+\textbf{Overidentification test}\\
+Previously we studied Sargan's test of over-identifying restrictions in the context of 2SLS under homo. This can be generalised to GMM (allowing for serial correlation and heteroskedasticity). In the overidentified case we have $\ell$ equations \[\E (g_i(\beta_0))=0\] that have to be satisfied by $k<\ell$ parameters. Since $\frac{1}{n}\sum_{i=1}^{n}g_i(\beta_0)\overset{p}{\to}\E g_i(\beta_0)$ and $\hat\beta_{GMM} \overset{p}{\to} \beta_0$ we can use $\frac{1}{n}\sum_{i=1}^{n}g_i(\hat\beta_{GMM})$ to test the hypothesis:
+\[
+    H_0: \E (g_i(\beta_0))=0
+\]
+Assuming the efficient weight matrix is being used, the criterion function is 
+\[
+    J(\hat\beta_{GMM}) =n\bar g_n' \hat V_0^{-1} \bar g_n = \left( \frac{1}{n}\sum_{i=1}^{n}g_i(\hat\beta_{GMM})\right)' \hat V_0^{-1} \left( \frac{1}{n}\sum_{i=1}^{n}g_i(\hat\beta_{GMM})\right)
+\]
+\begin{theorem}
+    Under assumptions GMM0-4, as $n\to \infty$, \[ J(\hat\beta_{GMM}) \overset{d}{\to} \chi^2(\ell -k)\]
+\end{theorem}
+
+\begin{proof}
+    This was not presented in the course, WORK IN PROGRESS.\\\\
+    For any positive semi-definite matrix A we can decompose it as $A = U \Lambda U' = (U \Lambda^{1/2})(U \Lambda^{1/2})'=BB'$. The covariance matrix $V_0$ is positive definite, thus $\Lambda$ is a diagonal matrix with positive entries. The inverse of $V_0$ is thus also positive definite and can be written as $V_0^{-1} = CC'$ (and $V_0 = C'^{-1}C^{-1}$).\\
+    Subbing this into J:
+    \begin{align*}
+        J(\hat\beta_{GMM}) &= n(\bar g_n' \hat V_0^{-1} \bar g_n)\\
+        &= n(\bar g_n' C C' \bar g_n)\\
+        &= n(C' \bar g_n(\hat \beta))' C' \bar g_n(\hat \beta)\\
+        &= n(C' \bar g_n(\hat \beta))'(C' \hat V_0 C)^{-1} C' \bar g_n(\hat \beta)\\
+    \end{align*}
+    Where the last step follows from the fact that $C' \hat V_0 C = I_{\ell}$.\\
+    We can write the average of the moment conditions as \[ \bar g_n (\beta) = \frac{1}{n} Z'e\]For my next trick I will pull the following matrix out of my ass:
+    \[
+        D_n = I_{\ell}- C ' \left(\frac{1}{n}Z'X\right)\left( \left(\frac{1}{n}X'Z\right) \hat V_0 ^{-1}  \left(\frac{1}{n}Z'X\right)\right)^{-1} \left(\frac{1}{n}X'Z\right)\hat V_0^{-1}C'^{-1}
+    \]
+    and observe that 
+    \begin{align*}
+        D_n C ' \bar g_n (\beta) &= I_{\ell} C '\bar g_n- C ' \left(\frac{1}{n}Z'X\right)\left( \left(\frac{1}{n}X'Z\right) \hat V_0 ^{-1}  \left(\frac{1}{n}Z'X\right)\right)^{-1} \left(\frac{1}{n}X'Z\right)V_0^{-1}C'^{-1} C '\bar g_n\\
+        &= \dots\\
+        &= C' \bar g_n(\hat \beta)
+    \end{align*}
+    $D_n$ is a residual maker matrix onto the space spanned by $C'Z'X$, it converges to the following $D_n \overset{p}{\to} I_{\ell} - R(R'R)^{-1}R'$ where $R=C'\E(z_i x_i')$.\\
+    Further note the asymptotic distribution of $C'\bar g_n(\beta)$
+    \begin{align*}
+        n^{1/2}C'\bar g_n(\beta) &= C'\frac{1}{sqrt{n}}z_i e_i\\
+        &\overset{d}{\to}C'N(0,V_0)\\
+        &\sim N(0,C'V_0 C)\\
+        &\sim N(0,I_{\ell})
+    \end{align*}
+    Thus (with some abuse of notation):
+    \begin{align*}
+        J(\hat\beta_{GMM}) &= n(C' \bar g_n(\hat \beta))'(C' \hat V_0 C)^{-1} C' \bar g_n(\hat \beta)\\
+        & =(D_n \sqrt{n} C' \bar g_n(\beta))'(C' \hat V_0 C)^{-1} D_n \sqrt{n} C' \bar g_n(\beta)\\
+        &= (D_n \sqrt{n} C' \bar g_n(\beta))'(C' \hat V_0 C)^{-1} D_n \sqrt{n} C' \bar g_n(\beta)
+        &\overset{d}{\to} (D N(0,I_{\ell}))'\cancel{(C' V_0 C)^{-1}} D N(0,I_{\ell})\\
+        &= (D N(0,I_{\ell}))' D N(0,I_{\ell})
+    \end{align*}
+    D is a residual maker matrix with rank equal to the number of non zero eigenvalues (i.e. $\ell-k$), thus $D N(0,I_{\ell})$ is a $\ell-k$ dimensional vector of independent standard normal random variables (same logic as deriving distribution of error variance in OLS). Thus the asymptotic distribution of $J(\hat\beta_{GMM})$ is $\chi^2(\ell-k)$.
+\end{proof}
+\end{document}
