@@ -115,7 +115,7 @@ where $h_{ii}$ is the i-th diagonal element of the projection matrix. Because th
 
 Whilst $\hat V$ is biased, here we can see that it is also consistent. Notice that $ \hat \Phi $ is not consistent for $\Phi$, since there are more elements to estimate as the sample gets large. However, $\hat \epsilon_i$ is consistent for $\epsilon_i$. We know \[X'\hat \Phi X = \frac{1}{n}\sum_{i=1}^{n}  x_ix_i'\hat \epsilon_i^2 \] and since plim $\hat \epsilon_i ^2 = \phi_i$ we get plim $X'\hat \Phi X = X' \Phi X$.
 
-In summary, $\hat V$ is biased since $\\hat\epsilon^2_i$ is a biased estimate of $\epsilon^2$.
+In summary, $\hat V$ is biased since $\hat\epsilon^2_i$ is a biased estimate of $\epsilon^2$.
 \end{note}
 
 \section{Serial correlation (and heteroskedasticity)}
@@ -136,9 +136,9 @@ Strict stationarity implies that the (marginal) distribution of $Z_t$ does not v
 \begin{proof}
     Let $F$ denote the joint distribution function, then:
     \begin{align*}
-        F(x_{n+1}, ..., x_{n+m}) &= F(x_{n+1})\cdot \dots \cdot F(x_{n+m})\\
-        &= F(x_{n+k+1})\cdot \dots \cdot F(x_{n+k+m})\\
-        &= F(x_{n+k+1},\dots,x_{n+k+m})
+        F(x_{n+1}, ..., x_{n+m}) &= F(x_{n+1})\cdot ... \cdot F(x_{n+m})\\
+        &= F(x_{n+k+1})\cdot ... \cdot F(x_{n+k+m})\\
+        &= F(x_{n+k+1},...,x_{n+k+m})
     \end{align*}
     Lines 1 and 3 follow from the fact that the joint distribution function of a set of mutually independent variables is equal to the product of their marginal distribution functions. On line 2 we have used the fact that all the terms of the sequence have the same distribution. 
 \end{proof}
