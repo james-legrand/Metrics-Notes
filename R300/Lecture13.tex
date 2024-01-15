@@ -1,0 +1,212 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+\usepackage{parskip}
+\input{preamble.tex}
+
+
+\title{%
+R300 Econometrics}
+\author{Metrics Enjoyers}
+\date{Michaelmas Term, 2023-2024}
+
+\setuptoc{toc}{leveldown}
+\setcounter{chapter}{12}
+
+\begin{document}
+\pagenumbering{gobble}
+\chapter{Errors in variables. Endogeneity. IV}
+
+\subsection{Classical measurement error}
+Suppose we observe noisy versions of the variables we would like to observe.
+We obtain data \(y_i\) and \(x_i\) for \(i=1,...,n\) while the true values are \(y_i^*\) and \(x_i^*\).
+Also assume:
+\[x_i=x_i^*+\nu_i\]
+\[y_i=y_i^*+\eta_i\]
+where:
+\[E(\nu_i)=E(\eta_i)=0\]
+\[E(x_i^*\nu_i)=0, E(y_i^*\eta_i)=0\]
+\[E(x_i^*\eta_i)=0, E(y_i^*\nu_i)=0\]
+\[E(\nu_i\eta_i)=0\]
+
+Given that \(E(y_i^*|x_i^*)=x_i^*\beta\), if we proceeded as if there were no measurement error we would estimate the following by OLS:
+
+\[\hat\beta_{OLS}=(X'X)^{-1}X'Y\]
+\[=(\frac{1}{n}\sum_{i=1}^nx_ix_i')^{-1}\frac{1}{n}\sum_{i=1}^nx_iy_i'\]
+\[=(\frac{1}{n}\sum_{i=1}^n(x_i^*+\nu_i)(x_i^*+\nu_i)')^{-1}\frac{1}{n}\sum_{i=1}^n(x_i^*+\nu_i)(y_i^*+\eta_i)'\]
+\[
+=\left(\frac{1}{n}\sum_{i=1}^n \underset{\downarrow p}{x_i^*x_i'^{*}} + \underset{\downarrow p}{x_i^*\nu_i'} + \underset{\downarrow p}{\nu_ix_i'^{*}} + \underset{\downarrow p}{\nu_i\nu_i'}\right)^{-1} \frac{1}{n}\sum_{i=1}^n \underset{\downarrow p}{x_i^*y_i'^*} + \underset{\downarrow p}{x_i^*\eta_i'} + \underset{\downarrow p}{y_i^*\nu_i'} + \underset{\downarrow p}{\nu_i\eta_i'}
+\]
+\[\qquad \qquad E(x_i^*x_i'^*)\, E(x_i^*\nu_i')\, E(\nu_ix_i'^*)\, E(\nu_i\nu_i') \quad \quad E(x_i^*y_i'^*)\,E(x_i^*\eta_i')\, E(y_i^*\nu_i')\, E(\nu_i\eta_i')\]
+
+\begin{lemma}
+    Suppose we have sequences of random variables \(X_n\) and \(Y_n\) such that \(X_n\overset{p}{\to}X\) and \(Y_n\overset{p}{\to}Y\). Then \(X_nY_n\overset{p}{\to}XY\).
+
+    Proof in Appendix
+\end{lemma}
+\vspace{5mm}
+Thus as plim of a sum is the sum of plims, and \(1/x\) is a continuous function, we can use the CMT to argue:
+\[\xrightarrow{p} (Ex_i^*x_i'^*+E\nu_i\nu_i')^{-1}(E(x_i^*(x_i'^*\beta+\epsilon_i)))\]
+\[=(Ex_i^*x_i'^*+E\nu_i\nu_i')^{-1}(Ex_i^*x_i'^*)\beta\neq\beta\]
+
+We have here an asymmetric bias. In the multiple regression case, the bias will depend on the interaction between explanatory variables.
+
+In the univariate case the above reduces to :
+\[\hat\beta_{OLS}\xrightarrow{p}\frac{\sigma^2_{x^*}}{\sigma^2_{x^*}+\sigma^2_{\nu}}\beta\]
+This represents an attenuation bias of \(\hat\beta_{OLS}\) toward zero.
+
+\subsection{Endogeneity with Errors}
+Any measurement error in the dependent variable is subsumed in the error term as follows:
+\[y_i=y_i^*+\eta_i=x_i^*\beta+(\epsilon_i+\eta_i)\]
+The new error term \((\epsilon_i+\eta_i)\) creates no problem for estimation as \(\eta_i\) is uncorrelated with \(x_i^*\). However if there were measurement errors in \(x_i^*\) then we have:
+\[y_i=x_i\beta+\underbrace{(\epsilon_i+\eta_i-\nu_i'\beta)}_{u_i}\]
+In this case, \(u_i\) is correlated with \(x_i\)
+\[E(x_iu_i')=E(x_iu_i)=E(x_i(\epsilon_i+\eta_i-\nu_i'\beta))=E(x_i\epsilon_i)+E(x_i\eta_i)-E(x_i\nu_i'\beta_i)\]
+\[=-E(x_i\nu_i')\beta=-E(x_i^*+\nu_i)\nu_i'\beta\]
+\[=\cancel{E(x_i^*\nu_i')\beta}+E(\nu_i\nu_i')\beta\neq\vec{0}\]
+
+Thus as error term is correlated with \(x_i\), (OLS2') \(Ex_iu_i=0\) does not hold, and OLS is inconsistent.
+Two solutions:
+
+\underline{\smash{Solution 1}}:\\
+If we can estimate \(E(\nu_i\nu_i')\) we can undo the error in estimation by using the following:
+\[E[x_ix_i']=E[x_i^*x_i'^*]+E[\nu_i\nu_i']\]
+But this is not usually possible.
+\\ \underline{\smash{Solution 2}}:\\
+Suppose we get another independent measure of \(x*\) such that
+\[w_i=x_i^*+\tau_i\]
+where \(\tau_i\) is uncorrelated with any of \(y_i^*,x_i^*,\eta_i,\nu_i\).
+\[E[w_ix_i']=E[(x_i^*+\tau_i)(x_i^*+\nu_i)']=E[x_i^*x_i'^*]\]
+\[E[w_iy_i]= E[(x_i^*+\tau_i)(y_i^*+\eta_i)]=E[x_i^*y_i^*]\]
+Then if \(E[w_ix_i']\) is invertible:
+\[E[w_ix_i']^{-1}E[w_iy_i]=E[x_i^*x_i'^*]^{-1}E[x_i^*y_i^*]=[x_i^*x_i'^*]^{-1}E[x_i^*x_i'^*]\beta=\beta\]
+So \(\hat\beta_{IV} = (W'X)^{-1}W'Y\) is consistent for \(\beta\).
+
+This can also be derived directly by multiplying \(w_i\) to the estimating equation and taking expectations:
+\[w_iy_i=w_ix_i'\beta+w_ie_i\]
+\[E[w_iy_i]=E[w_ix_i']\beta+\cancel{E[(x_i^*+\tau_i)(\epsilon_i+\eta_i-\nu_i'\beta)]}\]
+\[\beta=E[w_ix_i']^{-1}E[w_iy_i]\]
+\[\implies \hat\beta_{IV}=(\sum_{i=1}^nw_ix_i')^{-1}\sum_{i=1}^nw_iy_i=(W'X)^{-1}W'Y\]
+where
+\[w=\begin{pmatrix}
+    w_1'\\
+    \vdots\\
+    w_n'
+\end{pmatrix}, X=\begin{pmatrix}
+    x_1'\\
+    \vdots\\
+    x_n'
+\end{pmatrix}\]
+
+\section{Endogeneity}
+
+Consider the following model
+\[y_i=x_i'\beta+\epsilon_i\]
+where \(E(\epsilon_i|x_i)\neq0\) in violation of OLS2 and OLS2'.
+To distinguish this from the \textit{regression}, we call the above equation a \underline{\smash{structural equation}} and \(\beta\) a \underline{\smash{structural parameter}}.
+A structural equation represents a \underline{causal} link, rather than just an empirical association.
+
+When \(E(\epsilon_i|x_i)\neq0\), we say that \(x_i\) is endogenous. When this occurs, usually this is only by a few components of \(x_i\) being correlated with \(\epsilon_i\). The components causing this are referred to as endogenous and the rest exogenous.
+We then can partition \(x_i\) into the exogenous part \(x_{1i}\) and the endogenous part \(x_{2i}\) by rearranging.
+
+The endogeneity problem may not only be caused through measurement error, but also joint determination, reverse causality or omitted variable bias.
+
+\subsection{Joint Determination: Supply and Demand}
+Consider the following model where \(q_i\) and \(p_i\) are determined jointly by the demand equation
+\[\text{Demand: }q_i=-\beta_dp_i+\epsilon_{di}\]
+\[\text{Supply: }q_i=-\beta_sp_i+\epsilon_{si}\]
+
+In matrix notation:
+\[\begin{pmatrix} 1 & \beta_d \\ 1 & \beta_s \end{pmatrix} \begin{pmatrix} q_i \\ p_i \end{pmatrix} = \begin{pmatrix} \epsilon_{di} \\ \epsilon_{si} \end{pmatrix}\]
+\[\begin{pmatrix} q_i \\ p_i \end{pmatrix} = \frac{1}{-\beta_s-\beta_d} \begin{pmatrix} -\beta_s & -\beta_d \\ -1 & 1 \end{pmatrix} \begin{pmatrix} \epsilon_{di} \\ \epsilon_{si} \end{pmatrix}\]
+\[=\begin{pmatrix} (\beta_s\epsilon_{di}+\beta_d\epsilon_{si})/(\beta_s+\beta_d) \\ (\epsilon_{si}-\epsilon_{di})/(\beta_s+\beta_d) \end{pmatrix}\]
+Thus neither \(E[p_i\epsilon_{di}]\) nor \(E[p_i\epsilon_{si}]\) are zero, so \(p_i\) is endogenous.
+
+Running an OLS of \(q_i\) on \(p_i\) will give a biased estimate of \(\beta_d\).
+We estimate \(Cov(q_i,p_i)/Var(p_i)\), and assuming demanad and supply shocks uncorrelated:
+\[Cov(q_i,p_i)/Var(p_i)=\frac{\frac{\beta_s}{(\beta_s+\beta_d)^2}Var(\epsilon_{di})-\frac{\beta_d}{(\beta_s+\beta_d)^2}Var(\epsilon_{si})}{\frac{1}{(\beta_s+\beta_d)^2}Var(\epsilon_{di})-\frac{1}{(\beta_s+\beta_d)^2}Var(\epsilon_{si})}\]
+\[=\beta_s\frac{Var(\epsilon_{di})}{Var(\epsilon_{di})-Var(\epsilon_{si})}-\beta_d\frac{Var(\epsilon_{si})}{Var(\epsilon_{di})-Var(\epsilon_{si})}\]
+That is, some linear combination of the slopes of the demand and supply curves.
+
+\subsection{Omitted Variables}
+Another example of endogeneity would be a structural equation connecting two variables that are \underline{\smash{both chosen}} by economics agents, say, wage and educaiton
+\[wage_i=\beta_1+\beta_2educ_i+\epsilon_i\]
+Both \(wage_i\) and \(educ_i\) may be affected by person i's ability or some other factor belonging to \(\epsilon_i\). Here the structural equation is thought of reflecting a causal relationship, which would be observed if we could randomly assign education levels to people independent of ability or anything else.
+In reality as this does not occur we cannot rule out that this choice may have been affected by other factors influencing wage.
+
+\section{Instrumental Variables}
+We formalise the device used in Solution 2 of the measurement error.
+Consider a linear regression model:
+\[y_i=x_i'\beta+\epsilon_i\]
+where \(E(\epsilon_i|x_i)=0\) and so \(x_i\) is endogenous. Suppose we have a variable \(w_i\) such that:
+\[E[w_i\epsilon_i]=0 \text{ (exogeneity)}\]
+\[E[w_iw_i']>0 \text{ (no redundant instruments, =non singular?)}\]
+\[E[w_ix_i'] \text{ has full column rank (relevance)}\]
+Then\[0=E[w_i\epsilon_i]=E[w_i(y_i-x_i'\beta)]=E[w_iy_i]-E[w_ix_i']\beta\]
+\[\implies \beta=E[w_ix_i']^{-1}E[w_iy_i]\]
+
+This motivates \(\hat\beta_{IV}\)
+\[\hat\beta_{IV}=(W'X)^{-1}W'Y=\left(\frac{1}{n}\sum_{i=1}^nw_ix_i'\right)^{-1}\frac{1}{n}\sum_{i=1}^nw_iy_i\]
+\[\xrightarrow{p}E[w_ix_i']^{-1}E[w_iy_i]=E[w_ix_i']^{-1}E[w_ix_i']\beta+E[w_i\epsilon_i]=\beta\]
+\begin{note} \textbf{Understanding the Relevance Condition} \\
+    Suppose we start with the regression model:
+    \[y_i=x_{1i}'\beta_1+x_{2i}'\beta_2 + \epsilon_i\]
+    where \(x_{2i}\) is a scalar endogenous variable, and \(x_{1i}\) is a \((k-1)\times1\) vector of exogenous variables.
+    \\ \\ We define \(w_i\) as a vector of instruments, where exogenous variables instrument themselves and \(z_i\) is a scalar IV for \(x_{2i}\)
+    \\ \\ Given \(E[w_iw_i']\) nonsingular
+    \[E[w_ix_i'] \text{ full column rank} \iff E(w_iw_i')^{-1}E[w_ix_i']\text{ full column rank}\]
+    But this represents the set of population coefficients in a regression model of \(x_i\) on \(w_i\).
+    \[\because E(w_iw_i')^{-1}E[w_ix_i']=E(w_iw_i')^{-1}E[w_i'(x_{(1,1i)}\, ...\,x_{(k-1,1i)}\: x_{2i})]\]
+    \[=(\vec\beta_{1,1}\, ...\, \vec\beta_{k-1,1}\, ...\, \vec\beta_2)\]
+Consider \(\vec\beta_{1,1}\):
+\\ This represents the coefficient of \(x_{1,1i}\) in the regression of \(x_{1,1i}\) on \(w_i\).
+But clearly as \(x_{1,1i}\) is included as a regressor in \(w_i\), \(\vec\beta_{1,1}=\begin{psmallmatrix} 1 \\ 0 \\ \vdots \\ 0 \end{psmallmatrix}\).
+\\ For \(\vec\beta_2\):
+\\ This represents \(\beta\) in the regression model:
+\[x_{2i}=w_i'\vec\beta+\nu_i= \pi_1x_{1,1i} + \,...\, + \pi_{k-1}x_{k-1,1i} \,+\, \pi_kz_i + \nu_i\]
+\\Therefore: \[E(w_iw_i')^{-1}E[w_ix_i']= \begin{pmatrix} I_{k-1} & \vec\pi \\ \vec0' & \pi_k \end{pmatrix}\]
+where \(\vec\pi\) is \((\pi_1\, ...\, \pi_{k-1})'\)
+\\ \\
+Clearly then for this to be full rank (implying the relevance condition), \underline{\textbf{we need \(\pi_k\neq0\)}}.
+\\ This means that the instrument \(z_i\) is correlated with \(x_{2i}\), even after the effects of all the other exogenous variables have been controlled for.
+
+\end{note}
+\vspace{5mm}
+\begin{example} \textbf{Demand and Supply shifters} \\
+    Suppose the market is a local fish market as in Graddy(1985).
+    We may think supply would be affected by weather offshore \(w_i\), so that:
+    \[q_i=-\beta_sp_i+\gamma w_i+\epsilon_{si}\]
+    whereas demand will not be directly affected by \(w_i\) so that:
+    \[q_i=\beta_dp_i+\epsilon_{di}\]
+    Then we can use \(w_i\) as an instrument for \(p_i\) in the estimation of the demand (but not supply) equation.
+    As these two equations need to equal, we can guarantee the relevance condition for \(\gamma\neq0\), as we can express \(p_i\) as a function of \(w_i\).
+\end{example}
+\vspace{1mm}
+\begin{example} \textbf{Education and Wage} \\
+Angrist and Krueger (1991) propose the
+quarter of birth indicator as the instrument for education. Due to compulsory education laws in the United States,
+you cannot drop out from school until you are 16, so people who are born in the first quarter of the year, being oldest
+in their class, may drop out more often than those born in the other quarters. This insures that \(E[w_ix_i]\neq0\), whereas,
+arguably, the quarter of birth should not be related to any other determinants of your wage, so that \(E[w_i\epsilon_i] = 0\).
+\end{example}
+
+\section{Appendix}
+
+Proof of Lemma 13.0.1:
+\begin{proof}
+    \underline{\smash{Approach 1 (CMT only)}}:
+        \[X_n\overset{p}{\to}X\text{ and }Y_n\overset{p}{\to}Y \iff (X_n,Y_n) \overset{p}{\to}(X,Y)\]
+    Define a continuous function:
+    \[f(x,y)=xy\]
+    Then by the CMT (applied to vector):
+    \[f(X_n,Y_n)\overset{p}{\to}f(X,Y)\]
+    \[\implies X_nY_n\overset{p}{\to}XY\]
+    \\
+    \underline{\smash{Approach 2 (Slutsky + CMT)}}:
+    \[X_n\overset{p}{\to}X \implies X_n\overset{d}{\to}X\]
+    \[Y_n\overset{p}{\to}X\]
+    By Slutsky's theorem:
+    \[X_nY_n\overset{d}{\to}XY\]
+    \[\implies X_nY_n\overset{p}{\to}XY\]
+    (this implication only holds for RHS constant)
+    \end{proof}
+
+\end{document}

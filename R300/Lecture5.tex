@@ -1,0 +1,218 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\vspace{-10pt}
+\setcounter{chapter}{4}
+\pagenumbering{gobble}
+\chapter{Finite sample tests of linear hypotheses.}
+\vspace{-10pt}
+\section{Linear hypotheses}
+The t-test is appropriate when the null hypothesis is a real valued restriction. However, more generally there may be multiple restrictions on the coefficient vector $\boldsymbol{\beta}$. Suppose we have $p>1$ restrictions, we can express a linear hypothesis about $\boldsymbol{\beta}$ in the form $\boldsymbol{R}_{p \times k}\boldsymbol{\beta}_{k \times 1}=\boldsymbol{q}_{p \times 1}$.
+
+\begin{example}[Nerlove's returns to scale]
+    Nerlove studied the regression of the total cost of electricity production on demand ($Q_i$) and factor prices (capital, labour and fuel):
+    \[ \log TC_i = \beta_1 + \beta_2 \log Q_i + \beta_3 \log p_{C_i} + \beta_4 \log p_{L_i}+ \beta_5 \log p_{F_i} + \epsilon_i \]
+    Economic theory suggests that $\beta_2=\frac{1}{r}$ where $r$ is the degree of returns to scale. To test constant returns we can use $H_0: \beta_2=1$, which is trivially linear in components of $\boldsymbol{\beta}$. Alternatively we can write \[R\beta=q\] with $R=(0,1,0,0,0)$ and $q=1$.\\
+    Further the total cost must be homogenous of degree 1 with respect to factor prices (doubling cost of all inputs doubles total cost). To test this we can consider $H_0: \beta_3 + \beta_4 +\beta_5 =1$. If we were to reject this it would suggest model misspecification.\\
+    To test these hypotheses simultaneously consider:
+    \[
+        R\beta = q \quad \text{with} \quad R = \begin{pmatrix}
+        0 & 1 & 0 & 0 & 0 \\
+        0 & 0 & 1 & 1 & 1 \\
+        \end{pmatrix}
+        \quad \text{and} \quad q = \begin{pmatrix}
+        1 \\
+        1 \\
+        \end{pmatrix}
+        \]
+\end{example}
+
+
+
+To test $H_0$: $\boldsymbol{R\beta}=\boldsymbol{q}$ vs. $H_1$: $\boldsymbol{R\beta}\not = \boldsymbol{q}$ we compute the vector $\boldsymbol{R \hat \beta}=\boldsymbol{q}$ and reject the null if this vector is "too large" depending on the distribution of $\boldsymbol{\hat\beta}$ under $H_0$. 
+
+\begin{definition}[Wald statistic]
+    When restrictions are a linear function of coefficients $\boldsymbol{\beta}$, we can write the Wald statistic as \[W = (R\hat \beta-q)'(R\hat V_{\hat\beta}R')^{-1}(R\hat \beta-q) \] i.e. a weighted Euclidean measure of the length of the vector $R\hat \beta-q$.
+\end{definition}
+\begin{note}
+    As the Wald statistic is symmetric in the argument $R\hat \beta-q$ it treats positive and negative alternatives symmetrically. Thus the inherent alternative is always two-sided.\\
+    The Wald statistic is not-invariant to a non-linear transformation/reparametrisation of the hypothesis. For example, asking whether $\beta_1 = 1$ is the same as asking whether $\log \beta_1 = 0$; but the Wald statistic for $\beta_1 = 1$ is not the same as the Wald statistic for $\log \beta_1 = 0$. This is because there is in general no neat relationship between the standard errors of $\beta_1$ and $\log \beta_1$, so it needs to be approximated.
+\end{note}
+
+Assuming normal regression:
+\begin{align*}
+\hat\beta|X &\sim N(\beta, \sigma^2(X'X)^{-1})\\
+R \hat\beta|X &\sim N(R\beta, \sigma^2R(X'X)^{-1}R')\\
+R \hat\beta-q|X &\sim N(R\beta-q, \sigma^2R(X'X)^{-1}R')\\ 
+&\overset{H_0}{\sim} N(0, \sigma^2R(X'X)^{-1}R')
+\end{align*}
+We can thus standardise:
+\[
+    (\sigma^2R(X'X)^{-1}R')^{-\frac{1}{2}}(R \hat\beta-q)|X \overset{H_0}{\sim} N(0, I_P)
+\]
+\begin{equation}
+    (R \hat\beta-q)'(\sigma^2R(X'X)^{-1}R')^{-1}(R \hat\beta-q)|X \overset{H_0}{\sim} \chi^2(p)  
+    \label{eq:WaldStatistic}
+\end{equation}
+However, the true variance $\sigma^2$ is unknown, we thus replace it with the estimated $\hat \sigma^2$ to obtain the Wald statistic:
+\begin{align*}
+    W &= (R \hat\beta-q)'(\hat \sigma^2R(X'X)^{-1}R')^{-1}(R \hat\beta-q)\\
+    &= \frac{(R \hat\beta-q)'(\sigma^2R(X'X)^{-1}R')^{-1}(R \hat\beta-q)}{\hat\sigma^2/\sigma^2}
+\end{align*}
+
+
+
+Note that this distribution is not $\chi^2(p)$ since $\hat\sigma^2$ is itself a random variable. We must consider the joint distribution of $\boldsymbol{\hat\sigma^2}$ and $\boldsymbol{\hat\beta}$ to make progress.
+
+\section{The joint distribution of $\boldsymbol{\hat\sigma^2}$ and $\boldsymbol{\hat\beta}$}
+Recall the definition of the variance estimator: \[\hat\sigma^2 = \frac{\boldsymbol{\hat\epsilon}'\boldsymbol{\hat\epsilon}}{n-k}\]
+To express this in terms of the population $\boldsymbol{\epsilon}$'s examine the following, where we denote the residual maker matrix by $\mathbf{M_X}=\mathbf{I}-\mathbf{X}(\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'$:
+\begin{align*}
+    (n-k)\hat\sigma^2&=\boldsymbol{\hat\epsilon}'\boldsymbol{\hat\epsilon}\\
+    &= (\mathbf{M_X}\mathbf{y})'\mathbf{M_X}\mathbf{y} \\
+    &= (\mathbf{M_X}(\mathbf{X}\boldsymbol{\beta}+\boldsymbol{\epsilon}))'\mathbf{M_X}(\mathbf{X}\boldsymbol{\beta}+\boldsymbol{\epsilon})\\
+    &= \boldsymbol{\epsilon}'\mathbf{M'_X}\mathbf{M_X}\boldsymbol{\epsilon} \hspace{20pt} \text{(since $\mathbf{M_XX}=\mathbf{0}$)}\\
+    &= \boldsymbol{\epsilon}'\mathbf{M_X}\boldsymbol{\epsilon} \hspace{39pt} \text{(since $\mathbf{M'_XM_X}=\mathbf{M_XM_X}=\mathbf{M_X}$)}
+\end{align*}
+ Since $\mathbf{M_X}$ is symmetric, it is positive definite when all eigenvalues are positive. Since it is also idempotent, $\mathbf{M^2_X}=\mathbf{M_X}$, all eigenvalues are either zero or one, meaning $\mathbf{M_X}$ is positive semi-definite.\footnote[1]{Alternatively since \( \mathbf{M_X^2} = \mathbf{M_X} \) and \( \mathbf{M_X}' = \mathbf{M_X} \), note that \( \mathbf{v}'\mathbf{M_Xv} = \mathbf{v}'\mathbf{M_X^2v} = \mathbf{v}'\mathbf{M_X}'\mathbf{M_Xv} = (\mathbf{v}'\mathbf{M_X})'(\mathbf{M_Xv}) = \|\mathbf{M_Xv}\|^2 \) for all \( \mathbf{v} \in \mathbb{R}^n \).
+}
+
+\begin{lemma}[Spectral decomposition]
+    For every $n \times n$ real symmetric matrix, the eigenvalues are real and the eigenvectors can be chosen real and orthonormal. Thus a real symmetric matrix $\mathbf {A}$ can be decomposed as
+    \[ \mathbf {A} =\mathbf {Q} \mathbf {\Lambda } \mathbf {Q'}\]
+    where $\mathbf {Q}$ is an orthogonal matrix whose columns are the real, orthonormal eigenvectors of $\mathbf {A}$, and $\mathbf {\Lambda}$ is a diagonal matrix whose entries are the eigenvalues of $\mathbf {A}$. 
+\end{lemma}
+
+The spectral decomposition of $\mathbf{M_X}$ is $\mathbf{M_X}=\mathbf{H}\mathbf{\Lambda}\mathbf{H'}$ where $\mathbf{HH'}=\mathbf{I_n}$ and $\mathbf{\Lambda}$ is diagonal with the eigenvalues of $\mathbf{M_X}$ along the diagonal. Since $\mathbf {M_X}$ is idempotent with rank $n-k$, it has $n-k$ eigenvalues equalling 1 and $k$ eigenvalues equalling 0, so: 
+\[\mathbf{\Lambda} = \begin{bmatrix}
+    \mathbf{I}_{n-k} & \mathbf{0} \\
+    \mathbf{0} & \mathbf{0}_k
+    \end{bmatrix} \]
+    
+In the normal regression $\boldsymbol{\epsilon} \sim N(0,\mathbf{I_n} \sigma^2)$, we want to find the distribution of $\mathbf{H'}\boldsymbol{\epsilon}$. A linear combination of normals is also normal, meaning $\mathbf{H'}\boldsymbol{\epsilon}$ is normal with mean $\E[\mathbf{H'}\boldsymbol{\epsilon}]=\mathbf{H'}\E[\boldsymbol{\epsilon}]=0$ and variance Var$(\mathbf{H'}\boldsymbol{e})=\mathbf{H'}\mathbf{I_n} \sigma^2 \mathbf{H} = \sigma^2 \mathbf{H'}\mathbf{H} = \mathbf{I_n} \sigma^2$. Thus $\mathbf{H'}\boldsymbol{\epsilon} \sim N(0,\mathbf{I_n} \sigma^2)$.
+
+Let $\mathbf{u}=\mathbf{H'}\boldsymbol{\epsilon}$, and partition $\underset{n \times 1}{\mathbf{u}}=\begin{bmatrix}
+    \underset{(n-k) \times 1}{\mathbf{u_1}}\\
+    \underset{k \times 1}{\mathbf{u_2}}
+\end{bmatrix}$ where $\mathbf{u_1} \sim N(0,\mathbf{I_n} \sigma^2)$, then we have
+
+\begin{align*}
+    (n-k)\hat\sigma^2 &= \boldsymbol{\epsilon}'\mathbf{M_X} \boldsymbol{\epsilon}\\
+    &= \boldsymbol{\epsilon}' \mathbf{H}\mathbf{\Lambda} \mathbf{H'} \boldsymbol{\epsilon}\\
+    &= \mathbf{u}' \begin{bmatrix}
+        \mathbf{I}_{n-k} & \mathbf{0} \\
+        \mathbf{0} & \mathbf{0}_k
+        \end{bmatrix} \mathbf{u}\\
+    &= [\mathbf{u'_1} \hspace{5pt} \mathbf{u'_2}] \begin{bmatrix}
+        \mathbf{I}_{n-k} & \mathbf{0} \\
+        \mathbf{0} & \mathbf{0}_k
+        \end{bmatrix} \begin{bmatrix}
+            \mathbf{u_1}\\
+            \mathbf{u_2}
+        \end{bmatrix}\\
+    &=\mathbf{u'_1} \mathbf{u_1}
+\end{align*}
+where $\mathbf{u'_1} \mathbf{u_1}$ is the sum of $n-k$ squared standard normals , thus it is distributed $\chi^2_{n-k}$. Since $\boldsymbol{\epsilon}$ is independent of $\boldsymbol{\hat\beta}$ it follows that $\hat\sigma^2$ is independent of $\boldsymbol{\hat\beta}$ as well.
+\begin{theorem} 
+In normal regression, \[\frac{(n-k)\hat\sigma^2}{\sigma^2}\sim\chi^2_{n-k}\] and is independent of $\boldsymbol{\hat\beta}$.
+\label{thm:distributionOfVariance}
+\end{theorem}
+\begin{corollary}
+    In normal regression satisfying GM1-3, the normalised Wald statistic $\frac{W}{p}$, is distributed as $F(p,n-k)$ under the null.
+\end{corollary}
+\begin{proof}
+    \[
+\frac{W}{p} = \frac{(R \hat\beta-q)'(\sigma^2R(X'X)^{-1}R')^{-1}(R \hat\beta-q)/p}{\hat\sigma^2/\sigma^2} \sim \frac{\chi^2(p)/p}{\chi^2(n - k)/(n - k)} \sim F(p, n - k).
+\]
+Where we have used \ref{eq:WaldStatistic} in the numerator, and Theorem \ref{thm:distributionOfVariance} in the denominator.
+\end{proof}
+Consider a special case of testing a single restriction, that the $j$-th coefficient is zero. Then $R\hat \beta_j -q=\beta_j$:
+\begin{align*}
+\hat \beta_j|X &\overset{H_0}{\sim}N(0,\sigma^2(X'X)^{-1}_{ij})\\
+\frac{\hat \beta_j}{\sqrt{\sigma^2(X'X)^{-1}_{jj}}}|X&\overset{H_0}{\sim}N(0,1)
+\end{align*}
+As before $\sigma^2$ is unknown, we can substitute in $\hat\sigma^2$, but the distribution will change:
+\begin{align*}
+t&=\frac{\hat\beta_j}{\sqrt{\hat\sigma^2(X'X)^{-1}_{jj}}}\\
+ &= \frac{\hat\beta_j/{\sqrt{\sigma^2(X'X)^{-1}_{jj}}}}{\sqrt{\frac{(n-k)\hat\sigma^2}{\sigma^2}/(n-k)}}\\
+ t|X &\overset{H_0}{\sim} \frac{N(0,1)}{\sqrt{\chi^2(n - k)/(n - k)}}\\
+ &\overset{H_0}{\sim} t(n-k)
+\end{align*}
+Where we are using the fact that the numerator and denominator are independent conditional on X. Note that the square of the $t$-statistic equals the F-statistic for testing the single restriction.
+\begin{align*}
+t^2(n-k) &= \left(\frac{N(0,1)}{\sqrt{\chi^2(n - k)/(n - k)}}\right)^2\\
+&= \frac{\chi^2(1)/1}{\chi^2(n - k)/(n - k)}\\
+&= F(1,n-k)
+\end{align*}
+It is preferable to use the t-statistic since we can test one-sided alternatives, by squaring it we kill the sign of $\hat\beta_j$, making it impossible to differentiate between left and right sided alternatives.
+\section{The familiar form of the F-statistic}
+Consider the following test:\[ H_0: R\beta = q \text{ vs. } H_1: R\beta \not = q.\]
+
+\begin{prop}
+    The normalised Wald statistic is equivalent to the following formula for the F-statistic when testing linear restrictions:
+    \[ F=\frac{W}{p} = \frac{(RSS_r-RSS_u)/p}{RSS_u/(n-k)} \]
+\end{prop}
+\begin{proof}
+Let us impose the null hypothesis $R\beta = q$ when minimising the sum of squared residuals, denote the solution as the restricted least squares estimator $\tilde{\beta}$:
+\[ 
+    \min_{\beta} (Y - X\beta)'(Y - X\beta) \quad \text{s.t.} \quad R\beta = q
+\]
+\[
+    \mathcal{L}(\beta) = (Y - X\beta)'(Y - X\beta) + \lambda'(R\beta - q)    
+\]
+\begin{align*}
+        \frac{\partial \mathcal{L}}{\partial \beta} &= -2X'(Y - X\tilde{\beta}) + R'\lambda = 0\\
+         &\implies X'Y - X'X\tilde{\beta} = R'\left(\frac{\lambda}{2}\right)\\
+         &\implies (X'X)^{-1}X'Y - (X'X)^{-1}X'X\tilde{\beta} = (X'X)^{-1} R'\left(\frac{\lambda}{2}\right)
+\end{align*}
+Define the usual (unrestricted) OLS estimate as $\hat\beta = \hat\beta_{OLS}= (X'X)X'Y$ 
+\begin{align*}
+\implies& \hat\beta - \tilde{\beta} = (X'X)^{-1} R'\left(\frac{\lambda}{2}\right)\\
+\implies& \tilde{\beta} = \hat\beta - (X'X)^{-1}R'\left(\frac{\lambda}{2}\right)\\
+\implies& R\tilde{\beta} = R\hat\beta - R(X'X)^{-1}R'\left(\frac{\lambda}{2}\right)
+\end{align*}
+Since \(R\tilde{\beta} = q\):
+\begin{align*}
+    q &= R\hat\beta - R(X'X)^{-1}R'\left(\frac{\lambda}{2}\right)\\
+    R\hat\beta -q &= R(X'X)^{-1}R'\left(\frac{\lambda}{2}\right)\\
+    \Rightarrow (R(X'&X)^{-1}R')^{-1}(R\hat{\beta} - q)=\frac{\lambda}{2} 
+\end{align*}
+
+Thus,
+\[
+\tilde{\beta} = \hat{\beta} - (X'X)^{-1}R'\left(R(X'X)^{-1}R'\right)^{-1}(R\hat{\beta} - q)
+\]
+Now from the corresponding restricted and unrestricted residuals,
+\[
+\hat{\epsilon} = Y - X\hat{\beta}
+\]
+\[
+\tilde{\epsilon} = Y - X\tilde{\beta} = X\hat{\beta} + \hat{\epsilon} - X\tilde{\beta} = \hat{\epsilon} + X(\hat\beta - \tilde{\beta})
+\]
+Since \(\hat\epsilon'X = 0\) \footnote[1]{I.e.: Unrestricted OLS residuals uncorrelated with regressors, see lecture 2 for an explanation}
+\begin{align*}
+\tilde{\epsilon}'\tilde{\epsilon} &= (\hat{\epsilon} + X(\hat\beta - \tilde{\beta}))'(\hat{\epsilon} + X(\hat\beta - \tilde{\beta}))\\
+&= \hat{\epsilon}'\hat{\epsilon} + \hat{\epsilon}'X(\hat\beta - \tilde{\beta}) + (\hat\beta - \tilde{\beta})'X'\hat{\epsilon}+(\hat{\beta} - \tilde{\beta})'X'X(\hat{\beta} - \tilde{\beta})\\
+&= \hat{\epsilon}'\hat{\epsilon} + (\hat{\beta} - \tilde{\beta})'X'X(\hat{\beta} - \tilde{\beta})
+\end{align*}
+and substituting \(\hat{\beta} - \tilde{\beta} = (X'X)^{-1}R'\left(R(X'X)^{-1}R'\right)^{-1}(R\hat{\beta} - q)\),
+
+
+\begin{align*}
+\tilde{\epsilon}'\tilde{\epsilon} - \hat{\epsilon}'\hat{\epsilon} &= ((X'X)^{-1}R'\left(R(X'X)^{-1}R'\right)^{-1}(R\hat{\beta} - q))'\bcancel{X'X(X'X)^{-1}}R'\left(R(X'X)^{-1}R'\right)^{-1}(R\hat{\beta} - q)\\
+&=(R\hat{\beta} - q)'\left(R(X'X)^{-1}R'\right)^{-1}\bcancel{R(X'X)^{-1}R'\left(R(X'X)^{-1}R'\right)^{-1}}(R\hat{\beta} - q)\\
+&=(R\hat{\beta} - q)'\left(R(X'X)^{-1}R'\right)^{-1}(R\hat{\beta} - q)
+\end{align*}
+Finally,
+\[
+\frac{W}{p} = \frac{(R\hat{\beta} - q)'\left(R(X'X)^{-1}R'\right)^{-1}(R\hat{\beta} - q)/p}{\hat\sigma^2} = \frac{(\tilde{\epsilon}'\tilde{\epsilon} - \hat{\epsilon}'\hat{\epsilon})/p}{\frac{\hat{\epsilon}'\hat{\epsilon}}{n-k}} = \frac{(RSS_r - RSS_u)/p}{RSS_u/(n - k)}
+\]
+
+
+\end{proof}
+
+
+\end{document}

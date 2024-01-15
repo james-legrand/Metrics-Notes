@@ -1,0 +1,320 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\vspace{-10pt}
+\setcounter{chapter}{7}
+\pagenumbering{gobble}
+\chapter{Heteroskedasticity and serial correlation. HAC standard errors.}
+\vspace{-10pt}
+The homoskedasticity and no serial correlation assumption (GM3) can be violated in three ways:
+\begin{itemize}
+    \item Heteroskedasticity only  (B)- $Var(\epsilon|X)$ is diagonal with unequal elements along the diagonal.
+    \item Serial correlation only (C) - $Var(\epsilon|X)$ has non-zero off-diagonal elements, but all diagonal elements are the same.
+    \item Heteroskedasticity and serial correlation (D) - $Var(\epsilon|X)$ is a general non-diagonal matrix with unequal elements along the diagonal.
+\end{itemize}
+\[ A = \sigma^2 \begin{bmatrix}
+    1&0&0\\
+    0&1&0\\
+    0&0&1\\
+\end{bmatrix} \quad 
+B = \sigma^2 \begin{bmatrix}
+    1&0&0\\
+    0&2&0\\
+    0&0&3\\
+\end{bmatrix} \quad 
+C = \sigma^2 \begin{bmatrix}
+    1&\rho&\rho^2\\
+    \rho&1&\rho\\
+    \rho^2&\rho&1\\
+\end{bmatrix} \quad
+D = \sigma^2 \begin{bmatrix}
+    1&\rho&\rho^2\\
+    \rho&2&\rho\\
+    \rho^2&\rho&3\\
+\end{bmatrix}
+\]
+\section{Heteroskedasticity}
+Under heteroskedasticity OLS is still consistent and asymptotically normal, although is no longer efficient and has a different asymptotic covariance matrix. Thus the default standard errors will be wrong. Recall the large sample OLS assumptions, now consider the weaker assumptions OLS2' and OLS3'
+
+\begin{minipage}{.45\textwidth}
+    \begin{align*}
+        &(\text{OLS0}) \quad (y_i, x_i)\text{ is an i.i.d. sequence} \\
+        &(\text{OLS1}) \quad E(x_i x_i') \text{ is finite non-singular} \\
+        &(\text{OLS2}) \quad E(y_i|x_i) = x_i'\beta \\
+        &(\text{OLS3}) \quad \text{Var}(y_i|x_i)= \sigma^2 \\
+        &(\text{OLS4}) \quad E\epsilon_i^4 < \infty, \quad E\|x_i\|^4 < \infty
+    \end{align*}
+\end{minipage}
+\begin{minipage}{.55\textwidth}
+    \begin{align*}
+        &(\text{OLS2'}) \quad E(\epsilon_ix_i)= 0 \\
+        &(\text{OLS3'}) \quad \text{Var}(\epsilon_ix_i)=V<\infty \text{ and is non-singular} 
+    \end{align*}
+\end{minipage}
+
+\begin{theorem}
+    Under OLS0,1,2',3',4
+    \begin{enumerate}
+        \item $\hat \beta_{OLS} \overset{p}{\to} \beta$ (OLS is consistent)
+        \item $\sqrt{n}\left(\hat \beta_{OLS} -\beta\right) \overset{d}{\to} N\left(0,(\E(x_ix_i'))^{-1}V (\E(x_ix_i'))^{-1}\right)$
+    \end{enumerate}
+\end{theorem}
+
+\begin{proof}
+    1. We only require OLS0,1,2' for consistency
+    \begin{align*}
+        \hat\beta_{OLS} &= \beta + (X'X)^{-1}X'\epsilon\\
+        &= \beta + \left(\frac{1}{n}\sum_{i=1}^{n} x_i x_i'\right)^{-1} \frac{1}{n}\sum_{i=1}^{n} x_i \epsilon_i\\
+        &\overset{p}{\to} \beta + [\E(x_ix_i')]^{-1} \E(\epsilon_i x_i) \\
+        &= \beta
+    \end{align*}
+    2.
+    \[\sqrt{n}\left(\hat\beta_{OLS} - \beta\right) = \left(\frac{1}{n}\sum_{i=1}^{n} x_i x_i'\right)^{-1} \frac{1}{\sqrt{n}}\sum_{i=1}^{n} x_i \epsilon_i \]
+    
+    Using the CLT: 
+    \[ \frac{1}{\sqrt{n}}\sum_{i=1}^{n} x_i \epsilon_i \overset{d}{\to} N(0,V) \]
+    Using the CMT: 
+    \begin{align*}
+        \left(\frac{1}{n}\sum_{i=1}^{n} x_i x_i'\right)^{-1} \frac{1}{\sqrt{n}}\sum_{i=1}^{n} x_i \epsilon_i & \overset{d}{\to} [\E(x_ix_i')]^{-1} N(0,V)\\
+        \implies \sqrt{n}\left(\hat\beta_{OLS} - \beta\right) & \overset{d}{\to} N\left(0,(\E(x_ix_i'))^{-1}V (\E(x_ix_i'))^{-1}\right)
+    \end{align*}
+    \end{proof}
+When the errors are homoskedastic the variance is as in previous lectures: \[ \E[X'X]^{-1} \E[X'X \epsilon_i^2] \E[X'X]^{-1} = \E[X'X]^{-1} \sigma^2\E[X'X] \E[X'X]^{-1} = \sigma^2\E[X'X]^{-1} \]
+The classic covariance matrix estimator can be highly biased if homoskedasticity fails, we now consider how to construct covariance matrix estimators which do not require homoskedasticity.\\
+If $\epsilon_i$ were known, we could have estimated V as follows:
+\[ \frac{1}{n} \sum_{i=1}^{n}x_ix_i'\hat \epsilon_i ^2 \overset{p}{\to} V\]
+Of course $\epsilon_i$ is unknown, but since $\hat \beta_{OLS}$ remains consistent we can use the observed residuals $\hat \epsilon_i = Y_i - x_i'\hat\beta_{OLS}$:
+\[ \hat V = \frac{1}{n} \sum_{i=1}^{n}x_ix_i'\hat \epsilon_i ^2 \]
+To show this is a consistent estimator:
+\begin{align*}
+    \hat V &= \frac{1}{n} \sum_{i=1}^{n}x_ix_i'\hat \epsilon_i ^2\\
+     &= \frac{1}{n} \sum_{i=1}^{n}x_ix_i' \left(\epsilon_i-x_i'\left( \hat \beta_{OLS} - \beta \right)\right)^2\\
+     &=\frac{1}{n} \sum_{i=1}^{n}x_ix_i' \left( \epsilon_i^2 -2\epsilon_i x_i'\left( \hat \beta_{OLS} - \beta \right) + \left(x_i'\left( \hat \beta_{OLS} - \beta \right)\right)^2\right)\\
+     &= \frac{1}{n} \sum_{i=1}^{n}x_ix_i' \epsilon_i^2 -\frac{2}{n}\sum_{i=1}^{n}(x_ix_i')\epsilon_i x_i'\left( \hat \beta_{OLS} - \beta \right) + \frac{1}{n} \sum_{i=1}^{n}x_ix_i' \left(x_i'\left( \hat \beta_{OLS} - \beta \right)\right)^2\\
+     &\overset{p}{\to} V \quad \text{since $\hat \beta_{OLS}\overset{p}{\to} \beta$}
+\end{align*}
+\begin{definition}[White's heteroskedasticity robust covaraince matrix]
+    \[\widehat{Var}(\hat\beta_{OLS}) = (X'X)^{-1}\left(\sum_{i=1}^{n}x_ix_i'\hat \epsilon_i ^2 \right)(X'X)^{-1} \]
+\end{definition}
+\begin{note}
+Whilst this estimator is consistent, it is biased in finite samples. To see this, suppose the actual covariance matrix of the population regression residuals is given by $\E[\epsilon \epsilon'|X] = \Phi = diag(\phi_i)$. The covariance matrix of the OLS estimator is then \[V=(X'X)^{-1}(X'\Phi X) (X'X)^{-1}\] Denote the i-th column of the residual maker matrix M by $m_i$ then $\hat \epsilon_i = m_i ' \epsilon$. 
+\[ \implies \E[\hat \epsilon_i^2] = \E[m_i' \epsilon \epsilon' m_i] = m_i'\Phi m_i \]
+Notice that $m_i$ is the i-th column of the identity matrix (denoted as $e_i$) minus the i-th column of the projection matrix $X(X'X)^{-1}X'$ ($p_i$). Hence $m_i=e_i - p_i$ and 
+\[ \E[\hat \epsilon_i^2] = (e_i-h_i)'\Phi (e_i-h_i) = \phi_i - 2\phi_i h_{ii}+h_i'\Phi h_i \]
+where $h_{ii}$ is the i-th diagonal element of the projection matrix. Because this matrix is symmetric and idempotent, $h_{ii} = h_i'h_i$ so: 
+\begin{align*}
+    \E\left(\hat V - V\right) &= (X'X)^{-1}(X'\Phi X) (X'X)^{-1} - (X'X)^{-1}(X' \hat \Phi X) (X'X)^{-1}\\
+    &= (X'X)^{-1}(X'(\Phi-\hat \Phi) X) (X'X)^{-1}\\
+    &= (X'X)^{-1}(X' diag(\phi_i - (\phi_i - 2\phi_i h_{ii}+h_i'\Phi h_i) ) X) (X'X)^{-1}\\
+    &= (X'X)^{-1}(X'diag(h_i'(\Phi - 2\phi_iI)h_i)X) (X'X)^{-1}
+\end{align*}
+
+
+Whilst $\hat V$ is biased, here we can see that it is also consistent. Notice that $ \hat \Phi $ is not consistent for $\Phi$, since there are more elements to estimate as the sample gets large. However, $\hat \epsilon_i$ is consistent for $\epsilon_i$. We know \[X'\hat \Phi X = \frac{1}{n}\sum_{i=1}^{n}  x_ix_i'\hat \epsilon_i^2 \] and since plim $\hat \epsilon_i ^2 = \phi_i$ we get plim $X'\hat \Phi X = X' \Phi X$.
+
+In summary, $\hat V$ is biased since $\hat\epsilon^2_i$ is a biased estimate of $\epsilon^2$.
+\end{note}
+
+\section{Serial correlation (and heteroskedasticity)}
+As with heteroskedasticity, OLS remains consistent and asymptotically normal, but the default standard errors are wrong. This cannot happen if the data are i.i.d. - if OLS0 holds it must be the case that $\Omega = Var(\epsilon|X)$ is diagonal. If the data are dependent, then $\Omega$ is typically no longer diagonal.
+
+\begin{definition}[Strict Stationarity]
+    A sequence of random variables $\{Z_t\}^{\infty}_{t=-\infty}$ is strictly stationary if, for any finite nonnegative integer $m$,
+    \[
+        f_{Z_t, Z_{t+1}, ..., Z_{t+m}}(x_0, x_1, ..., x_m)=  f_{Z_s, Z_{s+1}, ..., Z_{s+m}}(x_0, x_1, ..., x_m)
+    \]
+    which is to say that the joint distribution , $f$, does not depend on the index, $t$.
+\end{definition}
+Strict stationarity implies that the (marginal) distribution of $Z_t$ does not vary over time. It also implies that the bivariate distributions of$ (Z_t, Z_{t+1})$ and multivariate distributions of $ (Z_t, ..., Z_{t+m})$ are stable over time.
+
+\begin{theorem}
+    If $Z_t$ is i.i.d., then it is strictly stationary
+\end{theorem}
+\begin{proof}
+    Let $F$ denote the joint distribution function, then:
+    \begin{align*}
+        F(x_{n+1}, ..., x_{n+m}) &= F(x_{n+1})\cdot ... \cdot F(x_{n+m})\\
+        &= F(x_{n+k+1})\cdot ... \cdot F(x_{n+k+m})\\
+        &= F(x_{n+k+1},...,x_{n+k+m})
+    \end{align*}
+    Lines 1 and 3 follow from the fact that the joint distribution function of a set of mutually independent variables is equal to the product of their marginal distribution functions. On line 2 we have used the fact that all the terms of the sequence have the same distribution. 
+\end{proof}
+
+
+\begin{definition}[Covarariance stationarity]
+    A sequence of random variables $\{Z_t\}^{\infty}_{t=-\infty}$ is covariance (weakly) stationary if just the first two moments do not depend on $t$, e.g.
+    \begin{align*}
+        \E Z_1 &= \E Z_2 = \dots\\
+        Var(Z_1)&=Var(Z_2)= \dots\\
+        Cov(Z_1, Z_{1+m}) &= Cov(Z_2, Z_{2+m}) = \dots
+    \end{align*}
+\end{definition}
+A strictly stationary process is covariance-stationary as long as the variance and covariances are finite.
+
+Consider a new set of OLS assumptions:
+\begin{align*}
+    \text{(SC0)}& \quad \{(y_t, x_t)\}^T_{t=1} \text{ is strictly stationary}\\
+    \text{(SC1)}& \quad \{(x_tx_t')\} \text{ satisfies LLN: }\tfrac{1}{T}\sum x_t x_t' \overset{p}{\to} \E(x_t x_t') < \infty \text{, positive definite}\\
+    \text{(SC2)}& \quad \{(x_t \epsilon_t)\} \text{ satisfies LLN: }\tfrac{1}{T}\sum x_t \epsilon_t \overset{p}{\to} \E(x_t \epsilon_t) =0\\
+    \text{(SC3)}& \quad \{(x_t \epsilon_t)\} \text{ satisfies CLT: }\tfrac{1}{\sqrt{T}}\sum x_t \epsilon_t \overset{d}{\to} N(0,V) \text{, where }
+\end{align*}
+\[ V= \E(\epsilon_t^2 x_t x_t')+\sum_{t=1}^{\infty}\left(\E(\epsilon_t \epsilon_{t-l} x_t x_{t-l}') + \E(\epsilon_t \epsilon_{t-l} x_{t-l} x_{t}')\right)\]
+These assumptions further generalise our GM/OLS conditions, such that if the data were independent, we would have $V=\E(\epsilon_t^2x_tx_t')$ as in OLS3'.
+
+\begin{theorem}
+    Under SC0,1,2,3
+    \begin{enumerate}
+        \item $\hat \beta_{OLS} \overset{p}{\to} \beta$ (OLS is consistent)
+        \item $\sqrt{T}\left(\hat \beta_{OLS} -\beta\right) \overset{d}{\to} N\left(0,(\E(x_tx_t'))^{-1}V (\E(x_tx_t'))^{-1}\right)$
+    \end{enumerate}
+\end{theorem}
+The proof is identical to the heteroskedastic case in Theorem 8.2.1.\\
+
+\textbf{Newey-West Method}\\
+Under the SC assumptions, the conventional covariance matrix estimators are inconsistent as they do not capture the serial dependence in $x_te_t$. To consistently estimate the covariance matrix, we need a different estimator. The appropriate class of estimators are called Heteroskedasticity and Autocorrelation Consistent (HAC) covariance matrix estimators.\\
+
+Define $V_T$ as follows:
+
+\begin{align*}
+    V_T &\equiv Var\left(\frac{1}{\sqrt{T}}\sum_{t=1}^{T}x_t\epsilon_t\right)\\
+    &= \E \left[\frac{1}{T}\left(\sum_{t=1}^{T}x_t\epsilon_t\right)\left(\sum_{t=1}^{T}x_t\epsilon_t\right)'\right]\\
+    &= \E\left[\frac{1}{T}(x_1\epsilon_1+x_2\epsilon_2+\dots+x_T\epsilon_T)(x_1'\epsilon_1+x_2'\epsilon_2+\dots+x_T'\epsilon_T)'\right]\\
+    &= \E\left[\underbrace{\frac{1}{T}\sum_{t=1}^{T}\epsilon_t^2x_tx_t'}_{\text{variance at t}}+\underbrace{\frac{1}{T}\sum_{\ell=1}^{T-1}\sum_{t=\ell+1}^{T}\left(\epsilon_t\epsilon_{t-\ell} x_t x_{t-\ell}'+ \epsilon_t\epsilon_{t-\ell} x_{t-\ell}x_t'\right)}_{\text{all covariances with all other time periods}}\right]\\
+    &= \frac{1}{T}\sum_{t=1}^{T}\E[\epsilon_t^2x_tx_t']+\frac{1}{T}\sum_{\ell=1}^{T-1}\sum_{t=\ell+1}^{T}\left(\E(\epsilon_t\epsilon_{t-\ell} x_t x_{t-\ell}')+ \E(\epsilon_t\epsilon_{t-\ell} x_{t-\ell}x_t')\right)\\
+    &= \E[\epsilon_t^2x_tx_t']+\sum_{\ell=1}^{T-1}\frac{T-\ell}{T}\left(\E(\epsilon_t\epsilon_{t-\ell} x_t x_{t-\ell}')+ \E(\epsilon_t\epsilon_{t-\ell} x_{t-\ell}x_t')\right)\quad \text{Using SC0}\\
+\end{align*}
+As $T$ get large, $V_T \approx V$. Since we have $T$ data points, we can only estimate $G<T$ autocovariances of $x_t\epsilon_t$, where $G$ is the truncation lag.  Newey and West propose the following procedure:
+\begin{enumerate}
+    \item Choose $G$ such that: $G=O(T^{\alpha})$ for $0<\alpha<1/4$
+    \item Estimate autocovariances of $x_t\epsilon_t$ of order $\ell$ by \[\hat \Gamma_{\ell} = \frac{1}{T}\sum_{t=\ell+1}^{T}\hat\epsilon_t \hat\epsilon_{t-\ell}x_tx_{t-\ell}'\]
+    \item Estimate V by \[ \hat V_{nw} = \hat\Gamma_0+\sum_{\ell=1}^{G}\frac{G+1-\ell}{G+1}\left(\hat\Gamma_{\ell}+\hat\Gamma_{\ell}'\right)\]
+\end{enumerate}
+
+If we know a priori that autocovariances are zero in population beyond a certain finite lag $q$,  we can consistently estimate $V$ with \[\hat V = \hat\Gamma_0+\sum_{\ell=1}^{q}\left(\hat\Gamma_{\ell}+\hat\Gamma_{\ell}'\right)\] However in the case where we do not know $q$ (which is potentially infinite), we can use the weighted sum suggested by Newey and West. For example, for $q(n) = 3$ \[\hat V_{NW} = \hat \Gamma_0 + \frac{2}{3}(\hat \Gamma_1 + \hat \Gamma_1 ') + \frac{1}{3}(\hat \Gamma_2 + \hat \Gamma_2 ')\]
+
+ The weighting term ensures $\hat V_{nw}$ is positive semi-definite. We can see the similarities between this and our expression for $V_T$ earlier, giving some intuition for its consistency. 
+\begin{align*}
+    V_T &= \mathbb{E}[\epsilon_t^2x_tx_t'] \hspace{15pt} +  \sum_{\ell=1}^{T-1} \frac{T-\ell}{T} \hspace{21pt}\Bigg[ \hspace{10pt}\mathbb{E}(\epsilon_t\epsilon_{t-\ell} x_t x_{t-\ell}') \hspace{22pt}+ \hspace{10pt} \mathbb{E}(\epsilon_t\epsilon_{t-\ell} x_{t-\ell}x_t')\hspace{23pt}\Bigg] \\
+    \hat V_{nw} &= \frac{1}{T}\sum_{t=1}^{T} \hat\epsilon_t^2 x_tx_t' + \sum_{\ell=1}^{G}\frac{G+1-\ell}{G+1} \left[\frac{1}{T}\sum_{t=\ell+1}^{T}\left(\epsilon_t\epsilon_{t-\ell} x_t x_{t-\ell}'\right) + \frac{1}{T}\sum_{t=\ell+1}^{T}\left(\epsilon_t\epsilon_{t-\ell} x_{t-\ell}x_t'\right)\right]
+\end{align*}
+
+Now we can estimate the covariance matrix of $\hat \beta_{OLS}$ as
+\[
+\frac{1}{T}\left[ \frac{1}{T} \sum_{t=1}^{T}x_tx_t'\right]^{-1}\hat V_{nw}  \left[ \frac{1}{T} \sum_{t=1}^{T}x_tx_t'\right]^{-1}  
+\]
+
+\begin{lemma}
+    The matrix of sample covariances for any process is positive semi-definite.
+\end{lemma}
+\begin{proof}
+    Let $z_1, \dots, z_T$ be any sequence of $T$ numbers, and let $P$ be a $m\times m$ matrix of sample covariances:
+    \[ P=
+    \begin{bmatrix}
+        \frac{1}{T} \sum_{t=1}^{T}z_t^2 & \frac{1}{T} \sum_{t=2}^{T}z_tz_{t-1} & \ddots & \frac{1}{T}\sum_{t=m+1}^{T}z_tz_{t-m}\\
+        \frac{1}{T} \sum_{t=2}^{T}z_tz_{t-1} & \frac{1}{T} \sum_{t=1}^{T}z_t^2 & \ddots & \ddots\\
+        \ddots & \ddots & \ddots & \frac{1}{T} \sum_{t=2}^{T}z_tz_{t-1}\\
+        \frac{1}{T}\sum_{t=m+1}^{T}z_tz_{t-m} & \ddots & \frac{1}{T} \sum_{t=2}^{T}z_tz_{t-1} &  \frac{1}{T} \sum_{t=1}^{T}z_t^2
+    \end{bmatrix}\]
+    Consider the $m \times (2T-1)$ matrix:
+    \[
+    Z= \begin{bmatrix}
+        z_1&z_2&\cdots&z_m&\cdots&z_T&0&\cdots&0\\
+        0&z_1&z_2&\cdots&z_m&\cdots&z_T&\ddots&\vdots\\
+        \vdots & \ddots&\ddots&\ddots&\ddots&\ddots&\ddots&\ddots&0\\
+        0&\cdots&0&z_1&z_2&\cdots&\cdots&\cdots&z_T
+    \end{bmatrix}    
+    \]
+    \begin{align*}
+         \frac{1}{T}ZZ' &= \frac{1}{T}
+         \underbrace{\begin{bmatrix}
+            z_1&z_2&\cdots&z_m&\cdots&z_T&0&\cdots&0\\
+            0&z_1&z_2&\cdots&z_m&\cdots&z_T&\ddots&\vdots\\
+            \vdots & \ddots&\ddots&\ddots&\ddots&\ddots&\ddots&\ddots&0\\
+            0&\cdots&0&z_1&z_2&\cdots&\cdots&\cdots&z_T
+        \end{bmatrix}}_{m\times(2T-1)}
+        \underbrace{\begin{bmatrix}
+            z_1 & 0 & \cdots & 0 \\
+            z_2 & z_1 & \cdots & \vdots \\
+            \vdots & z_2 & \ddots & 0 \\
+            z_m & \vdots & \ddots & z_1 \\
+            \vdots & z_m & \ddots & z_2 \\
+            z_T & \vdots & \ddots & \vdots \\
+            0 & z_T & \cdots & \vdots \\
+            \vdots & \ddots & \ddots & \vdots \\
+            0 & \cdots & 0 & z_T \\
+        \end{bmatrix}}_{(2T-1)\times m}\\
+        &= \frac{1}{T}\begin{bmatrix}
+             \sum_{t=1}^{T}z_t^2 &  \sum_{t=2}^{T}z_tz_{t-1} & \ddots & \sum_{t=m+1}^{T}z_tz_{t-m}\\
+             \sum_{t=2}^{T}z_tz_{t-1} &  \sum_{t=1}^{T}z_t^2 & \ddots & \ddots\\
+            \ddots & \ddots & \ddots &  \sum_{t=2}^{T}z_tz_{t-1}\\
+            \sum_{t=m+1}^{T}z_tz_{t-m} & \ddots &  \sum_{t=2}^{T}z_tz_{t-1} &   \sum_{t=1}^{T}z_t^2
+        \end{bmatrix}
+        =P_{m\times m}
+    \end{align*}
+Thus P is p.s.d. since for any vector $v, v'ZZ'v=u'u=\sum_{i=1}^{m}u_i^2\geq 0$
+\end{proof}
+
+
+
+\begin{theorem}
+    $\hat V_{nw}$ is positive semi-definite
+\end{theorem}
+\begin{proof}
+    Let $c$ be any deterministic $k$-dimensional vector, we aim to show $c'\hat V_{nw} c \geq 0$. Consider the $G+1$ matrix
+\[
+    P = 
+    \begin{bmatrix}
+        c'\hat\Gamma_0c &  c'\hat\Gamma_1c& \ddots & c'\hat\Gamma_Gc\\
+        c'\hat\Gamma_1c &  c'\hat\Gamma_0c& \ddots & \ddots \\
+        \ddots & \ddots & \ddots & c'\hat\Gamma_1c\\
+        c'\hat\Gamma_Gc & \ddots &c'\hat\Gamma_1c & c'\hat\Gamma_0c
+    \end{bmatrix}
+\]   
+If $i$ is a $G+1$-dimensional vector of ones, then we have
+\begin{align*}
+    i'Pi&= 
+    \begin{bmatrix}
+        1 & 1 & \dots&1
+    \end{bmatrix}
+    \begin{bmatrix}
+        c'\hat\Gamma_0c &  c'\hat\Gamma_1c& \ddots & c'\hat\Gamma_Gc\\
+        c'\hat\Gamma'_1c &  c'\hat\Gamma_0c& \ddots & \ddots \\
+        \ddots & \ddots & \ddots & c'\hat\Gamma_1c\\
+        c'\hat\Gamma'_Gc & \ddots &c'\hat\Gamma'_1c & c'\hat\Gamma_0c
+    \end{bmatrix}
+    \begin{bmatrix}
+        1 \\
+        1 \\
+        \vdots\\
+        1
+    \end{bmatrix}\\
+    &= \begin{bmatrix}
+        1 & 1 & \dots&1
+    \end{bmatrix}
+    \begin{bmatrix}
+        \sum_{{\ell}=0}^{G}c' \hat\Gamma_{\ell} c\\
+        \sum_{{\ell}=1}^{1}c' \hat\Gamma'_{\ell} c+ \sum_{{\ell}=0}^{G-1}c' \hat\Gamma_{\ell} c\\
+        \vdots\\
+        \sum_{{\ell}=0}^{G}c' \hat\Gamma'_{\ell} c
+    \end{bmatrix} \quad \text{$m$-th row = $\sum_{{\ell}=1}^{m}c' \hat\Gamma'_{\ell} c+ \sum_{{\ell}=0}^{G-m}c' \hat\Gamma_{\ell} c$}\\
+    &= \sum_{{\ell}=0}^{G}c' \hat\Gamma_{\ell} c + \sum_{{\ell}=1}^{1}c' \hat\Gamma'_{\ell} c+ \sum_{{\ell}=0}^{G-1}c' \hat\Gamma_{\ell} c + \dots + \sum_{{\ell}=0}^{G}c' \hat\Gamma'_{\ell} c \\
+    &= (G+1)c' \hat\Gamma_0 c + G(c' \hat\Gamma'_1c + c' \hat\Gamma_1c) + (G-1)(c' \hat\Gamma'_2c + c' \hat\Gamma_2c) + \dots\\
+    &= (G+1)c' \hat\Gamma_0 c + \sum_{{\ell}=1}^{G}(G+1-{\ell})(c' \hat\Gamma'_{\ell}c + c' \hat\Gamma_{\ell}c)\\
+    \implies \frac{1}{G+1}i'Pi &= c' \hat\Gamma_0 c + \sum_{{\ell}=1}^{G}\frac{G+1-{\ell}}{G+1}(c' \hat\Gamma'_{\ell}c + c' \hat\Gamma_{\ell}c)\\
+    &= c'\hat V_{nw}c
+\end{align*}
+Hence, it is sufficient to show that P is positive semi-definite. However, P is the matrix of sample covariances of the process $z_t=c'x_t\hat\epsilon_t$ with autocovariances:
+\[\E[c'x_t\epsilon_t \epsilon_{t-j} x_{t-j}'c]=c'\E[\epsilon_t \epsilon_{t-j}x_t x_{t-j}']c= c'\Gamma_jc \quad \forall j\in\Z\]
+The matrix of sample covariances for any process is positive semi-definite, thus $\hat V_{nw}$ is p.s.d.
+\end{proof}
+\begin{note}
+    The population covariance matrix is always positive semi-definite, so it's desirable for its estimate to also be positive semi-definite. Thus in a time series context we define sample covariances as: 
+    \[
+    \frac{1}{T} \sum_{t=|i-j|+1}^{T} z_tz_{t-|i-j|}\quad \text{rather than as } \frac{1}{T-|i-j|} \sum_{t=|i-j|+1}^{T} z_tz_{t-|i-j|}
+    \]
+    Even though the former is biased and the latter unbiased, had we used the latter we might get an estimate that is not positive semi-definite.
+\end{note}
+\end{document}

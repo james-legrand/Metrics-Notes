@@ -1,0 +1,470 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\vspace{-10pt}
+\setcounter{chapter}{5}
+\pagenumbering{gobble}
+\chapter{Convergence concepts. Asymptotics of OLS.}
+\vspace{-10pt}
+\section{Convergence concepts}
+\begin{definition}[Convergence in probability]
+    A sequence of random scalars $\{ z_i \}_{i=1}^{\infty}$ converges in probability to $z$ iff $\forall \epsilon>$0, $\underset{ n \to \infty}{\lim} P(|z_n-z|\geq\epsilon)=0$, or equivalently $\underset{ n \to \infty}{\lim} P(|z_n-z|<\epsilon)=1.$ Written as $z_n \overset{p}{\to}z$ or $z_n-z = o_p(1)$ or plim$_{ n \to \infty}z_n=z$.
+\end{definition}
+
+This definition is extended to a sequence of random vectors or random matrices by requiring element-by-element convergence in probability. That is, a sequence of K-dimensional vectors {$\mathbf{z_n}$} converges in probability to a K-dimensional vector $\mathbf{z}$ if, for any $\epsilon>0$ \[\underset{ n \to \infty}{\lim} P(|z_{nk}-z_k|>\epsilon)=0 \quad \text{for all} k=1,2,...,K \] where $z_{nk}$ is the $k$-th element of $\mathbf{z_n}$ and $z_k$ the $k$-th element of $\mathbf{z}$.
+
+\begin{exercise}
+Let {$X_n$} be an IID sequence of continuous random variables having a uniform distribution over support \[ R_{X_n} = \left[ -\frac{1}{n}, \frac{1}{n} \right] \] with pdf \[ f_{X_n}(x) = 
+\begin{cases} 
+\frac{n}{2} & \text{if } x \in \left[-\frac{1}{n} ; \frac{1}{n}\right] \\
+0 & \text{if } x \notin \left[-\frac{1}{n} ; \frac{1}{n}\right]
+\end{cases}
+\]
+Find the probability limit (if it exists) of the sequence {$X_n$}. 
+\end{exercise}
+\begin{solution}
+    Intuitively as $n\to \infty$ the probability density becomes concentrated around $x=0$; it seems reasonable to conjecture $X_n \overset{p}{\to} X=0$. To show this formally, for any $\epsilon>0$:
+    \begin{align*}
+        \underset{ n \to \infty}{\lim} P(|X_n-X|>\epsilon) &= \underset{ n \to \infty}{\lim} P(|X_n-0|>\epsilon)\\
+        &= \underset{ n \to \infty}{\lim} [1-P(-\epsilon \leq X_n \leq \epsilon)]\\
+        &= 1- \underset{ n \to \infty}{\lim} \int_{-\epsilon}^{\epsilon} f_{X_n}(x)dx\\
+        &= 1- \underset{ n \to \infty}{\lim} \int_{\max(-\epsilon,-1/n)}^{\min(\epsilon, 1/n)} \frac{n}{2}dx \quad \text{($f(x)$ has no density outside $ [-\tfrac{1}{n}, \tfrac{1}{n}]$)}\\
+        &= 1- \underset{ n \to \infty}{\lim} \int_{-1/n}^{1/n} \frac{n}{2}dx \quad \text{(when $n$ becomes large, $\frac{1}{n}<\epsilon$)}\\
+        &= 1- \underset{ n \to \infty}{\lim}1\\
+        &=0
+    \end{align*}
+
+\end{solution}
+
+\begin{definition}[Convergence in distribution]
+    A sequence of random scalars $\{ z_i \}_{i=1}^{\infty}$ converges in distribution to $z$ iff, $\underset{ n \to \infty}{\lim} F_{z_n}(z) = F_z (z)$ at all points where $F_z$ is continuous. Written as $z_n \overset{d}{\to} z$ or $z_n - z = O_p(1)$ or as "$z$ is the limiting distribution of $z_n$".
+\end{definition}
+
+Convergence in distribution is also known as weak convergence or the convergence in law. 
+\begin{theorem}
+    $\mathbf{z_n} \overset{d}{\to} \mathbf{z}$ iff $\E f(\mathbf{z_n}) \to \E f(\mathbf{z})$ for all bounded, continuous functions $ f$.
+\end{theorem}
+\begin{claim}
+Convergence in probability implies convergence in distribution but not vice versa. The reverse only holds when the limit in distribution is a constant.
+\end{claim}
+
+\begin{example}[$z_n \overset{d}{\to} z \not \implies z_n \overset{p}{\to} z$]
+    Let \( z \sim N(0,1) \). Let \( z_n = -z \) for \( n = 1,2,3,\ldots \); hence \( z_n \sim N(0,1) \).
+    \( z_n \) has the same distribution function as \( z \) for all \( n \) so, trivially, \( \lim_{n \to \infty} F_n(x) = F(x) \) for all \( x \).
+    Therefore, \( z_n \overset{d}{\to} z \). But \( P(|z_n - z| > \varepsilon) = P(|2z| > \varepsilon) = P(|z| > \varepsilon/2) \neq 0 \).
+    So \( z_n \) does not tend to \( z \) in probability.
+\end{example}
+
+The extension to a sequence of random vectors is immediate: $\mathbf{z_n} \overset{d}{\to} \mathbf{z}$ if the joint c.d.f. $F_n$ of the random vector {$\mathbf{z_n}$} converges to the joint c.d.f. $F$ of {$\mathbf{z}$} at every continuity point of F. However, element-by-element convergence does not necessarily imply convergence for the vector sequence (unlike with convergence in probability). Intuitively this is because different c.d.f.'s can have the same marginals.\\
+A common way to establish the connection between scalar convergence in distribution and vector convergence in distribution is for every linear combination of $z_{nk}$ to converge to the linear combination of $z_n$. Formally:
+
+\begin{definition}[Cramer-Wold device]
+    $\mathbf{z_n} \overset{d}{\to} \mathbf{z}$ if and only if $\mathbf{\lambda ' z_n} \overset{d}{\to} \mathbf{\lambda ' z}$ for every $\mathbf{\lambda} \in \R^k$ with $\mathbf{\lambda'\lambda}=1$. 
+\end{definition}
+
+\begin{note}
+    \textbf{Big} $O$ \textbf{Little} $o$ \textbf{notation}
+    \begin{itemize}
+        \item Roughly speaking, a function is $ o(z) $ iff it's of lower asymptotic order than $ z $.
+        \item $ f(n) = o(g(n)) $ iff $ \lim_{n \to \infty} f(n) / g(n) = 0 $. 
+        \item If $ \{ f(n) \} $ is a sequence of random variables, then $ f(n) = o_p (g(n)) $ iff $ plim_{n \to \infty} f(n) / g(n) = 0 $.
+        \item  We write $ X_n - X = o_p (n^{- \gamma}) $ iff $ n^{\gamma}(X_n - X) \xrightarrow{\text{p}} 0 $.
+        \vspace{20pt}
+        \item Roughly speaking, a function is $ O(z) $ iff it's of the same asymptotic order as $ z $.
+        \item $ f(n) = O(g(n)) $ iff $ | f(n) / g(n) | < K $ for all $ n > N $ and some positive integer $ N $ and some constant $ K >0 $. 
+        \item If $ \{ f(n) \} $ is a sequence of random variables, then $ f(n) = o_p (g(n)) $ iff $ plim_{n \to \infty} f(n) / g(n) = 0 $.
+    \end{itemize}
+\end{note}
+
+\begin{definition}[Continuous mapping theorem (CMT)]
+    Let $f$ be continuous at every point $a \in C$ where $P (z \in C) = 1$. Then
+    \begin{enumerate}
+        \item If $\mathbf{z_n} \overset{p}{\to} \mathbf{z}$, then $f (\mathbf{z_n}) \overset{p}{\to} f(\mathbf{z})$ 
+        \item If $\mathbf{z_n} \overset{d}{\to} \mathbf{z}$, then $f (\mathbf{z_n}) \overset{d}{\to} f(\mathbf{z})$ 
+    \end{enumerate}
+
+\end{definition}
+
+\begin{example}
+    The CMT allows $f$ to be discontinuous only if the probability of being at a discontinuity point is zero.\\
+     Consider $f(u)=u^{-1}$ is discontinuous at $u=0$, but if $z_n \overset{d}{\to} z \sim N(0,1)$ then $P (z =0) = 0$ so $z_n^{-1} \overset{d}{\to} z^{-1}$
+\end{example}
+
+\begin{corollary}[Slutsky's theorem]
+    If \( z_n \overset{d}{\to} z \) and \( c_n \overset{p}{\to} c \) as \( n \to \infty \), then
+\begin{enumerate}
+    \item \( z_n + c_n \overset{d}{\to} z + c \)
+    \item \( z_n c_n \overset{d}{\to} zc \)
+    \item \( \frac{z_n}{c_n} \overset{d}{\to} \frac{z}{c} \) if \( c \neq 0 \).
+\end{enumerate}
+\end{corollary}
+The requirement that \( c_n \) converges to a constant is important. If it were to converge to a non-degenerate random variable, the theorem would be no longer valid. For example, let \( z_n \sim \text{Uniform}(0,1) \) and \( c_n = -z_n \). The sum \( z_n + c_n = 0 \) for all values of \( n \). Moreover, \( c_n \overset{d}{\to} c \) where \( z \sim \text{Uniform}(0,1) \), \( c \sim \text{Uniform}(-1,0) \), and \( z \) and \( c \) are independent.
+
+\begin{note}
+    The theorem remains valid if we replace all convergences in distribution with convergences in probability.
+\end{note}
+
+\begin{proof}
+This theorem follows from the fact that if \( z_n \) converges in distribution to \( z \) and \( c_n \) converges in probability to a constant \( c \), then the joint vector \( (z_n, c_n) \) converges in distribution to \( (z, c) \).
+
+Next we apply the continuous mapping theorem, recognising the functions \( g(z,c) \) such as \( g(z,c) = z + c \), \( g(z,c) = zc \), and \( g(z,c) = z c^{-1} \) are continuous (for the last function to be continuous, \( c \) has to be invertible).
+\end{proof}
+
+\begin{definition}[Khinchine's law of large numbers]
+    If $Y_i$ are i.i.d. with finite mean $\E Y_i = m < \infty$ then $\tfrac{1}{n}\sum_{i=1}^{n} Y_i \overset{p}{\to}m$
+\end{definition}
+
+
+\begin{lemma}[Markov's inequality]
+    Let \( \xi \) be a non-negative random variable and let \( \varepsilon > 0 \) be a positive number. Then for any real number \( p > 0 \), the following inequality holds:
+\[
+P(|\xi| \geq \varepsilon) \leq \frac{E[|\xi|^p]}{\varepsilon^p}.
+\]
+\end{lemma}
+
+\begin{proof}
+    Let \( \xi \) be a non-negative random variable and \( \varepsilon > 0 \). For any positive integer \( p \):
+
+    \begin{align*}
+        E[|\xi|^p] &= \int_{0}^{\infty} x^p f_{\xi}(x) \, dx & \text{(expectation definition)} \\
+        &= \int_{0}^{\varepsilon} x^p f_{\xi}(x) \, dx + \int_{\varepsilon}^{\infty} x^p f_{\xi}(x) \, dx & \text{(splitting the integral)} \\
+        &\geq \int_{\varepsilon}^{\infty} \varepsilon^p f_{\xi}(x) \, dx & \text{(since \( x^p \geq \varepsilon^p \) for \( x \geq \varepsilon \))} \\
+        &= \varepsilon^p P(|\xi| \geq \varepsilon) & \text{(definition of probability)} \\
+        P(|\xi| \geq \varepsilon) &\leq \frac{E[|\xi|^p]}{\varepsilon^p} & \text{(Markov's inequality)}
+        \end{align*}
+\end{proof}
+
+
+\begin{lemma}[Chebyshev's inequality]
+    Let \( \eta \) be a random variable with \( \E[\eta] = m \) and \( \text{Var}(\eta) < \infty \). Then for any \( \varepsilon > 0 \),
+    \[
+    P(|\eta - \E[\eta]| \geq \varepsilon) \leq \frac{\text{Var}(\eta)}{\varepsilon^2}.
+    \]
+ \end{lemma}
+\begin{proof}
+    Using Markov's inequality, for any random variable \( \eta \) with finite expectation \( E[\eta] \) and finite non-zero variance \( \text{Var}(\eta) \), and for any \( \varepsilon > 0 \), we have:
+
+    \begin{align*}
+        P(|\eta - E[\eta]| \geq \varepsilon) &= P((\eta - E[\eta])^2 \geq \varepsilon^2) & \text{(squaring both sides)} \\
+        &\leq \frac{E[(\eta - E[\eta])^2]}{\varepsilon^2} & \text{(applying Markov's inequality)} \\
+        &= \frac{\text{Var}(\eta)}{\varepsilon^2}. & \text{(variance definition)}
+        \end{align*}
+
+\end{proof}
+
+\begin{definition}[Chebyshev's law of large numbers]
+    If $Y_i$ are uncorrelated, and $\E Y_i = m < \infty$, $Var(Y_i)=\sigma_i^2<\infty$ and $\tfrac{1}{n^2}\sum_{i=1}^{n} \sigma^2_i \to 0$, then $\tfrac{1}{n}\sum_{i=1}^{n} (Y_i-m) \overset{p}{\to}0$
+\end{definition}
+
+\begin{proof}[Chebyshev’s law of large numbers]
+
+    Let \( Y_1, Y_2, \ldots, Y_n \) be uncorrelated random variables with \( E[Y_i] = m \) and \( \text{Var}(Y_i) = \sigma^2_i < \infty \). Assume that \( \frac{1}{n^2} \sum_{i=1}^n \sigma^2_i \to 0 \) as \( n \to \infty \). Define \( S_n = \frac{1}{n} \sum_{i=1}^n (Y_i - m) \). We want to show that \( S_n \to 0 \) in probability.
+    By Chebyshev's inequality, for any \( \varepsilon > 0 \),
+    \[
+    P(|S_n - E[S_n]| \geq \varepsilon) \leq \frac{\text{Var}(S_n)}{\varepsilon^2}.
+    \]
+    
+    Since \( E[S_n] = 0 \) and the \( Y_i \)'s are uncorrelated, we have
+    \[
+    \text{Var}(S_n) = \text{Var}\left(\frac{1}{n} \sum_{i=1}^n (Y_i - m)\right) = \frac{1}{n^2} \sum_{i=1}^n \text{Var}(Y_i - m) = \frac{1}{n^2} \sum_{i=1}^n \sigma^2_i.
+    \]
+    \[
+        \implies
+    P(|S_n| \geq \varepsilon) \leq \frac{1}{n^2} \frac{\sum_{i=1}^n \sigma^2_i}{\varepsilon^2}.
+    \]
+    
+    Since \( \frac{1}{n^2} \sum_{i=1}^n \sigma^2_i \to 0 \), it follows that for any \( \varepsilon > 0 \),
+    \[
+    P(|S_n| \geq \varepsilon) \to 0 \text{ as } n \to \infty.
+    \]
+    
+    Hence, \( S_n \to 0 \) in probability.
+\end{proof}
+
+\begin{definition}[Univariate Lindeberg-Lévy Central Limit Theorem]
+    If \( Y_i \) are i.i.d. random variables with finite mean \( m \) and variance \( \sigma^2 \), then
+    \[
+    \sqrt{n}\left(\frac{1}{n} \sum_{i=1}^{n} Y_i - m\right) \overset{d}{\to} N(0, \sigma^2)
+    \]
+
+\end{definition}
+
+\begin{definition}[Multivariate Lindeberg-Lévy Central Limit Theorem]
+    If \( Y_i \) are i.i.d. with mean \( m \) and variance-covariance \( \Sigma \), then
+    \[
+    \sqrt{n}\left(\frac{1}{n} \sum_{i=1}^{n} Y_i - m\right) \overset{d}{\to} N(0, \Sigma).
+    \]
+\end{definition}
+
+\begin{proof}
+    Set \( \mathbf{c}  \in  \mathbb{R}^k \) with \( \mathbf{c}'\mathbf{c} = 1 \) and define \( u_i = \mathbf{c}'(\mathbf{y}_i - \mathbf{m}) \). The \( u_i \) are i.i.d. with \( E(u_i^2) = \mathbf{c}'\mathbf{\Sigma} \mathbf{c} < \infty \). By the univariate CLT,
+    \[
+        \mathbf{c}' \sqrt{n}(\mathbf{\bar{y}} - \mathbf{m}) = \frac{1}{\sqrt{n}} \sum_{i=1}^n u_i \overset{d}{\to} N(0, \mathbf{c}'\mathbf{\Sigma} \mathbf{c})
+    \]
+    Notice that if \( \mathbf{z} \sim N(0, \mathbf{\Sigma}) \) then \( \mathbf{c}'\mathbf{z} \sim N(0, \mathbf{c}'\mathbf{\Sigma} \mathbf{c}) \). Thus
+    \[
+    \mathbf{c}'\sqrt{n}(\mathbf{\bar{y}} - \mathbf{m}) \overset{d}{\to} \mathbf{c}'\mathbf{z}.
+    \]
+    Since this holds for all \( \mathbf{c} \), we can use the Cramer-Wold device:
+    \[
+    \sqrt{n}(\mathbf{\bar{y}} - \mathbf{m}) \overset{d}{\to} \mathbf{z} \sim N(0, \mathbf{\Sigma})
+    \]
+    \end{proof}
+
+
+\section{OLS in large samples}
+
+\begin{minipage}{.5\textwidth}
+    \begin{align*}
+        &(\text{OLS0}) & (y_i, x_i) &\text{ is an i.i.d. sequence} \\
+        &(\text{OLS1}) & E(x_i x_i') &\text{ is finite non-singular} \\
+        &(\text{OLS2}) & E(y_i|x_i) &= x_i'\beta \\
+        &(\text{OLS3}) & \text{Var}(y_i|x_i) &= \sigma^2 \\
+        &(\text{OLS4}) & E\epsilon_i^4 &< \infty, \quad E\|x_i\|^4 < \infty
+    \end{align*}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+    \begin{align*}
+        &(\text{GM1}) & \text{rank } \mathbf{X} &= k \\
+        &(\text{GM2}) & E(\mathbf{Y}|\mathbf{X}) &= \mathbf{X}'\beta \\
+        &(\text{GM3}) & \text{Var} (\mathbf{Y}|\mathbf{X}) &= \sigma^2 \mathbf{I}
+    \end{align*}
+\end{minipage}\\
+
+\textbf{Remarks}\\
+(OLS0): Equivalent to random sampling, tells us that the pairs $(x_i,y_i)$ are independent across $i$.\\
+(OLS1): Ensures $\mathbf{X'X}$ is invertible, or comparatively in sample $\frac{1}{n}\sum_{i=1}^{n}x_i x_i'$ exists.\\
+(OLS2): Since all other $x$'s are independent, this is equivalent to conditioning on all $x$'s\\
+(OLS3): Homoskedasticity and no serial correlation\\
+(OLS4): Implies the existence of $\E(\epsilon_i ^2 x_i x_i ')$ via Cauchy-Schwartz. This is required to use the CLT.\\
+\begin{lemma}[Expectation inequality]
+    For any random vector $Y\in \R^m$ with $\E \| Y \| < \infty$ then \[ \| \E[Y] \| \leq E \| Y \| \]
+\end{lemma}
+\begin{lemma}[Holder's inequality]
+    If $p>1$ and $q>1$ and $\frac{1}{p} + \frac{1}{q} = 1$, then for any random $m\times n$ matrices $X$ and $Y$, \[ \left(\E \|X'Y\|\right) \leq \left(\E \|X\|^p\right)^{1/p}\left(\E \|Y\|^q\right)^{1/q}\]
+\end{lemma}
+\begin{corollary}[Cauchy-Schwartz inequality]
+    For any random $m\times n$ matrices $X$ and $Y$, \[ \left(\E \|X'Y\|\right) \leq \left(\E \|X\|^2\right)^{1/2}\left(\E \|Y\|^2\right)^{1/2}\]
+\end{corollary}
+
+To see that the elements of $\E(\epsilon_i ^2 x_i x_i ')$ are finite:
+\begin{align*}
+    \| \E(\epsilon_i ^2 x_i x_i ') \| &\leq \E \|\epsilon_i ^2 x_i x_i '\| &\text{(using Lemma 6.2.1)}\\
+    &= \E(\epsilon_i ^2 \|x_i\|^2)&\\
+    &\leq \E\left(\epsilon_i ^4\right)^{1/2} \E\left( \|x_i\|^4\right)^{1/2} &\text{(using Corollary 6.2.1)}\\
+    &< \infty &\text{(using OLS4)}
+\end{align*}
+
+
+\begin{theorem}
+    Under OLS0-4:
+    \begin{enumerate}
+        \item $\hat\beta_{OLS} \overset{p}{\to} \beta$
+        \item $\sqrt{n}(\hat\beta_{OLS}-\beta) \overset{d}{\to}$ N$\left(0,\sigma^2[\E(x_ix_i')]^{-1}\right)$
+    \end{enumerate}
+\end{theorem}
+\begin{proof}
+1. We only require OLS0-2 for consistency\footnote[1]{Strictly we only need OLS0,1,2': $\E(x_i \epsilon_i) =0$ }
+\begin{align*}
+    \hat\beta_{OLS} &= (X'X)^{-1}X'Y\\
+    &= \beta + (X'X)^{-1}X'\epsilon\\
+    &= \beta + \left(\frac{1}{n}\sum_{i=1}^{n} x_i x_i'\right)^{-1} \frac{1}{n}\sum_{i=1}^{n} x_i \epsilon_i
+\end{align*}
+Since $x_i \epsilon_i$ is i.i.d. by OLS0\footnote[2]{$x_i\epsilon_i = x_i(y_i-x_i'\beta)$ and we know $(y_i, x_i)$ i.i.d.} we can use Khinchine's LLN
+\begin{align*}
+     \frac{1}{n}\sum_{i=1}^{n} x_i x_i' \overset{p}{\to} \E(x_ix_i') \quad \text{ and } \quad \frac{1}{n}\sum_{i=1}^{n} x_i \epsilon_i &\overset{p}{\to} \E(x_i \epsilon_i) \\
+     &=\E(\E(x_i \epsilon_i|x_i))\\
+     &= 0 \quad \text{(using OLS2)}
+\end{align*}
+By the Continuous Mapping Theorem,
+\[ \left(\frac{1}{n}\sum_{i=1}^{n} x_i x_i'\right)^{-1} \overset{p}{\to} [\E(x_ix_i')]^{-1} \quad \text{(exists due to OLS1)} \]
+\[ \implies \left(\frac{1}{n}\sum_{i=1}^{n} x_i x_i'\right)^{-1} \frac{1}{n}\sum_{i=1}^{n} x_i \epsilon_i \overset{p}{\to} 0\]
+2.
+\[ \hat\beta_{OLS} - \beta = (X'X)^{-1}X'\epsilon = \left(\frac{1}{n}\sum_{i=1}^{n} x_i x_i'\right)^{-1} \frac{1}{n}\sum_{i=1}^{n} x_i \epsilon_i \]
+\[ \implies \sqrt{n}\left(\hat\beta_{OLS} - \beta\right) = \left(\frac{1}{n}\sum_{i=1}^{n} x_i x_i'\right)^{-1} \frac{1}{\sqrt{n}}\sum_{i=1}^{n} x_i \epsilon_i \]
+
+Using the CLT: 
+\[ \frac{1}{\sqrt{n}}\sum_{i=1}^{n} x_i \epsilon_i \overset{d}{\to} N(0,Var(x_i\epsilon_i)) = N\left(0,\sigma^2\E(x_ix_i')\right)\]
+Where the second equality follows from: 
+\begin{align*}
+    \text{Var}(x_i\epsilon_i) &= E[x_i\epsilon_i\epsilon_i'x_i'] - E[x_i\epsilon_i]E[x_i\epsilon_i]' \\
+    &= E[\epsilon_i^2 x_i x_i'] - E[x_i\epsilon_i]E[x_i\epsilon_i]' \quad \text{(since $\epsilon_i$ scalar) }\\
+    &= E[E(\epsilon_i^2 x_i x_i'|x_i)] - E[E(x_i\epsilon_i|x_i)]E[x_i\epsilon_i]' \quad \text{(first expectation exists by OLS4)} \\
+    &= E[E(\epsilon_i^2 |x_i) x_i x_i'] - E[x_iE(\epsilon_i|x_i)]E[x_i\epsilon_i]' \\
+    &= \sigma^2 E[x_i x_i']. \quad \text{(using OLS2) }
+\end{align*}
+
+Using the CMT: 
+
+\begin{align*}
+    \left(\frac{1}{n}\sum_{i=1}^{n} x_i x_i'\right)^{-1} \frac{1}{\sqrt{n}}\sum_{i=1}^{n} x_i \epsilon_i & \overset{d}{\to} [\E(x_ix_i')]^{-1} N\left(0,\sigma^2\E(x_ix_i')\right)\\
+    &\sim N\left(0, [\E(x_ix_i')]^{-1}\sigma^2\E(x_ix_i')[\E(x_ix_i')]^{-1}\right)\\
+    \sqrt{n}\left(\hat\beta_{OLS} - \beta\right) & \overset{d}{\to} N\left(0, \sigma^2[\E(x_ix_i')]^{-1}\right)
+\end{align*}
+\end{proof}
+\begin{theorem}
+    Under OLS0-4:
+    \begin{enumerate}
+        \item $\hat\sigma^2 \overset{p}{\to} \sigma^2$
+        \item $W \overset{d}{\to} \chi^2(p)$
+        \item $t \overset{d}{\to} N(0,1)$
+    \end{enumerate}
+\end{theorem}
+\begin{proof}
+    1.\footnote{See Lecture 5 for derivation of the first step}
+    \begin{align*}
+        \hat\sigma^2 &= \frac{1}{n-k} \epsilon' M_X \epsilon \\
+        &= \frac{1}{n-k} \epsilon' (I-X(X'X)^{-1}X')\epsilon\\
+        &= \frac{1}{n-k} \epsilon'\epsilon - \frac{1}{n-k} \epsilon' X(X'X)^{-1}X'\epsilon\\
+        &= \frac{n}{n-k} \frac{1}{n} \sum_{i=1}^{n}\epsilon_i^2 - \frac{n}{n-k} \frac{1}{n} \sum_{i=1}^{n} x_i \epsilon_i \left(\frac{1}{n}\sum_{i=1}^{n} x_i x_i'\right)^{-1} \frac{1}{n} \sum_{i=1}^{n} x_i' \epsilon_i
+    \end{align*}
+    
+    Using Khinchine's LLN:
+    \[
+        \frac{1}{n} \sum_{i=1}^{n}\epsilon_i^2 \overset{p}{\to} \E[\epsilon_i^2], \quad
+        \frac{1}{n} \sum_{i=1}^{n}x_i\epsilon_i \overset{p}{\to} \E[x_i \epsilon_i]=0, \quad
+        \frac{1}{n} \sum_{i=1}^{n} x_i x_i' \overset{p}{\to} \E(x_ix_i'), \quad
+        \frac{1}{n} \sum_{i=1}^{n}x_i' \epsilon_i \overset{p}{\to} \E[x_i' \epsilon_i]=0
+    \]
+    
+    Using CMT and Slutsky:
+    \begin{align*}
+        \hat\sigma^2 &\overset{p}{\to} \frac{n}{n-k} \E[\epsilon_i^2] + \frac{n}{n-k}\times 0 \\
+        &= \E[\epsilon_i^2] \quad \text{(as } n \to \infty)\\
+        &= \sigma^2
+    \end{align*}
+2.
+\[ W= \frac{\sqrt{n}\left(R\hat\beta-q\right)'\left(\sigma^2R\left(\frac{1}{n}X'X\right)^{-1}R'\right)^{-1}\sqrt{n}\left(R\hat\beta-q\right)}{\hat\sigma^2/\sigma^2}\]
+We have seen that $\hat\sigma^2 \overset{p}{\to} \sigma^2$, and
+\begin{align*}
+    \sqrt{n}\left(R\hat\beta-q\right) &= \sqrt{n}(\hat\beta - \beta) \quad \text{(since $H_0:R\beta =q$)}\\
+    &\overset{d}{\to} R N\left(0, \sigma^2[\E(x_ix_i')]^{-1}\right)\\
+    &= N\left(0, \sigma^2R[\E(x_ix_i')]^{-1}R'\right)\\
+    &=\left(\sigma^2R[\E(x_ix_i')]^{-1}R'\right)^{1/2}N(0,I_p)
+\end{align*}
+Since $\frac{1}{n}X'X \overset{p}{\to}\E[x_ix_i']$, by the CMT,
+\[\left(\sigma^2R\left(\frac{1}{n}X'X\right)^{-1}R'\right)^{-1} \overset{p}{\to} \left(\sigma^2R[\E(x_ix_i')]^{-1}R'\right)^{-1}\]
+\begin{align*}
+    \implies W &\overset{d}{\to} \frac{\left(\left(\sigma^2R[\E(x_ix_i')]^{-1}R'\right)^{1/2}N(0,I_p)\right)'\left(\sigma^2R[\E(x_ix_i')]^{-1}R'\right)^{-1}\left(\sigma^2R[\E(x_ix_i')]^{-1}R'\right)^{-1/2}N(0,I_p)}{1}\\
+    &=(N(0,I_p))'\left(\sigma^2R[\E(x_ix_i')]^{-1}R'\right)^{1/2}\left(\sigma^2R[\E(x_ix_i')]^{-1}R'\right)^{-1}\left(\sigma^2R[\E(x_ix_i')]^{-1}R'\right)^{1/2}N(0,I_p)\\
+    &=(N(0,I_p))'I_p N(0,I_p)\\
+    &= \chi^2(p)
+\end{align*}
+3.
+\begin{align*}
+     t&= \frac{\hat\beta_j-\beta}{\sqrt{\hat\sigma^2 (X' X)^{-1}_{jj}}} \\
+     &= \frac{(\hat\beta_j-\beta) / \sqrt{\sigma^2 (X' X)^{-1}_{jj}}}{\sqrt{\hat\sigma^2/{\sigma^2}}}\\
+     &= \frac{\overset{d}{\to}N(0,1)}{\sqrt{\overset{p}{\to} 1}}\quad \text{($\hat\sigma^2 \overset{p}{\to} \sigma^2$ and Theorem 6.2.1-2)}\\
+     & \overset{d}{\to} N(0,1) \quad \text{(by Slutsky)}
+\end{align*}
+\end{proof}
+The distribution of the Wald statistic is as expected, recall $W/p |x \sim F (p,n-k)$ under normal regression, and thus we see $W|x \sim pF (p,n-k) \overset{d}{\to} \chi^2(p)$. Why?
+\begin{align*}
+    p\times F &= p\frac{\chi^2(p)/p}{\chi^2(n-k)/(n-k)}\\
+    &= \frac{\chi^2(p)}{\chi^2(n-k)/(n-k)}
+\end{align*}
+\[
+    \frac{\chi^2(n-k)}{n-k} = \frac{1}{n-k}\sum_{i=1}^{n-k}Z_i^2 \overset{p}{\to} \E[Z_i^2]= 1
+\]
+\[
+\implies pF \overset{d}{\to} \chi^2(p)    
+\]
+\textbf{Asymptotic confidence intervals and sets}\\
+Since $t \overset{d}{\to} N(0,1)$ we can build asymptotic confidence intervals for $\beta_j$. From the critical values of $N(0,1)$:\[
+Pr \left(\left|\frac{\sqrt{n}(\hat\beta_j-\beta)}{\sqrt{\hat\sigma^2 (\frac{1}{n} X' X)^{-1}_{jj}}}\right| \leq 1.96 \right) \approx 0.95\]
+\[ \implies Pr \left(\left|\hat\beta_j-\beta\right|\leq 1.96{\sqrt{\hat\sigma^2 (X' X)^{-1}_{jj}}} \right) \approx 0.95 \quad \text{(cancel n's and rearrange)}
+\]
+\[ \implies \left[\hat\beta_j - 1.96 \sqrt{\hat\sigma^2 (X' X)^{-1}_{jj}}, \hat\beta_j + 1.96 \sqrt{\hat\sigma^2 (X' X)^{-1}_{jj}} \right] \quad \text{Asymptotic confidence interval}
+\]
+This gives us the set all all values of $\beta_j$ that are not rejected by he t-test with asymptotic size 5\%. We say that the confidence interval is obtained by inversion of the test. We can similarly invert the Wald test, consider a test of the entire vector $\beta = b$ (i.e. $R=I_p$):
+\begin{align*}
+    W &= (\hat \beta - b)'(\hat\sigma^2 (X'X^{-1}))^{-1}(\hat \beta - b)\\
+    &= \frac{(\hat \beta - b)'X'X(\hat \beta - b)}{\hat\sigma^2}
+\end{align*}
+The asymptotic 95\% confidence set for $\beta$ is the ellipsoid with centre $\hat \beta$:
+    \[ \implies \left\{ \beta : \frac{(\hat \beta - \beta)'X'X(\hat \beta - \beta)}{\hat\sigma^2} \leq \chi^2_{0.95}(k) \right\} \]
+
+\section{Delta method}
+Sometimes we need to know confidence intervals or sets for some (possibly nonlinear) function of regression parameters. We can do this with the delta method.
+
+\begin{definition}[Delta method]
+    Suppose $\hat \theta$ is a k-dimensional vector where $\sqrt{n}(\hat\theta - \theta) \overset{d}{\to} \xi$, and suppose $g: \R^k \to \R$ has continuous first dervatives. Denote by $G(\theta)$ the $r \times k$ matrix of first derivatives evaluated at $\theta$: $G(\theta)\equiv\frac{\partial g(\theta)}{\partial \theta'}$ then as $n\to \infty$ \[ \sqrt{n} (g(\hat \theta ) - g(\theta)) \overset{d}{\to} G(\theta) \xi \] . In particular, if $\xi \sim N(0,V)$ then as $n\to \infty$ \[ \sqrt{n} (g(\hat \theta ) - g(\theta)) \overset{d}{\to} N(0,GVG') \]
+\end{definition}
+
+\begin{proof}
+    By the mean value theorem, there exists a k-dimensional vector $\bar \theta$ between $\hat \theta$ and $\theta$ such that\[
+    g(\hat{\theta}) - g(\theta) = \underset{r \times k}{G(\bar{\theta})} \underset{k \times 1}{(\hat{\theta} - \theta)}\]
+    \[ \implies \sqrt{n}(g(\hat{\theta}) - g(\theta)) = G(\bar{\theta}) \sqrt{n} (\hat{\theta} - \theta)\]
+    Since $\bar \theta$ is between $\hat \theta$ and $\theta$ and since $\hat \theta \overset{p}{\to} \theta$ we know $\bar \theta \overset{p}{\to}\theta$. $G()$ is assumed continuous, so by CMT: \[G(\bar \theta) \overset{p}{\to} G(\theta)\]
+    \[ \implies \sqrt{n}(g(\hat{\theta}) - g(\theta)) = G(\bar{\theta}) \sqrt{n} (\hat{\theta} - \theta) \overset{p}{\to} G(\theta) \xi\]
+\end{proof}
+
+\begin{exercise}
+    Let $\{\hat\theta_n\}$ be a sequence of 2x1 random vectors satisfying $\sqrt{n}(\hat\theta_0-\theta_0)\overset{d}{\to}N(0,V)$ where the asymptotic mean is $\theta_0 = [0,1]'$ and the asymptotic covariance matrix is $I_2$.\\
+     Denote the two entries of $\hat\theta_n$ by $\hat\theta_{n,1}$ and $\hat\theta_{n,2}$. Derive the asymptotic distribution of the sequence of products $\{\hat\theta_{n,1}\hat\theta_{n,2}\}$
+\end{exercise}
+
+\begin{solution}
+    We can apply the delta method because the function \[g(\theta) = g(\theta_1, \theta_2)=\theta_1 \theta_2\] is continuously differentiable. The asymptotic mean of the transformed sequence is \[g(\theta_0)=\theta_{0,1} \theta_{0,2} = 0\times1=0\] The Jacobian of the function is \[G(\theta)=\begin{bmatrix}
+        \frac{\partial g(\theta_1, \theta_2)}{\partial \theta_1} & \frac{\partial g(\theta_1, \theta_2)}{\partial \theta_2}
+    \end{bmatrix} 
+    = [\theta_2, \theta_1] \] By evaluating at $\theta_0$ we obtain $G(\theta_0) = [1,0]$.\\
+    Therefore the asymptotic covariance matrix is
+    \[
+        G(\theta_0)VG(\theta_0)'= 
+            \begin{bmatrix}
+                1 & 0
+            \end{bmatrix}
+            \begin{bmatrix}
+                1 & 0 \\
+                0 & 1
+            \end{bmatrix}
+            \begin{bmatrix}
+                1 \\
+                0
+            \end{bmatrix}=
+            \begin{bmatrix}
+                1 & 0
+            \end{bmatrix}
+            \begin{bmatrix}
+                1\\
+                0 
+            \end{bmatrix}=1
+    \]
+    And we can write $\sqrt{n}\hat\theta_{n,1}\hat\theta_{n,2} \overset{d}{\to} N(0,1)$
+\end{solution}
+
+
+
+
+\begin{example}[Nerlove's returns to scale]
+    \[ \log TC_i = \beta_1 + \beta_2 \log Q_i + \beta_3 \log p_{C_i} + \beta_4 \log p_{L_i}+ \beta_5 \log p_{F_i} + \epsilon_i \]Suppose we want to study the asymptotic confidence region of the normalised regression with coefficients $\alpha = (\beta_3/\beta_2,\beta_4/\beta_2,\beta_5/\beta_2)'$ (i.e. the powers of the Cobb-Douglas production function). Define \[ g(\beta) = \begin{bmatrix}
+        \beta_3/\beta_2\\
+        \beta_4/\beta_2\\
+        \beta_5/\beta_2
+    \end{bmatrix}
+\]
+\[
+    G(\beta) = \frac{\partial g(\beta)}{\partial \theta'} = \begin{bmatrix}
+        0 & -\beta_3/\beta_2^2 & 1/\beta_2 & 0 & 0\\
+        0 & -\beta_4/\beta_2^2 & 0 & 1/\beta_2 & 0\\
+        0 & -\beta_5/\beta_2^2 & 0 & 0 & 1/\beta_2\\
+    \end{bmatrix}
+\]
+Thus considering the Wald statistic with $H_0: \hat \alpha = \alpha$, i.e.: $R=I_3, q=\alpha$:
+\begin{align*}
+    W &= \frac{\left(R\hat\beta-q\right)'\left(\sigma^2R\left(X'X\right)^{-1}R'\right)^{-1}\left(R\hat\beta-q\right)}{\hat\sigma^2/\sigma^2}\\
+    &= \frac{\sqrt{n}\left(\hat \alpha - \alpha \right)'\left(\sigma^2R\left(\frac{1}{n}X'X\right)^{-1}R'\right)^{-1}\sqrt{n}\left(\hat \alpha - \alpha\right)}{\hat\sigma^2/\sigma^2}\\
+    &\overset{d}{\to} [N(0,I_3)]'I_3 N(0,I_3)\quad \text{(using theorem 6.2.2)}\\
+    &= \chi^2(3)
+\end{align*}
+Hence the asymptotic 95\% confidence set for $\alpha$ is the ellipsoid
+\[ \left\{ \alpha : (\hat \alpha - \alpha)'\left( G(\hat\beta)\hat\sigma^2(X'X)^{-1}G(\hat\beta)'\right)(\hat \alpha - \alpha) \leq \chi^2_{0.95}(3) \right\} \]
+
+
+\end{example}
+
+\end{document}
