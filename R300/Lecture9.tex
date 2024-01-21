@@ -118,12 +118,44 @@ Let \{$\xi_T$\} be a sequence of random elements in $C[0,1]$ and let $F$ be a di
 \begin{definition}[Continuous Mapping Theorem]
     If h is a continuous functional mapping $C[0,1]$ to some metric space and $\xi_T \xrightarrow{d} \xi$ then $h(\xi_T) \xrightarrow{d} h(\xi)$.
 \end{definition}
-
+We now present some background and intuition for the functional central limit theorem.
+\begin{explanation}
+    Let's first consider the partial sum process, defined as $X_T(\lambda) = \frac{1}{T}\sum_{t=1}^{[T\lambda]} \zeta_t$ with $\zeta \sim WN (0,1)$. The square brackets denote the floor function (i.e. the integer part of $T \lambda$).\\
+    Let's see how this partial sum looks when $T=10$ and consider $\xi_T(\lambda)$ for $\lambda = 0, 0.01, 0.1,0.2$:
+    \begin{align*}
+        &\lambda = 0, \quad [10 \times 0] =0: \quad X_{10}(0) = \frac{1}{10} \sum_{t=1}^{0} \zeta_t = 0\\
+        &\lambda = 0.01, \quad [10 \times 0.01] =0: \quad  X_{10}(0.01) = \frac{1}{10} \sum_{t=1}^{0} \zeta_t = 0\\
+        &\lambda = 0.1, \quad [10 \times 0.1] =1: \quad  X_{10}(0.1) = \frac{1}{10} \sum_{t=1}^{1} \zeta_t = \frac{\zeta_1}{10} \\
+        &\lambda = 0.2, \quad [10 \times 0.2] =2: \quad  X_{10}(0.2) = \frac{1}{10} \sum_{t=1}^{2} \zeta_t = \frac{\zeta_1 + \zeta_2}{10}
+    \end{align*}
+    For a sequence of errors $\zeta_t$ 
+    \begin{enumerate}
+        \item The function $X_T(\lambda)$ is a random step function defined on [0,1].
+        \item As T gets bigger the step size gets smaller, and the function becomes smoother (looking more and more like a Wiener process).
+    \end{enumerate}
+    Lets consider the following for any fixed $\lambda \in [0,1]$:
+    \begin{align*}
+        \sqrt{T} X_T(\lambda) &= \sqrt{T} \frac{1}{T} \sum_{t=1}^{[T\lambda]} \zeta_t\\
+        &= \frac{1}{\sqrt{T}} \sum_{t=1}^{[T\lambda]} \zeta_t\\
+        &= \frac{\sqrt{[T\lambda]}}{\sqrt{T}} \frac{1}{\sqrt{[T\lambda]}} \sum_{t=1}^{[T\lambda]} \zeta_t
+    \end{align*}
+    Now, as $T \to \infty$:
+    \begin{align*}
+        \frac{\sqrt{[T\lambda]}}{\sqrt{T}} &\to \sqrt{\lambda}\\
+        \frac{1}{\sqrt{[T\lambda]}} \sum_{t=1}^{[T\lambda]} \zeta_t &\xrightarrow{d} N(0, 1) \quad \text{by the CLT}
+    \end{align*}
+    It follows from Slutsky's theorem that:
+    \[
+        \sqrt{T} X_T(\lambda) \xrightarrow{d} \sqrt{\lambda} N(0,\lambda) = W(\lambda)
+    \]
+    Since the above holds for any $\lambda \in [0,1]$, we might expect this holds uniformly for $\lambda \in [0,1]$. This is indeed the case, and is known as the functional central limit theorem (or Donsker's theorem for partial sums).
+    \end{explanation}
+The above is based on a step-function, however Alexei present a piecewise linear function where we linearly interpolate between points. This is presented below, the substantive results are the same.\\
 Let $\zeta_T$, $t=1,2,...$ be zero mean i.i.d. random variables with variance 1. Let $\xi_T(\lambda)$ be the function constructed by linearly interpolating between the partial sums of $\zeta$ at the points $\lambda = (0, \frac{1}{T}, \frac{2}{T}, \dots, \frac{T-1}{T}, 1)$, that is:
 \[
     \xi_T(\lambda) = \frac{1}{\sqrt{T}}\left(\sum_{t=1}^{[T\lambda]} \zeta + (T\lambda - [T\lambda])\zeta_{[T\lambda]+1}\right)
 \]
-so that $\xi_T$ is a piecewise-linear random element of C[0,1] (between each point we linearly interpolate). The CLT for vector valued processes ensures that [$\xi_T(\lambda_1), \xi_T(\lambda_2), \dots, \xi_T(\lambda_k)$] converges in distribution to a $k$-dimensional normal random variable. The FCLT extends this result to hold not just for finitely many fixed values of $\lambda$, but rather for $\xi_T$ treated as a function of $\lambda$.
+so that $\xi_T$ is a piecewise-linear random element of C[0,1] (between each point we linearly interpolate). The CLT for vector valued processes ensures that [$\xi_T(\lambda_1), \xi_T(\lambda_2), \dots, \xi_T(\lambda_k)$] converges in distribution to a $k$-dimensional normal random variable. The FCLT extends this result to hold not just for finitely many fixed values of $\lambda$, but rather for $\xi_T$ treated as a function of $\lambda$.\\
 
 \begin{theorem}[Functional Central Limit Theorem]
     $\xi_T(\lambda) \xrightarrow{d} W$, where W is a standard Brownian motion on the unit interval.
@@ -137,7 +169,7 @@ so that $\xi_T$ is a piecewise-linear random element of C[0,1] (between each poi
     \[
         C(L) = C(1) + [C(L)-C(1)] = C(1) + C^*(L)(1-L)
     \]
-    where $c^*_j = - \sum_{i=j+1}^{\infty} c_i$. This can be verified by writing out $C(L)-C(1)=\Delta C^*(L)$ and collecting terms.\\
+    where $c^*_j = - \sum_{i=j+1}^{\infty} c_i$. Why can we do this? Define A(L) = C(L) - C(1). Clearly A(1) = 0 and is thus a root of A(L). This justifies the factorisation C(L)-C(1) = (1-L)C*(L).\\
     Thus we can write \[
         \epsilon_t = C(L) \zeta_t = C(1)\zeta_t + C^*(L)\Delta\zeta_t
     \]
@@ -185,11 +217,12 @@ We know that $\xi_T(\lambda) \xrightarrow{d} c(1)W(\lambda)$, thus by the contin
 The right hand side is proportional to $[c(1)]^2$, which is the long-run variance of $\epsilon_t$.\\
 \begin{example}[Long-run variance]
     $\epsilon_t=C(L)\zeta_t = c_0 \zeta_t + c_1 \zeta_{t-1} + \dots$\\
-    Long run variance is given by Var$(\sum \epsilon_t)$
+    Long run variance is defined differently to before, here it is Var$(\epsilon_t)$.
     \begin{align*}
-        Var\left(\sum_{t=1}^{\infty} \epsilon_t\right) &=  Var\left(\sum_{t=1}^{\infty} C(L)\zeta_t\right)\\
-        &= \E\left[\left(\sum_{t=1}^{\infty} C(L)\zeta_t\right)^2\right] \quad \text{Since $\E \zeta_t = 0 \quad \forall t$}\\
-        &\text{I AM TOO TIRED FOR THIS - FINISH LATER}
+        Var(\epsilon_t) &= Var(C(L)\zeta_t)\\
+        &= Var(C(1)\zeta_t) \quad \text{since $\zeta_t$ is i.i.d. the lags don't matter}\\
+        &= C(1)^2 Var(\zeta_t)\\
+        &= C(1)^2 \quad \text{since $\zeta_t \sim iid(0,1)$}
     \end{align*}
 \end{example}
 If we now consider the t-statistic (based on $\hat V_{KVB}$) for testing $H_0: \beta=0$:
