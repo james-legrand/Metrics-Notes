@@ -1,0 +1,238 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\vspace{-10pt}
+\setcounter{chapter}{0}
+\pagenumbering{gobble}
+\chapter{Binary Response Models}
+\section{General Textbooks}
+\begin{itemize}
+    \item Wooldridge, J. (2010). Econometric Analysis of Cross-Section and Panel Data. MIT.
+    \item A. C. Cameron and P. K. Trivedi (2005) Microeconometrics: Methods and Applications, Cambridge University Press
+    \item J. Freidman, T. Hastie, R. Tibshirani (2009). The Elements of Statistical Learning. Springer, publishers.
+\end{itemize}
+
+\section{Limited Dependent Variables}
+\subsection{Observational rules}
+Assume \(\exists - \infty < y^* < \infty\) and:
+\[y=\textbf{1} (\infty < y^* < \infty)y*\]
+Trivially this \textit{observational rule} represents the case with no "limit" on the dependent variable.\\
+
+\underline{Binary Response:}
+\[y=\textbf{1} (y^* > \alpha)\]
+
+\underline{Multinomial Response:}
+\[y=argmax(\textbf{y*})\]
+
+\section{Revealed vs Stated Preference}
+
+RP:\\
++ Using a random utility maximisation framework, RP theory can extract information from choice behaviour based on discrete information embodied in the chosed alternative within a well defined choice set, together with attributes of the DM and a set of characterstics defining the alternatives.\\
+- Reliable to estimate current market behaviour, but usually insufficient variation across key factors along with colinearity\\
+- Deficient data as number of attributes ovserved not measurable\\
+
+SP:\\
++ Elicits preferences of consumer prior to choice made.\\
+= Uncertainty here rooted in DM's ability to accurately report preferences, instead of with the analyst in RP world\\
+- Difficult to design a survey that is not subject to bias
+
+\section{Binary Response Model}
+We have a random sample of observations on \(y_i\) and \(x_i\), where \(y_i\) is a binary variable and \(x_i\) is a vector of explanatory variables. \(i=1,...,N\).\\
+\[E(y_i=1|x_i)=Pr(y_i=1|x_i)=F(x_i'\beta)\]
+where \(F\) is some monotonically increasing CDF.\\
+
+\begin{note}
+    Here we do not need necessarily to choose a parametric form of F(.)\\
+    We identify K parameters in \(\beta\) but unlike OLS we cannot separately identify \(\sigma\)
+\end{note}
+
+\subsection{Deriving \(\hat{\beta}\) (low emphasis)}
+
+We have N independent observations on \(y_i\) and \(x_i\).\\
+The probability density of \(y_i\) conditional on \(x_i\) is:
+\(
+\begin{cases}
+    F(y_i|x_i,\beta) & \text{if } y_i=1\\
+    1-F(y_i|x_i,\beta) & \text{if } y_i=0
+\end{cases}
+\)
+
+The joint distribution of the n data point sequence we observe is:
+\[f(y_1,...,y_n|x_1,...,x_n,\beta)=\prod_{i=1}^n F(y_i|x_i,\beta)^{y_i}(1-F(y_i|x_i,\beta))^{1-y_i}\]
+We can write this equivalently as a likelihood function, depending on \(\beta\):
+\[L(\beta)=\prod_{i=1}^n F(y_i|x_i,\beta)^{y_i}(1-F(y_i|x_i,\beta))^{1-y_i}\]
+
+If the model is correctly specified then MLE \(\hat{\beta_N}\) is consistent, efficient and asymptotically normal.\\
+
+We work with the log-likelihood function:
+\[l(\beta)=\sum_{i=1}^n y_i log(F(x_i'\beta))+(1-y_i)log(1-F(x_i'\beta))\]
+
+We then find the critical point:
+\[\frac{\partial l(\beta)}{\partial \beta}=\sum_{i=1}^n y_i\frac{f(x_i'\beta)}{F(x_i'\beta)}x_i-(1-y_i)\frac{f(x_i'\beta)}{1-F(x_i'\beta)}x_i\]
+\[=\sum_{i=1}^n \frac{y_i-F(x_i'\beta)}{F(x_i'\beta)(1-F(x_i'\beta))}f(x_i'\beta)x_i\]
+\[=\sum_{i=1}^n \tilde{u_i}x_i \quad (*)\]
+where \(\tilde{u_i}\) is the \textit{generalised-residual}.
+
+\begin{note}
+    Note that \(\frac{\partial l(\beta)}{\partial \beta}\) is non linear in \(\beta\), in general no analytical solution can be found so we resort to numerical methods.\\
+    If \(l(\beta)\) is (strictly) concave, as in the Probit and Logit, then MLE \(\hat{\beta_N}\) is unique.\\
+    We can use (*) to test for model misspecification based upon, for example LM tests.
+\end{note}
+
+\subsection{Issues with Binary Response Models}
+
+\underline{Heterogenous effects in non-linear models:}\\
+
+Potential outcomes in the binary model are given by:
+\[Y(x)=\textbf{1}(\alpha+\beta x + u \geq 0 )\]
+The effect of a change from x to x' for an idvidual with error u is:
+\[Y(x')-Y(x)=\textbf{1}(\alpha+\beta x' + u \geq 0 )-\textbf{1}(\alpha+\beta x + u \geq 0 )\]
+
+\begin{note}
+    This is distinct from a linear model as here partial effects are a function of both x \textit{and u}.\\
+    In linear regression u is additive and thus partial effects are independent of u.\\
+    Now we need to specficy (in the parametric case) a distribution for u on top of GM assumptions and beyond iid and first moments. Now need F()
+\end{note}
+
+Suppose \(\beta>0\) and \(x'>x\). Then:
+\[
+\begin{tabular}{c c c c}
+\text{value of u} & \(Y(x)\) & \(Y(x')\) & \(Y(x')-Y(x)\)\\
+\hline
+\(-u\leq \alpha+\beta x \leq \alpha+\beta x'\) &  1 & 1 & 0\\
+\(-u\geq \alpha+\beta x' \geq \alpha+\beta x \)&  0 & 0 & 0\\
+\(\alpha+\beta x \leq -u \leq \alpha+\beta x' \)&  0 & 1 & 1
+\end{tabular}
+\]
+
+The effects are either 0 or 1 dependent on the value of u and this differs across individuals.\\
+As this u is unobservable this formulation is not yet of immediate use.
+
+\subsection{The Partial Effects}
+Consider the partial effect conditional on two values of X, but averaged wrt u.
+
+\[E_u[Y(x')-Y(x)]=E_u[1(\alpha+\beta x' + u \geq 0)]-E_u[1(\alpha+\beta x + u \geq 0)]\]
+\[=Pr(-u \leq \alpha+\beta x')-Pr(-u \leq \alpha+\beta x)\]
+\[=F(\alpha+\beta x')-F(\alpha+\beta x)\]
+
+Then \(E_u[Y(x')-Y(x)]\) denotes the proportion of units in the population had their outcomes been affected from a change from x to x'
+i.e. those with \(\alpha+\beta x \leq -u \leq \alpha+\beta x'\).
+
+\subsection{The General Partial Effect over continuous X}
+
+For continuous \(X\) we can instead write:
+\[\frac{\partial E_u[Y(x)]}{\partial x}=\frac{\partial F(\alpha+\beta x)}{\partial x}=\beta f(\alpha+\beta x)\]
+
+In binary response models we can regard PEs as a random variable associated with X.\\
+This means we can compute a PE for each observation in a sample.\\
+In this sense it may be of interest to obstain summary measures of its distribution, like the mean or median.
+
+\begin{definition}
+\underline{Partial Effect of \(x_k\):}\\
+Initial value of \((x,\epsilon)\) is \((x_0,\epsilon_0)\).\\
+The change is \(x_k + \Delta_k\), where \(\Delta_k\) is a vector of zeros except at position \(k\), a 1.\\
+\[PE_k(x_0)=g(x_0+\Delta_k,\beta)-g(x_0,\beta)\]
+\underline{Average Partial Effect}:\\
+\(APE_k\text{ is }PE_k(x_0)\) averaged over the distribution of observables x.
+\[\text{Continuous}\ X: APE_k=E_x[PE_k(x_0)]=E_X[\beta_kf(x'\beta)]\]
+\[\text{Discrete}\ X: APE_k=E_x[PE_k(x_0)]=E_X[F([x+\Delta_k]'\beta)-F(x'\beta)]\]
+\underline{Partial Effect at the Average}:\\
+\[PEA_k=PE_k(x_0=E(x))\]
+\[=g(E(x)+\Delta_k,\beta)-g(E(x),\beta)\]
+\end{definition}
+\vspace{5mm}
+\begin{note}
+    \underline{\smash{PEs in Linear Regression:}}\\
+    In this model with constant linear partial effects:
+    \[PE_k(x_0)=APE_k=PEA_k=\beta_k\]
+    But we can introduce non constant PEs through multiplicative effects- interactions between observables.
+\end{note}
+\vspace{5mm}
+\begin{definition}
+    The Probit Model:
+    \[Y_i*=x'\beta+u_i; \quad u_i \sim N(0,\sigma^2)\]
+    \[Y_i=\textbf{1}(Y_i*>0)\]
+    We can think of \(Y_i*\) as an index of net utility from an action involving two (or more) choices/states.\\
+    \[\implies Pr(Y_i=1|x_i)=Pr(Y_i*>0|x_i)\]
+    \[=Pr(u_i>-x_i'\beta|x_i)=1-F(-x_i'\beta)\]
+    \[=Pr(\frac{u_i}{\sigma}>-\frac{x_i'\beta}{\sigma}|x_i)=1-\Phi(-\frac{x_i'\beta}{\sigma})\]
+    Thus \(\beta\) is not separately identified to \(\sigma\), which is thus usually normalised to 1\\
+\end{definition}
+\vspace{5mm}
+\begin{example}\underline{Common Distributions and their Conditional PEs:}\\
+    LPM: \(F()=I()\), \(PE_k=\frac{\partial (x'\beta)}{\partial x_k}=\beta_k\)\\
+    Probit: \(F()=\Phi()\), \(PE_k=\beta_k\phi(x'\beta)\)\\
+    Logit: \(F()=\Lambda()\), \(PE_k=\beta_k\Lambda(x'\beta)(1-\Lambda(x'\beta))\)\\
+\end{example}
+\vspace{5mm}
+
+While the LPM may give probability estimates outside the unit interval, and have constant PEs (and het by construction). If we only care about PEs for the average individual then this may not matter, especially in large samples.
+
+\subsection{Sparse Covariates}
+With no covariates or sparse and discrete covariates, linear models and the associated estimation techniques (e.g. 2SLS) are no less appropraite for LDVs than for other kinds of DVs. (Angrist JBES 2001)
+\subsection{Unobserved Heterogeneity}
+
+\begin{prop}
+    In probit models, neglected (unobserved) heterogeneity is a much more serious problem than in linear models as even if it is independent of \(X\), probit coefficients are inconsistent.\\
+\end{prop}
+\vspace{5mm}
+We will show that this statement is only \textbf{partially} true.\\
+\begin{proof} Probit Parameters become inconsistent:\\
+We illustrate with a one period cross sectional probit model:
+\[Pr(y_i=1|x_i,c_i)=\Phi(x_i'\beta+c_i)\]
+where \(x_i\) is \(k \times 1\), \(x_{1i}/equiv1\) and \(c_i\) is an unobserved scalar, denoting the unobserved heterogeneity\\
+Our parameter of interest is the partial effect estimation of a given \(x_j\) on \(Pr(y_i=1|x_i,c_i)\)\\
+
+Consider the standard latent variable model:
+\[y_i*=x_i'\beta+\gamma c_i+\epsilon_i\]
+\[y_i=\textbf{1}(y_i*>0)\]
+\[\epsilon_i|x_i,c_i\sim N(0,1)\]
+\[c_i|x_i \sim N(0,\tau^2)\]
+\(c_i\) normalised such that \(E(c)=0\) and assumed independent of x.
+\[\gamma c_i + \epsilon_i|x_i \sim N(0, \gamma^2\tau^2+1)\]
+\[\implies Pr(y_i=1|x_i) = Pr(\gamma c_i + \epsilon_i>-x_i'\beta|x_i)\]
+\[=\Phi(-x_i'\beta/\sigma)\]
+where \(\sigma^2=\gamma^2\tau^2+1\)\\ \\
+Thus we see that this probit model of y on x consistently estimates \(\beta/\sigma\)\\
+Since \(\sigma=(\gamma^2\tau^2+1)^{1/2}>1\) then \(|\beta_j/\sigma|<|\beta_j|\) we have \textbf{attenuation bias} in estimated paramters.
+Attempting to normalise \(\gamma^2\tau^2+1=1\) would imply \(\gamma^2\tau^2=0\) and so there is no unobserved heterogeneity.\\
+\end{proof}
+\vspace{5mm}
+\begin{proof}
+    Unobserved heterogeneity does not affect partial effect estimates.\\
+    For given values of \(x_i\) and \(c_i\) the partial effect of interest is:
+    \[\frac{\partial Pr(y_i=1|x_i,c_i)}{\partial x_{ij}}=\beta_j\phi(x_i'\beta+\gamma c_i)\]
+
+\underline{Given \(E(c)=0\), evaluating at \(c=0\):}\\
+Ground truth: \(\beta_j\phi (x_i'\beta\)\\
+Our estimate: \(()\beta_j/\sigma)\phi(x_i'\beta\sigma)\)\\
+Thus probit does not give correct partial effects for \(c=0\)\\ \\
+
+\underline{Estimating APE oo oo AA AA by averaging over c:}\\
+\[E_c[\frac{\partial Pr(y_i=1|x_i,c_i)}{\partial x_{ij}}]=E_c[\beta_j\phi(x_i'\beta+\gamma c_i)]\]
+But:
+\begin{align*}
+    E_c[\frac{\partial Pr(y_i=1|x_i,c_i)}{\partial x_{ij}}] &= \frac{\partial}{\partial x_{ij}}E_c[Pr(y_i=1|x_i,c_i)]\\
+    &= \frac{\partial}{\partial x_{ij}}E_c[E_{y|x,c}[y_i=1|x_i,c_i]]\\
+    &= \frac{\partial}{\partial x_{ij}}E_{y|x}[y_i|x_i]\\
+    &= \frac{\partial}{\partial x_{ij}}Pr(y_i=1|x_i)\\
+    &= \frac{\partial}{\partial x_{ij}}Pr(\gamma c_i + u_i>-x_i'\beta)\\
+    &= \frac{\partial}{\partial x_{ij}}\Phi(-x_i'\beta/\sigma)\\
+    &= \beta_j/\sigma\phi(x_i'\beta/\sigma)\\
+\end{align*}
+
+For this measurement, the omitted heterogeneity is not a problem when independent of x. We can consistently estimate the APEs, conditional on normality of c and the probit model.
+The reason why the first PE was inconsistent was due to conditioning on the unobservable \(c_i\), which we cannot do when estimating \(\beta\).\\
+But we can avoid this issue in estimating APEs by exploiting the law of iterated expectations to removing conditioning on \(c_i\).
+\end{proof}
+
+Omitted heterogeneity in linear models is not a problem when independent of x. (subsumed by error term).
+Omitted heterogeneity in probit models also not a problem when independent of x. As ignoring it consistently estimates APEs.
+
+\begin{note}
+    If c is correlated with x or otherwise dependent on x (i.e. \(Var(c|x)\) is a function of x), then omission of c will mean we cannot get consistent APE estimates.
+\end{note}
+\end{document}
