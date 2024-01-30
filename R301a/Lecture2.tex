@@ -1,0 +1,411 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\setcounter{chapter}{1}
+\pagenumbering{gobble}
+\vspace{-10pt}
+
+
+\chapter{Unobserved Components. State Space Models. Kalman Filter.}
+
+\section{Unobserved Components}
+A time series model may sometimes be formulated in terms of components. These components are not observed directly, but are assumed to have ARMA representations. A simple model, consisting of an AR(1) embedded in white noise, is:
+\begin{align*}
+y_t &= \mu_t + \epsilon_t, \quad \epsilon_t \sim \text{NID}(0,\sigma^2_\epsilon), \quad t=1,\dots,T\\
+\mu_t &= \phi \mu_{t-1} + \eta_t, \quad \eta_t \sim \text{NID}(0,\sigma^2_\eta), \quad |\phi|<1
+\end{align*}
+where $\eta_t$ and $\epsilon_t$ are independent. When $|\phi|<1$, the process is stationary, when $|\phi|=1$ gives a random walk + noise. An important value $q = \frac{\sigma^2_\eta}{\sigma^2_\epsilon}$ is the signal-to-noise ratio. \\
+From lecture 1, we know the autocovariances of the AR(1) process:
+\[
+    \gamma_\mu (\tau) = \phi^\tau \gamma_\mu(0) = \phi^\tau \frac{\sigma^2_\eta}{1-\phi^2}
+\]
+and because $\gamma_\epsilon(\tau) = 0$ for $\tau \neq 0$, we have:
+\begin{align*}
+    \gamma_y(\tau) &= \gamma_\mu(\tau) + \gamma_\epsilon(\tau) \\
+    \implies \rho_y(\tau) &= \frac{\gamma_y(\tau)}{\gamma_y(0)}\\
+    &= \frac{\gamma_\mu(\tau)}{\gamma_\mu(0)+\gamma_\epsilon(0)}\\
+    &= \frac{\phi^\tau \sigma^2_\eta (1-\phi^2)^{-1}}{\sigma^2_\eta (1-\phi^2)^{-1} + \sigma^2_\epsilon} \quad \tau = 1, 2, \dots
+\end{align*}
+    We can substitute $\phi y_{t-1}$ to derive the reduced form:
+\begin{align*}
+    y_t &= \mu_t + \epsilon_t\\
+    &= \phi \mu_{t-1} + \eta_t + \epsilon_t\\
+    &= \phi (y_{t-1} - \epsilon_{t-1}) + \eta_t + \epsilon_t\\
+    y_t - \phi y_{t-1} &= \eta_t + \epsilon_t - \phi \epsilon_{t-1}
+\end{align*}
+This is equivalent to an ARMA(1,1) process: 
+\[
+    y_t - \phi y_{t-1} = \nu_t + \theta \nu_{t-1}.
+\]
+The MA parameter can be founded by equating the autocovariances of the right hand side of the two processes:\\
+
+\begin{minipage}[c]{0.45\textwidth}
+    \textbf{Reduced Form}
+    \begin{align*}
+        \gamma_y(0) &= Var(\eta_t)+Var(\epsilon_t)+\phi^2Var(\epsilon_t)\\
+        &=\sigma^2_\eta + \sigma^2_\epsilon (1 + \phi^2)\\
+        \gamma_y(1) &= Cov(- \phi \epsilon_{t-1}, \epsilon_{t-1})\\
+        &= -\phi \sigma^2_\epsilon
+    \end{align*}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.45\textwidth}
+    \textbf{ARMA(1,1)}
+    \begin{align*}
+        \gamma_y(0) &= Var(\nu_t)+\theta^2Var(\nu_t) \\
+        &= \sigma^2_\nu (1+\theta^2) \\
+        \gamma_y(1) &= Cov(\nu_t + \theta \nu_{t-1}, \nu_{t-1} + \theta \nu_{t-2})\\
+        &=\theta\sigma^2_\nu
+    \end{align*}
+\end{minipage}
+
+Equating the expression for $\gamma_y(1)$ gives:
+\[
+    \sigma^2_\nu = -\frac{\phi \sigma^2_\epsilon}{\theta}
+\]
+Define the signal to noise ratio $q = \frac{\sigma^2_\eta}{\sigma^2_\epsilon}$, then equate the expressions for $\gamma_y(0)$:
+\begin{align*}
+    \sigma^2_\eta + \sigma^2_\epsilon (1 + \phi^2) &= \sigma^2_\nu (1+\theta^2)\\
+    \sigma^2_\eta + \sigma^2_\epsilon (1 + \phi^2) &= -\frac{\phi \sigma^2_\epsilon}{\theta} (1+\theta^2)\\
+    \frac{\sigma^2_\eta}{\sigma^2_\epsilon} + 1 + \phi^2 &= -\frac{\phi}{\theta} (1+\theta^2)\\
+    \implies 0 &= \phi \theta^2 + (q +1 + \phi^2)\theta + \phi\\
+    \implies \theta &= \frac{-(q+1+\phi^2) \pm \sqrt{(q+1+\phi^2)^2 - 4\phi^2}}{2\phi}
+\end{align*}
+Drop the negative root, since this implies a $|\theta|>1$.
+Thus 
+\[
+    \theta = -\frac{q+1+\phi^2}{2\phi} + \frac{\sqrt{(q+1+\phi^2)^2 - 4\phi^2}}{2\phi}
+\]
+Thus $\phi \leq \theta \leq 0$, but when $\theta = -\phi$, which corresponds to $q=0$, the ARMA(1,1) has a common factor and reduces to white noise. When $\phi = 1$
+\[
+    \theta = -\frac{q+2}{2} + \frac{\sqrt{q^2+4q}}{2}
+\]
+Alternatively we can write express q as a function of $\phi$ and $\theta$:
+\[
+    q = -\frac{\phi \theta^2 + \phi}{\theta} - \phi^2 - 1 = -\frac{\phi + \phi \theta^2 + \theta + \theta \phi^2}{\theta} = -\frac{(\phi + \theta)(1+\phi \theta)}{\theta}
+\]
+\section{Filtering and Prediction}
+Prediction requires filtering the observations so as to give the best estimate of $\mu_t$ at the end of the sample. This estimate is then extrapolated. The filtered estimate at the end of the sample is known as the \textbf{nowcast}.
+\begin{example}[Random Walk + Noise]
+The conditional distribution of $y_{t+\ell}$ is obtained by writing:
+\[
+    y_{T+\ell} = \mu_{T} + \sum_{j=1}^\ell \eta {T+j} + \epsilon_{T+\ell}
+\]
+Thus the MMSE predictor is $\tilde y_{T+\ell|T} = \E( \mu_{T+\ell} | Y_t) = \E(\mu_T|Y_t)$, and so the forecast function is a horizontal straight line.\\
+To find the MSE write:
+\begin{align*}
+    y_{T+\ell} &= \mu_{T} + \sum_{j=1}^\ell \eta {T+j} + \epsilon_{T+\ell}\\
+    &= \E(\mu_T|Y_t) + (\mu_T - \E(\mu_T|Y_t)) + \sum_{j=1}^\ell \eta {T+j} + \epsilon_{T+\ell}
+\end{align*}
+The conditional variance of $y_{T+\ell}$ is:
+\[
+    \sigma^2_{T+\ell|T} = MSE(\tilde y_{T+\ell|T}) = Var(\mu_T | Y_t) + \ell \sigma^2_\eta + \sigma^2_\epsilon
+\]
+The MSE increases linearly with the forecast horizon, with $Var(\mu_T|Y_t)$ being the price paid for not knowing $\mu_T$. Given $\sigma^2_\eta$ and $\sigma^2_\epsilon$, a 95\% prediction interval for $y_{T+\ell}$ is:
+\[
+    \tilde y_{T+\ell|T} \pm 1.96 \sigma_{T+\ell|T}
+\]
+\end{example}
+How do we filter for AR(1) + noise? Filtering is a two step process, firstly we obtain the prediction equations, then we update the predictions using new observations.\\
+\textbf{Prediction}\\
+Suppose we know the mean and variance of $\mu_{t-1}$ conditional on $Y_{t-1}$: $\mu_{t-1}|Y_{t-1} \sim N(\mu_{t-1|t-1}, p_{t-1|t-1})$. We can calculate the conditional mean and variance of $\mu_t$ as follows:
+\begin{align*}
+    \mu_{t|t-1} &= \E(\mu_t|Y_{t-1}) \\
+    &= \E(\phi \mu_{t-1} + \eta_t|Y_{t-1})\\
+    &= \phi \E(\mu_{t-1}|Y_{t-1}) \\
+    &= \phi \mu_{t-1|t-1}
+\end{align*}
+We can write $\mu_t = \phi \mu_{t-1|t-1} + \phi(\mu_{t-1} - \mu_{t-1|t-1}) + \eta_t$. Thus:
+\[ 
+    \mu_t - \mu_{t|t-1} = \mu_t - \phi \mu_{t-1|t-1} = \phi(\mu_{t-1} - \mu_{t-1|t-1}) + \eta_t
+\]
+and we can derive the conditional variance as:
+\begin{align*}
+    p_{t|t-1} &= Var(\mu_t|Y_{t-1})\\
+    &= \E[(\mu_t - \mu_{t|t-1})^2|Y_{t-1}]\\
+    &= \E[(\phi(\mu_{t-1} - \mu_{t-1|t-1}) + \eta_t)^2|Y_{t-1}]\\
+    &= \phi^2 \E[(\mu_{t-1} - \mu_{t-1|t-1})^2|Y_{t-1}] + \sigma^2_\eta, \quad \text{since $\eta_t \perp Y_{t-1}$}\\
+    &= \phi^2 p_{t-1|t-1} + \sigma^2_\eta
+\end{align*}
+\[
+    \implies \mu_{t} | Y_{t-1} \sim N(\phi \mu_{t-1|t-1}, \phi^2 p_{t-1|t-1} + \sigma^2_\eta)
+\]
+The conditional distribution of $y_t = \mu_t + \epsilon_t$ is normal with mean and variance:
+\begin{align*}
+    \E (y_t|Y_{t-1}) &= \E(\mu_t|Y_{t-1}) + \E(\epsilon_t|Y_{t-1})\\
+    &= \phi \mu_{t-1|t-1}\\
+    Var(y_t|Y_{t-1}) &= \E [(y_t - \mu_{t|t-1})^2|Y_{t-1}]\\
+    &= \E[(\mu_t - \mu_{t|t-1})^2|Y_{t-1}] + \E [\epsilon_t^2|Y_{t-1}]\\
+    &= \phi^2 p_{t-1|t-1} + \sigma^2_\eta + \sigma^2_\epsilon\\
+    \implies y_t|Y_{t-1} &\sim N(\phi \mu_{t-1|t-1}, \phi^2 p_{t-1|t-1} + \sigma^2_\eta + \sigma^2_\epsilon)
+\end{align*}
+\textbf{Updating}\\
+Having obtained the prediction equations, the next step is to update the estimates of the mean and variance of $\mu_t$ to take account of the information in the new observation. I.e., we want to find $\mu_t | Y_t \sim N(\mu_{t|t}, p_{t|t})$.\\
+The current information is contained in the conditional distribution of $(\mu_t, y_t)'$ which is bivariate normal:
+\begin{align*}
+    \E \mu_t | Y_{t-1} &= \mu_{t|t-1}, \quad \E y_t | Y_{t-1} = \mu_{t|t-1}\\
+    Var(\mu_t | Y_{t-1}) &= p_{t|t-1}, \quad Var(y_t | Y_{t-1}) = p_{t|t-1} + \sigma^2_\epsilon\\
+    Cov(\mu_t, y_t | Y_{t-1}) &= Cov(\mu_t, \mu_t + \epsilon_t | Y_{t-1}) = p_{t|t-1}
+\end{align*}
+\[
+    \implies \begin{bmatrix} \mu_t \\ y_t \end{bmatrix} | Y_{t-1} \sim N \left( \begin{bmatrix} \mu_{t|t-1} \\ \mu_{t|t-1} \end{bmatrix}, \begin{bmatrix} p_{t|t-1} & p_{t|t-1} \\ p_{t|t-1} & p_{t|t-1} + \sigma^2_\epsilon \end{bmatrix} \right)
+\]
+This updated distribution is the distribution of $\mu_t$ is the distribution of $\mu_t$ conditional on $Y_{t-1}$, and $y_t$. To calculate $\mu_{t|t}$ and $p_{t|t}$, we invoke the following lemma:
+\begin{lemma}[Marginal and conditional normal distributions]
+    \[
+        \mu = \begin{bmatrix} \mu_1 \\ \mu_2 \end{bmatrix} \quad \Sigma = \begin{bmatrix} \Sigma_{11} & \Sigma_{12} \\ \Sigma_{21} & \Sigma_{22} \end{bmatrix}
+    \]
+    Consider two distributions:
+    \[
+        x_1 \sim N(\mu_1, \Sigma_{11}) \quad x_2 \sim N(\mu_2, \Sigma_{22})
+    \]
+    The conditional distribution is given by:
+    \[
+        x_1 | x_2 \sim N(\mu_1 + \Sigma_{12} \Sigma_{22}^{-1} (x_2 - \mu_2), \Sigma_{11} - \Sigma_{12} \Sigma_{22}^{-1} \Sigma_{21})
+    \]
+\end{lemma}
+Applying this lemma we can find the conditional distribution of $\mu_t$ given $y_t$:
+\begin{align*}
+    \mu_{t|t} &= \mu_{t|t-1} + \frac{Cov(\mu_t, y_t | Y_{t-1})}{Var(y_t|Y_{t-1})} (y_t - \mu_{t|t-1})\\
+    &= \mu_{t|t-1} + \frac{p_{t|t-1}}{p_{t|t-1} + \sigma^2_\epsilon} (y_t - \mu_{t|t-1})\\
+    p_{t|t} &= p_{t|t-1} - \frac{Cov(\mu_t, y_t | Y_{t-1})^2}{Var(y_t|Y_{t-1})} \\
+    &= p_{t|t-1} - \frac{p_{t|t-1}^2}{p_{t|t-1} + \sigma^2_\epsilon}
+\end{align*}
+The updating and prediction equations can thus be written together as a single set of recursions:
+\[
+    \mu_{t+1|t} = \phi \mu_{t|t} = \phi \mu_{t|t-1} + \phi \frac{p_{t|t-1}}{p_{t|t-1} + \sigma^2_\epsilon} (y_t - \mu_{t|t-1})
+\]
+\[
+    p_{t+1|t} = \phi^2 p_{t|t} + \sigma^2_\eta = \phi^2 p_{t|t-1} - \phi^2 \frac{p_{t|t-1}^2}{p_{t|t-1} + \sigma^2_\epsilon} + \sigma^2_\eta
+\]
+These equations can be repeatedly applied as new observations become available. This is a special case of the Kalman filter (\textbf{???}). Indeed the first equation can be written as:
+\[
+    \mu_{t+1|t} = \phi \mu_{t|t-1} + k_t (y_t - \mu_{t|t-1}) \quad \text{where} \quad k_t = \phi \frac{p_{t|t-1}}{p_{t|t-1} + \sigma^2_\epsilon}
+\]
+is known as the \textbf{Kalman gain}. \\
+How do we start the filter? \\
+When $|\phi|<1$, we can use the unconditional distribution of $\mu_0$: $\mu_0 \sim N(0, \sigma^2_\eta/(1-\phi^2))$ and so $\mu_{0|0} = 0$ and $p_{0|0} = \sigma^2_\eta/(1-\phi^2)$.\\
+When $|\phi| = 1$ we start with $\mu_1 | y_1 \sim N(y_1, \sigma^2_\epsilon)$. This is equivalent (\textbf{???}) to starting with $\mu_0 \sim N(0, \kappa)$ where $\kappa \to \infty$ (Diffuse prior). In both cases the filter converges to a steady state with $p_t = p >0$. 
+\begin{explanation}
+Indeed we can actually set an arbitrary value for $\mu$ in $\mu_0 \sim N(\mu, \kappa)$, to see this we first set up the predictive equation for $p_1$:
+\[
+    p_{t+1|t} = p_{t|t} + \sigma^2_\eta \implies p_{1|0} = p_{0|0} + \sigma^2_\eta = \kappa + \sigma^2_\eta
+\]
+Now we update given $y_1$:
+\begin{align*}
+    p_{1|1} &= p_{1|0} - \frac{p_{1|0}^2}{p_{1|0} + \sigma^2_\epsilon}\\
+    &= \kappa + \sigma^2_\eta - \frac{(\kappa + \sigma^2_\eta)^2}{\kappa + \sigma^2_\eta + \sigma^2_\epsilon}\\
+    &= (\kappa + \sigma^2_\eta) \left( 1 - \frac{\kappa + \sigma^2_\eta}{\kappa + \sigma^2_\eta + \sigma^2_\epsilon} \right)\\
+    &= (\kappa + \sigma^2_\eta) \left( \frac{\sigma^2_\epsilon}{\kappa + \sigma^2_\eta + \sigma^2_\epsilon} \right)\\
+    &= \frac{\kappa + \sigma^2_\eta}{\kappa + \sigma^2_\eta + \sigma^2_\epsilon} \sigma^2_\epsilon\\
+    \implies \lim_{\kappa \to \infty} p_{1|1} &= \sigma^2_\epsilon
+\end{align*}
+Now we can update $\mu$:
+\begin{align*}
+    \mu_{1|1} &= \mu{1|0} + \frac{p_{1|0}}{p_{1|0} + \sigma^2_\epsilon} (y_1 - \mu_{1|0})\\
+    &= mu + \frac {\kappa + \sigma^2_\eta}{\kappa + \sigma^2_\eta + \sigma^2_\epsilon} (y_1 - \mu)\\
+    \lim_{\kappa \to \infty} \mu_{1|1} &= \mu + y_1 - \mu = y_1
+\end{align*}
+Since the conditional distribution is also normal, we get the distribution of $\mu_1|y_1 \sim N(y_1, \sigma^2_\epsilon)$ as required.
+\end{explanation}
+
+For a random walk the filter is an exponentially weighted moving average:
+\begin{example}[$\phi = 1$]
+    First recall the updating and prediction equation of the variance:
+\[
+    p_{t+1|t} = \phi^2 p_{t|t-1}-\phi^2 \frac{p_{t|t-1}^2}{p_{t|t-1} + \sigma^2_\epsilon} + \sigma^2_\eta
+\]
+Indeed setting $\phi = 1$ gives:
+\begin{align*}
+    p_{t+1|t} &= p_{t|t-1} - \frac{p_{t|t-1}^2}{p_{t|t-1} + \sigma^2_\epsilon} + \sigma^2_\eta\\
+    \sigma^{-2}_\epsilon p_{t+1|t} &= \sigma^{-2}_\epsilon p_{t|t-1} - \frac{\sigma^{-2}_\epsilon p_{t|t-1}^2}{p_{t|t-1} + \sigma^2_\epsilon} + \sigma^{-2}_\epsilon \sigma^2_\eta\\
+    &= \sigma^{-2}_\epsilon p_{t|t-1} - \frac{(\sigma^{-2}_\epsilon)^2 p_{t|t-1}^2}{\sigma^{-2}_\epsilon p_{t|t-1} + 1} + q \quad \text{since $q = \sigma^{-2}_\epsilon \sigma^2_\eta$}
+\end{align*}
+Re-define $p_{t|t-1} = \sigma^{-2}_\epsilon p_{t|t-1}$ and we obtain the Ricatti equation:
+\[
+    p_{t+1|t} = p_{t|t-1} - \frac{p_{t|t-1}^2}{p_{t|t-1} + 1} + q
+\]
+Setting $p_{t+1|t} = p_{t|t-1} =p$ as in a steady state gives the algebraic Riccati equation:
+\[
+    p = p - \frac{p^2}{p+1} + q  = \frac{p}{p+1} + q
+\]
+\begin{note}
+For a general $\phi$ we can write:
+\[
+    p = \phi^2 \left( p - \frac{p^2}{p+1} \right) + q
+\]
+\end{note}
+Solving the quadratic Ricatti equation:
+\begin{align*}
+    \frac{p^2}{p+1} &= q\\
+    \implies 0 &= p^2 - qp - q\\
+    \implies p &= \frac{q \pm \sqrt{q^2 + 4q}}{2}\\
+    \implies p &= \frac{q + \sqrt{q^2 + 4q}}{2} \quad \text{since $p>0$}
+\end{align*}
+Recall the updating equation for the state (with $\phi = 1$), we can show that it takes the form of an EWNA:
+\begin{align*}
+    \mu_{t+1|t} &= \mu_{t|t-1} + \frac{p_{t|t-1}}{p_{t|t-1} + \sigma^2_\epsilon} (y_t - \mu_{t|t-1})\\
+    &\coloneq \mu_{t|t-1} + \kappa (y_t-\mu_{t|t-1}) \\
+    &= (1-\kappa) \mu_{t|t-1} + \kappa y_t
+\end{align*}
+with
+\begin{align*}
+    \kappa &= \frac{p_{t|t-1}}{p_{t|t-1} + \sigma^2_\epsilon}\\
+    &= \frac{p}{p+1} \quad \text{with $p_{t|t-1} = \sigma^{-2}_\epsilon p_{t|t-1}$ and $p_{t|t-1} = p$}
+\end{align*}
+Recall
+\[
+    p = \frac{q+\sqrt{q^2+4q}}{2}, \quad \theta = -\frac{q+2}{2} + \frac{\sqrt{q^2+4q}}{2}
+\]
+\begin{align*}
+    \implies \theta +1 +q &= p\\
+    &= \frac{p}{p+1} + q\\
+    \implies \theta + 1 &= \frac{p}{p+1}
+\end{align*}
+Thus
+\begin{align*}
+    \kappa &= \frac{p}{p+1}\\
+    &= \theta + 1\\
+    &= -\frac{q}{2} + \frac{\sqrt{q^2+4q}}{2}
+\end{align*}
+\end{example}
+\section{Innovations Form}
+In a signal plus noise model, the update in the Kalman Filter depends on the prediction errors or \textit{innovations},
+\[
+    \nu_t = y_t - \mu_{t|t-1}.
+\] 
+The innovations form of the AR(1) + noise model is:
+\begin{align*}
+    y_t &= \mu_{t|t-1} + \nu_t\\
+    \mu_{t+1|t} &= \phi \mu_{t|t-1} + k_t \nu_t
+\end{align*}
+This is different from the structural model since we are examining conditionals ($t|t-1$ not $t$ subscript). Thus the dynamic equations (above) are a function of past observations. The Kalman gain $k_t$ depends on $\phi$ and $q$. In the steady state, $k_t = \kappa$ is constant:
+\begin{align*}
+    y_t &= \mu_{t|t-1} + \nu_t\\
+    \mu_{t+1|t} &= \phi \mu_{t|t-1} + \kappa \nu_t\\
+    \implies y_t &= \phi \mu_{t-1|t-2} + \kappa \nu_{t-1} + \nu_t\\
+    &= \phi(y_{t-1} - \nu_{t-1}) + \kappa \nu_{t-1} + \nu_t\\
+    &= \phi y_{t-1} + (\kappa - \phi) \nu_{t-1} + \nu_t
+\end{align*}
+I.e. we get an ARMA(1,1) with MA parameter $\theta = \kappa - \phi$.
+\section{ML Estimation}
+The joint density for the full set of T observations, $y_1, \dots, y_T$ is:
+\[
+    p(\mathbf{y;\Psi}) = \prod_{t=1}^T p(y_t|Y_{t-1};\Psi)
+\]
+where $\Psi$ is the vector of parameters. In a Gaussian model:
+\[
+    y_t|Y_{t-1} \sim N(\tilde y_{t|t-1}, f_t)
+\] where $\tilde y_{t|t-1} = \phi \mu_{t-1|t-1}$ and $f_t = p_{t|t-1} + \sigma^2_\epsilon$. Thus the log-likelihood can be derived:
+\begin{align*}
+    L(\phi, \sigma^2_\eta, \sigma^2_\epsilon) &= \prod_{t=1}^T \frac{1}{\sqrt{2\pi f_t}} \exp \left( -\frac{(y_t - \tilde y_{t|t-1})^2}{2f_t} \right)\\
+    &= \left( \frac{1}{\sqrt{2\pi}} \right)^T \left(\prod_{t=1}^T \frac{1}{\sqrt{f_t}}\right) \exp \left( -\sum_{t=1}^T\frac{(y_t - \tilde y_{t|t-1})^2}{2f_t} \right)\\
+    \ln L (\phi, \sigma^2_\eta, \sigma^2_\epsilon) &= -\frac{T}{2} \ln 2\pi - \frac{1}{2} \sum_{t=1}^T \ln f_t - \frac{1}{2} \sum_{t=1}^T \frac{(y_t - \tilde y_{t|t-1})^2}{f_t} 
+\end{align*}
+The prediction error $y_t - \tilde y_{t|t-1}$ is now a residual, whose interpretation is the same as $\epsilon (\Psi)$ in an ARMA from lecture 1. When $f_t$ is constant, as it is in the steady-state, maximising $ln L$ is equivalent to minimising a sum of squares function, again as in the ARMA.\\
+\textbf{Diagnostics and testing with the residuals}\\
+It follows from $y_t|Y_{t-1} \sim N(\tilde y_{t|t-1}, f_t)$ that the prediction errors $\nu_t$ are normally distributed and serially independent with mean zero and variance $f_t$. When a model has been estimated, diagnostic checking can be based on the standardised residuals, $\nu_t / \sqrt{f_t}$.\\
+However, unless $q$ and $\phi$ are known, they will not be NID. There are two options here, carry out a modified Box-Pierce test based on $\chi^2_{P-2}$ or do an LM test.\\
+\textbf{Tests on variance parameters}\\
+The null hypothesis that $\sigma^2_\epsilon=0$ can be tested against $\sigma^2_\epsilon>0$ using a likelihood ratio test, the distribution is a mixture of of $\chi^2$'s:
+\[
+    LR \sim \frac{1}{2} \chi^2_0 + \frac{1}{2} \chi^2_1
+\]
+The $\chi^2_0$ is a degenerate distribution with all it's mass at the origin, thus the size of the test can be set to $\alpha$ by using the $2 \alpha$ quantile of the $\chi^2_1$ distribution. When $\phi = 1$ (random walk) this test is still valid since the model is stationary and invertible in first differences. \\\\
+The null hypothesis that $\sigma^2_\eta = 0$  vs $\sigma^2_\eta > 0$ does not produce a LR statistic with the previous distribution, because when the null is true, the first differenced observations $\Delta y_t = \Delta \epsilon_t$ are strictly non-invertible. Such non-standard behaviour is a feature of the situations when the model is stationary under the null, but non-stationary under the alternative.
+\begin{note}
+    A test of the hypothesis that $\phi = 1$ against the alternative $\phi < 1$  encounters similar problems. Indeed the LR test of $\sigma^2_\eta = 0$ cannot be implemented in the stationary AR(1) + noise since $\phi$ is not identified when $\sigma^2_\eta = 0$.
+\end{note}
+\section{Signal Extraction}
+Signal extraction is concerned with finding the optimal estimate or estimator of an unobserved component at some point within the sample. Whilst filtering aims to find the expected value of the signal conditional on information at time $t$, smoothing seeks to account for the information made available after $t$.\\
+In the AR(1) + noise model, the smoothed estimate of the component of interest $\mu_t$, is its expectation conditional on the full set of observations. When the model is Gaussian, the estimate is liner so:
+\[
+    \tilde \mu_{t|T} = \E(\mu_t|Y_T) = \sum_{j=t-T}^{t-1} w_{j,t} y_{t-j}
+\]
+where the w's are non-random weights. 
+\subsection{Wiener-Kolmogorov (WK) filter}
+Given an UC model, the WK formulae give expressions for the weights $w_j$. The assumption of a doubly infinite series is made, meaning there are an infinite number of observations on either side of the point of interest. The weights are constant, and so:
+\[
+    \mu_{t|\infty} = \sum_{j=-\infty}^\infty w_j y_{t-j} = w(L) y_t
+\]
+where $w(L)$ is a symmetric polynomial in the lag operator. The WK formula for finding the weights in $y_t = \mu_t + \xi_t$ where $\mu_t$ and $\xi_t$ are mutually uncorrelated ARMA models is:
+\[
+    w(L) = \frac{g_\mu(L)}{g_y(L)} = \frac{g_\mu(L)}{g_\mu(L) + g_\xi(L)}
+\]
+where $g_\mu(L)$ and $g_\xi(L)$ are the ACGF's of $\mu_t$ and $\xi_t$ respectively. The ACGF of $y$ is $g_\mu(L)+g_xi(L)$.\\
+\begin{definition}[Autocovariance generating function (ACGF)]
+    The ACGF is defined as a polynomial in the lag operator, g(L), such that:
+    \[
+        g(L) = \sum_{\tau = -\infty}^\infty \gamma(\tau) L^\tau
+    \]
+    The coefficient of $L^\tau$  gives the autocovariance at lag $\tau$.
+\end{definition}
+Recall the ACGF of an ARMA model $y_t = \phi^{-1}(L)\theta(L) \nu_t$ where $\nu_t \sim WN(0, \sigma^2_\nu)$ is:
+\[
+    g(L) = \frac{\theta(L)\theta(L^{-1})}{\phi(L)\phi(L^{-1})} \sigma^2_\nu
+\]
+\begin{example}MA(1): $y_t = \nu_t + \theta \nu_{t-1}$
+    \begin{align*}
+        g(L) &= \sum_{\tau = -\infty}^\infty \gamma(\tau) L^\tau\\
+        &= \gamma(0) + \gamma(1) L + \gamma(-1) L^{-1}\\
+        &= (1+\theta^2) \sigma^2_\nu + \theta \sigma^2_\nu L + \theta \sigma^2_\nu L^{-1}
+    \end{align*}
+\end{example}
+In the AR(1) + noise model, the reduced form is ARMA(1,1) with MA parameter 
+\[
+  \theta = -\frac{q+1+\phi}{2\phi}+\frac{\sqrt{(q+1+\phi^2)^2-4\phi^2}}{2\phi}
+\]
+Provided q>0, the WK formula gives:
+\[
+    \mu_{t|\infty} = \frac{\frac{\sigma^2_\eta}{(1-\phi L)^2}}{\sigma^2_\epsilon + \frac{\sigma^2_\eta}{(1-\phi L)^2}} y_t = \frac{\sigma^2_\eta}{\sigma^2_\nu (1+\theta L)^2} y_t
+\]
+The second equality holds since the reduced form is equated to an ARMA(1,1): $\eta_t + \epsilon_t - \phi \epsilon_{t-1} = \nu_t + \theta \nu_{t-1}$. Further, from equating the first autocovariances of the reduced form and the ARMA(1,1) as at the start of the lecture, we get:
+\[
+\sigma^2_\nu = -\frac{\phi \sigma^2_\epsilon}{\theta} \implies \mu_{t|\infty} = -\frac{q \theta}{\phi} \frac{1}{(1+\theta L)^2} y_t
+\]
+On recognising that the second term is the ACGF of an AR(1) model with parameter $-\theta$, it becomes apparent that the weights decline symmetrically and exponentially. 
+\[
+    w_j = -\frac{q \theta / \phi}{1-\theta^2} (-\theta)^{|j|}
+\]
+\textcolor{red}{By setting L = 1}\footnote{Literally how does the lag operator even work, why can you set it to 1??? It's an OPERATOR wtf is going on} it can be seen that the weights sum to:
+\begin{align*}
+    \sum_{j=-\infty}^\infty w_j &= -\frac{q \theta / \phi}{1-\theta^2} \sum_{j=-\infty}^\infty (-\theta)^{|j|}\\
+    &= -\frac{q \theta / \phi}{1-\theta^2} \left( 2 \sum_{j=0}^\infty \theta^j - 1 \right)\\
+    &= -\frac{q \theta / \phi}{1-\theta^2} \left( \frac{2}{1-\theta} - 1 \right)\\
+    &= -\frac{q \theta / \phi}{1-\theta^2} \frac{1-\theta}{1+\theta}\\
+    &= -\frac{q \theta / \phi}{(1+\theta)^2}
+\end{align*}
+Recall from 50 fucking slides ago:
+\[
+    q = -\frac{(\phi + \theta)(1+\phi \theta)}{\theta}
+\]
+Thus
+\begin{align*}
+    -\frac{q \theta / \phi}{(1+\theta)^2} &= \frac{\frac{(\phi + \theta)(1+\phi \theta)}{\theta}\theta}{\phi(1+\theta)^2}\\
+    &= \frac{(\phi+\theta)(1+\phi\theta)}{\phi(1+\theta)^2}
+\end{align*}
+In the case of a random walk ($\phi = 1$) this simplifies to unity. The lower $q$, the closer $\theta$ is to one, and the more spread out the weights. \textcolor{red}{The MSE is given by}
+\[
+    MSE(\mu_{t|\infty}) = \sigma^2_\epsilon \frac{1+\theta}{1-\theta}
+\]
+The weights for smoothing near the end of a semi-infinite sample can be found by modifying the signal extraction formulae:
+\[
+    w_j = \frac{\phi + \theta}{\phi(1-\theta^2)}[(1+\phi\theta)(-\theta)^{|-j|}+(\phi+\theta)(\theta)^{j+2(T-t)+1}], \quad j=t-T,\dots, 0, \dots, \infty
+\]
+The smoothing weights are obtained when $t<<T$. On the other hand setting t=T gives the weights for the filtered estimator of $\mu_T$ as
+\begin{align*}
+    w_j &= \frac{(\phi+\theta)[(1+\phi\theta)(-\theta)^j + (\phi+\theta)(\theta)^{j+1}]}{\phi(1-\theta^2)}\\
+    &= \frac{(\phi+\theta)(-\theta)^j}{\phi(1-\theta^2)}[(1+\phi\theta) - (\phi+\theta)\theta]\\
+    &= \frac{\phi+\theta}{\phi}\frac{1-\theta^2}{1-\theta^2}(-\theta)^j\\
+    &= \frac{\phi+\theta}{\phi}(-\theta)^j, \quad j=0,1,2,\dots
+\end{align*}
+The weights decline exponentially when $\phi =1$:
+\[
+    w_j = (1+\theta)(-\theta)^j, \quad j=0,1,2,\dots
+\]
+as in the classic EWMA.
+\subsection{Auxiliary Residuals}
+Skipped
+\section{State Space form}
+\end{document}
