@@ -423,11 +423,11 @@ Thus
 \[
     \sqrt{T}(\tilde \phi - \phi) = \frac{\frac{1}{\sqrt{T}}\sum_{t=2}^{T} \epsilon_t y_{t-1}}{\frac{1}{T} \sum_{t=2}^{T} y_{t-1}^2} \\
 \]
-Recall that $\E[y_t^2] = Var(y_t) = \sigma^2/(1-\phi^2)$. \textcolor{red}{By some LLN (or by ergodicity?)}
+Recall that $\E[y_t^2] = Var(y_t) = \sigma^2/(1-\phi^2)$.
 \[
     \frac{1}{T} \sum_{t=2}^{T} y_{t-1}^2 \overset{p}{\to} \frac{\sigma^2}{1-\phi^2}
 \]
-Furthermore
+\footnote{Source: Trust me bro}Furthermore
 \[ 
 \frac{1}{\sqrt{T}}\sum_{t=2}^{T} \epsilon_t y_{t-1} \overset{d}{\to} N(\E(\epsilon_t y_{t-1}), Var(\epsilon_t y_{t-1})) 
 \]
@@ -462,7 +462,7 @@ with $\epsilon_0(\theta)$ taken to be fixed at zero. The log likelihood takes th
 \]
 This is known as the \textbf{conditional sum of squares (CSS)} estimator since it is conditional on setting $\epsilon_0 = 0$.\\
 The likelihood equations are non-linear because the derivative of $\epsilon_t(\theta;\epsilon_0)$ depends on $\theta$. This is in contrast to the AR(1) model where the derivative of the residual with respect to $\phi$ is $-y_{t-1}$. We thus need a different method to minimise $S(\theta)$.\\
-Only one parameter is involved here, so we could just do a grid search over (-1,1). \textcolor{red}{Why do we need to constrain it, if we get something outside (-1,1) we can just use 1/estimate?} However, for more general models this may not be viable, here we use Gauss-Newton iteration. For the MA(1) differentiating the error expression gives 
+Only one parameter is involved here, so we could just do a grid search over (-1,1). \footnote{We don't necessarily need to constrain it, we could solve for the global max of the likelihood. If we get something outside (-1,1) we can just take reciprocal.} However, for more general models this may not be viable, here we use Gauss-Newton iteration. For the MA(1) differentiating the error expression gives 
 \[
     \frac{ \partial \epsilon_t(\theta;\epsilon_0)}{\partial \theta} = -\theta \frac{\partial \epsilon_{t-1}(\theta;\epsilon_0)}{\partial \theta} - \epsilon_{t-1}(\theta;\epsilon_0) , \quad t = 1, \dots, T
 \]
