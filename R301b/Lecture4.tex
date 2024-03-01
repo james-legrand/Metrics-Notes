@@ -1,0 +1,111 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\pagenumbering{gobble}
+\vspace{-10pt}
+\setcounter{chapter}{3}
+
+
+\chapter{The Mixed Logit Model}
+The mixed logit model is a highly flexible generalisation of the standard logit from last lecture. It resolves the three limitations of standard logit by allowing for random taste variation, unrestricted substitution patterns and correlation in unobserved factors over time.
+\section{Mixed Logit Setup}
+Mixed logit probabilities are the integral of standard logit probabilities over a density of parameters, i.e. it can be expressed in the form:
+\begin{equation}
+    P_{ij} = \int L_{ij}(\omega)g(\omega)d\omega \label{eq:mixed_logit}
+\end{equation}
+
+where $L_{ij}$ is the logit probability evaluated at parameters $\omega$:
+\[
+    L_{ij}(\omega) = \frac{e^{V_{ij}(\omega)}}{\sum_{k=1}^{J}e^{V_{ik}(\omega)}}
+\]
+and $g(\omega)$ is a density function. As before $V_{ij}(\omega)$ is a portion of utility which depends on the parameters $\omega$ ($U_{ij} = V_{ij} + \epsilon_{ij}$). If utility is linear in $\omega$, then $V_ij(\omega) = \omega'x_{ij}$ and the mixed logit probability takes the form:
+\[
+    P_{ij} = \int \frac{e^{\omega'x_{ij}}}{\sum_{k=1}^{J}e^{\omega'x_{ik}}}g(\omega)d\omega
+\]
+\begin{note}
+In the statistics literature, a \textit{mixed function} is defined as the weighted average of several functions, and the density providing the weights is known as the mixing distribution. Mixed logit is a mixture of the logit function evaluated at different $\omega$'s, and the mixing distribution is $g(\omega)$.
+\end{note}
+\subsection{Special Cases}
+\textbf{Standard logit} is a special case, where the mixing distribution $g(\omega)$ is degenerate at fixed parameters $w$: $g(\omega) = 1$ for $\omega = w$ and $g(\omega) = 0$ otherwise. I.e. it is a point mass at $\omega = w$. The choice probabilities are then given by the standard logit formula:
+\[
+    P_{ij} = \frac{e^{w'x_{ij}}}{\sum_{k=1}^{J}e^{w'x_{ik}}}
+\]
+\textbf{Discrete mixing distributions} are also possible, with $\omega$ taking on a finite number of values. Suppose $\omega$ can take on $M$ different values $w_1, w_2, \dots, w_M$ with $Pr(\omega = w_m) = s_m$. This is known as the \textit{latent class model} and the choice probabilities are given by:
+\[
+    P_{ij} = \sum_{m=1}^{M}s_m \frac{e^{w_m'x_{ij}}}{\sum_{k=1}^{J}e^{w_m'x_{ik}}}
+\]
+This specification is useful if there are M segments in the population, each with its own choice behaviour. The share of each population in segment $m$ is given by $s_m$.
+\subsection{Estimation}
+The researcher specifies a distribution for $\omega$ (i.e. a distribution for the taste parameters) and aims to estimate the parameters of this distribution\footnote{There are 2 sets of parameters in the mixed logit model: the $\omega$'s which enter the logit formula and the parameters of the mixing distribution $g(\omega)$. Typically we care about estimating the latter.}. For example if $\omega \sim N(\bar \omega, \Sigma_\omega)$, then the researcher estimates $\bar \omega$ and $\Sigma_\omega$. Denote the parameters of the mixing distribution as $\theta$, we now have choice probabilities $P_{ij} = \int L_{ij}(\omega)g(\omega|\theta)d\omega$ which is a function of $\theta$, the parameters $\omega$ are integrated out. In this sense, the $\omega$'s are similar to the $\epsilon_{ij}$'s in that both are random terms we integrate out to obtain the choice probabilities.\\
+Note that the dimension of $\omega$ is $L \times 1$ with $L$ attributes, maximisation requires the estimation of an $L$ dimensional integral. This is typically done using simulation methods.
+\section{Elasticities}
+Mixed logit does not exhibit IIA or the restrictive substitution patterns of logit. The ratio of mixed logit probabilities depends on all the data, including attributes other than $j$ and $k$:
+\[
+\frac{P_{ij}}{P_{ik}} = \frac{\int \frac{e^{V_{ij}}}{\sum_{k=1}^{J}e^{V_{ik}}}g(\omega)d\omega}{\int \frac{e^{V_{ik}}}{\sum_{k=1}^{J}e^{V_{ik}}}g(\omega)d\omega}
+\]
+The denominators of the logit formula are now inside the integrals, and therefore do not cancel as in standard logit. We can further compute elasticities, denote by $E_{jx_h^\ell}$ the elasticity of $P_{ij}$ with respect to attribute $h$ of alternative $\ell$:
+\begin{align*}
+    E_{jx_h^\ell} &= \frac{\partial P_{ij}}{\partial x_h^\ell}\frac{x_h^\ell}{P_{ij}}\\
+    &= \frac{\partial}{\partial x_h^\ell}\left(\int \frac{e^{V_{ij}}}{\sum_{k=1}^{J}e^{V_{ik}}}g(\omega)d\omega\right)\frac{x_h^\ell}{P_{ij}}\\
+    &= \int \frac{\partial}{\partial x_h^\ell}\left(\frac{e^{V_{ij}}}{\sum_{k=1}^{J}e^{V_{ik}}}\right)g(\omega)d\omega\frac{x_h^\ell}{P_{ij}} \\
+    \text{when $j \not = h$:}&= \int - \frac{e^{V_{ij}}\frac{\partial V_{ih}e^{V_{ih}}}{\partial x_h^\ell}}{\left(\sum_{k=1}^{J}e^{V_{ik}}\right)^2}g(\omega)d\omega\frac{x_h^\ell}{P_{ij}}\\
+    &= - \frac{x_h^\ell}{P_{ij}}\int \frac{\partial V_{ih}}{\partial x_h^\ell}L_{ij}(\omega)L_{ih}(\omega)g(\omega)d\omega\\
+    \text{when $j = h$:}&= \int \frac{\left(\sum_{k=1}^{J}e^{V_{ik}}\right)\frac{\partial V_{ij}}{\partial x_h^\ell} e^{V_{ij}} - e^{V_{ij}}\frac{\partial V_{ij}}{\partial x_h^\ell}e^{V_{ij}}}{\left(\sum_{k=1}^{J}e^{V_{ik}}\right)^2}g(\omega)d\omega\frac{x_h^\ell}{P_{ij}}\\
+    &= \frac{x_h^\ell}{P_{ij}}\int \frac{\partial V_{ij}}{\partial x_h^\ell}L_{ij}(\omega)(1-L_{ij}(\omega))g(\omega)d\omega
+\end{align*}
+When $V_{ij} = \omega'x_{ij}$, $\frac{\partial V_{ij}}{\partial x_h^\ell} = \omega_h$ in the above. This elasticity is different for each alternative $j$. A 10\% reduction for one alternative need not imply (as with logit) a 10\% reduction for all other alternatives. Note that the percent change in probability depends on the correlation between $L_{ij}(\omega)$ and $L_{ih}(\omega)$, which is determined by the researchers specification of $g(\omega)$. For example, to represent a situation where an improvement in alternative j draws more proportionately from alternative i than alternative k, the researcher can specify an element of x that is positively correlated between i and j but uncorrelated or negatively correlated between k and j, with a mixing distribution that allows the coefficient of this variable to vary.
+\section{Random coefficients}
+The mixed logit probability can be derived from utility-maximising behaviour in several ways that are are formally equivalent, but provide different interpretations. One interpretation is based on random coefficients, the decision-maker faces a choice among $J$ alternatives and has a utility function of the form:
+\[
+    U_{ij} = \omega_i ' x_{ij} + \epsilon_{ij}
+\]
+where $\omega_i$ now varies across decision-makers in the population with density $g(\omega)$. This density is a function of parameters $\theta$ that represent, for example, the mean and variance of the $\omega$'s in population. This specification is the same as for standard logit, except that $\omega$ is no longer fixed but varies across decision-makers. Of course the decision maker knows the value of their $\omega_i$ and $\epsilon_{ij}$'s for all $j$, but the researcher only observes the $x_{ij}$'s. If the decision maker observed the $\omega_i$'s, then the model would be a standard logit. Thus the choice probability conditional on $\omega_i$ is the standard logit probability:
+\[
+    L_ij(\omega_i) = \frac{e^{\omega_i'x_{ij}}}{\sum_{k=1}^{J}e^{\omega_i'x_{ik}}}
+\]
+However the researcher does not observe $\omega_i$ so cannot condition on it. To find the unconditional choice probability we integrate over the density of $\omega_i$:
+\[
+    P_{ij} = \int L_{ij}(\omega)g(\omega)d\omega
+\]
+which is exactly the mixed logit probability from equation~\ref{eq:mixed_logit}.
+\begin{note}
+    The researcher imposes $g(\omega)$ as before, and estimates its parameters $\theta$. Typically we specify $g(\omega)$ as normal or lognormal: $\omega \sim N(\bar \omega, \Sigma_\omega)$ or $\ln \omega \sim N(\bar \omega, \Sigma_\omega)$. The researcher then estimates $\bar \omega$ and $\Sigma_\omega$. The lognormal distribution is useful when the coefficient is known to have the same sign for every decision-maker, such as price that is known to be negative for everyone.
+\end{note}
+\section{Error-components}
+Another interpretation of mixed logit is based on error-components that create correlations among the utilities for different alternatives. Utility is specified as:
+\[
+    U_ij = \omega'x_{ij} + \mu_i'z_{ij} + \epsilon_{ij}
+\]
+where $x_{ij}$ and $z_{ij}$ are vectors of observed variables relating to alternative $j$, $\omega$ represents fixed coefficients and $\mu_i$ represents a vector of random terms with zero mean. That is, the unobserved (random) portion of utility is $\eta_{ij} = \mu_i'z_{ij} + \epsilon_{ij}$ which can be correlated across alternatives depending on the specification of $z_{ij}$ \footnote{In the standard logit model $z_{ij} = 0$ for all $i$ and $j$, such that there is no correlation in utility across alternatives. This lack of correlation is what results in IIA.}.\\
+With non-zero error-components, utility is correlated over alternatives:
+\[
+    Cov(\eta_{ij}, \eta_{ik}) = \E(\mu_i'z_{ij} + \epsilon_{ij})(\mu_i'z_{ik} + \epsilon_{ik}) = z_{ij}'\Sigma_\mu z_{ik}
+\]
+where $\Sigma_\mu$ is the covariance of $\mu_i$. Utility is correlated over alternatives even when the error components are independent such that W is diagonal.
+\begin{example}
+    An analog to nested logit is obtained by specifying a dummy for each nest that equals for each alternative in the nest, and zero otherwise. With K non-overlapping nests, the error components are $\mu_i ' z_{ij} = \sum_{k=1}^{K} \mu_{ik}d_{kj}$ where $d_{kj}=-1$ if alternative $j$ is in nest $k$. For convenience let $\mu_{ik} \sim NID(0, \sigma^2_k)$. The random term $\mu_{ik}$ enters the utility of each nest, inducing correlation among these alternatives. It does not enter any od the alternatives in other nests, so there is no correlation across nests. The variance $\sigma^2_k$ captures the magnitude of the correlation within each nest.\\
+    The correlation within nests is given by:
+    \begin{align*}
+        Corr(\eta_{ij}, \eta_{ik})& = \frac{Cov(\eta_{ij}, \eta_{ik})}{\sqrt{Var(\eta_{ij})Var(\eta_{ik})}}\\
+        &= \frac{Cov(\mu_{k} + \epsilon_{ij},\mu_{k} + \epsilon_{ik})}{\sqrt{Var(\mu_{k} + \epsilon_{ij})Var(\mu_{k} + \epsilon_{ik})}}\\
+        &= \frac{Var(\mu_{k})}{Var(\mu_{k}) + \sigma^2_{\epsilon}}\\
+        &= \frac{\sigma^2_k}{\sigma^2_k + \frac{\pi^2}{6}}
+    \end{align*}
+\end{example}
+\textbf{Comparing error-components and random coefficients}\\
+Both specifications are formally equivalent, but provide different interpretations.\\
+\textit{Random coefficients $\to$ Error-components}: Random-coefficients can be written as $U_ij = \bar \omega ' x_{ij} + \tilde \omega_i ' x_{ij} + \epsilon_{ij}$ where $\bar \omega$ is the mean of $\omega_i$ and $\tilde \omega_i$ the deviation. We can see this has error components defined by $z_{ij} = x_{ij}$ with $\mu_i = \tilde \omega_i$.\\
+\textit{Error-components $\to$ Random coefficients}: Error-components is denoted by $U_ij = \omega ' x_{ij} + \mu_i ' z_{ij} + \epsilon_{ij}$, which is equivalent to random coefficients with fixed coefficients for variables $x_{ij}$ and random coefficients with zero means for variables $z_{ij}$. 
+\section{Variability in population}
+How can we learn about what proportion of the population have positive preferences for a particular attribute? I.e. given estimates of $\bar \omega$ and $\Sigma_\omega$, how can we compute $Pr(\omega_j > 0)$?\\
+Suppose $\omega \sim N(\bar \omega, \Sigma_\omega)$, then $\omega_j \sim N(\E[\omega_j], Var(\omega_j))$. We can replace $\E[\omega_j]$ and $Var(\omega_j)$ with their estimates $\hat \omega_j$ and $\hat \sigma^2_j$, then compute $Pr(\omega_j > 0)$ using the standard normal distribution:
+\begin{align*}
+    z_j = \frac{\omega_j - \E[\omega_j]}{\sqrt{Var(\omega_j)}} & \sim N(0,1)\\
+    Pr(\omega_j > 0) &= Pr\left(\frac{\omega_j - \E[\omega_j]}{\sqrt{Var(\omega_j)}} > -\frac{\E[\omega_j]}{\sqrt{Var(\omega_j)}}\right)\\
+    &= Pr\left(z_j > -\frac{\E[\omega_j]}{\sqrt{Var(\omega_j)}}\right)\\
+    &= Pr\left(z_j > -\frac{\hat \omega_j}{\hat \sigma_j}\right)\\
+    &= \Phi \left(\frac{\hat \omega_j}{\hat \sigma_j}\right)
+\end{align*}
+\end{document}
