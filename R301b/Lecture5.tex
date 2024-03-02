@@ -1,0 +1,405 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\pagenumbering{gobble}
+\vspace{-10pt}
+\setcounter{chapter}{4}
+
+
+\chapter{Panel Data Models}
+\section{Panel Data Setup}
+A general representation of a linear panel data model is given by:
+\[
+    y_{it} = \alpha_i + \beta_{1i}'x_{1it} + \beta_{2i}'x_{2i} + \beta_{3i}'x_{3t} +\epsilon_{it} \quad \text{for } i = 1, \ldots, N \text{ and } t = 1, \ldots, T
+\]
+\begin{align*}
+    \alpha_i &: \text{individual specific effect, E.G. unobserved institutional effects in a cross country growth model}\\
+    x_{1it} &: k_1 \times 1 \text{ vector of measures varying over T and N, e.g. individual income}\\
+    x_{2i} &: k_2 \times 1 \text{ vector of measures varying over N, e.g. individual education}\\
+    x_{3t} &: k_3 \times 1 \text{ vector of measures varying over T, e.g. interest rates}
+\end{align*}
+Note that $x_{2i}$ is distinct from $\alpha_i$, the former represents \textit{observed heterogeneity} across individuals, while the latter attempts to partially control for \textit{unobserved heterogeneity} across individuals.\\
+
+We can impose that the parameters $\beta$ are identical across individuals to get the \textit{homogenous slope panel model}, which we focus on for the rest of the lecture.
+\[
+    y_{it} = \alpha_i + \beta'x_{it} + \epsilon_{it}, \quad Var(\epsilon_{it}) = \sigma^2_{\epsilon}
+\]
+\[
+    x_{it} = \begin{bmatrix} x_{1it} \\ x_{2i} \\ x_{3t} \end{bmatrix}, \quad \beta = \begin{bmatrix} \beta_1 \\ \beta_2 \\ \beta_3 \end{bmatrix}
+\]
+Or in matrix form:
+\[
+    y_i = \alpha_i\mathbf{1}_T + X_i\beta + \epsilon_i
+\]
+\begin{definition}[Strict exogeneity]
+    \[
+        \E[\epsilon_{it}|x_{i1},x_{i2},\dots, x_{iT}, \alpha_i] = \E[\epsilon_{it}] = 0 
+    \]
+    This implies $Cov(x_{it}, \epsilon_{is}) = 0 \quad \forall i, t, s$. Intuitively: every error is uncorrelated with every regressor at every time period.
+\end{definition}
+\begin{example}[A violation of strict exogeneity]
+    Consider a model where $\epsilon_{it}$ is correlated with future values of the regressors, e.g.
+    \[
+        x_{i,t+1} = \varphi \epsilon_{it} + e_{it+1}
+    \]
+    A production function in which labour demand in period $t+1$ responds to unobserved productivity shocks in period t, represented by $\epsilon_{it}$, would be an example of this.
+\end{example}
+\begin{definition}[Weak exogeneity]
+    \[
+        \E[\epsilon_{it}|x_{i1},x_{i2},\cdots, x_{it}, \alpha_i] = 0
+    \]
+    This implies $Cov(x_{it}, \epsilon_{is}) = 0 \quad \forall s \geq t$.
+    Intuitively: every error is uncorrelated with every regressor at or before the current time period.
+\end{definition}
+\begin{example}[Programme Evaluation and Wages]
+    Many studies have considered the impact of job training programmes on wages. A standard specification is:
+    \[
+        \log(wage_{it}) = \alpha_i + x_{it}'\beta + \delta prog_{it} + \epsilon_{it}
+    \]
+    Consider a 2 period model where at t=1 nobody is treated and at t=2 a group of individuals enter the program, and wages are observed for both treated and untreated individuals. Do we have strict exogeneity?\\
+    Is there correlation between $prog_{it}$ and $\epsilon_{it} $ conditional on $\alpha_i$? We might think not, an individual cannot react to wage shock and enlist in program in the same period.\\
+    Is there correlation between $prog_{it+1}$ and $\epsilon_{it}$? This might be non-zero if future participation is based on current shocks to wages.
+\end{example}
+\begin{note}
+    A general dynamic panel model might be written as:
+    \[
+        y_{it} = \tau y_{i,t-1} +  \beta'x_{it} + \alpha_i + \mu_t + \epsilon_{it}
+    \]
+    where $\mu_t$ is a time specific effect. We have an identification problem here, since $y_{i,t}$ depends on the fixed term $\alpha_i$, so does $y_{i,t-1}$ which implies non-zero correlation between $y_{i,t-1}$ and the error $ \alpha_i + \mu_t + \epsilon_{it}$. This is true even if $\epsilon_{it}$ is serially uncorrelated (but it is clear to see that the correlation grows with serial correlation in $\epsilon_{it}$). To estimate this model we need to use \textit{instrumental variables} or \textit{GMM}.
+\end{note}
+Define the composite error $v_{it} = \alpha_i + \epsilon_{it}$. We are thus interested in estimation of $\beta$ in the model $y_{it} = x_{it}'\beta + v_{it}$. We consider three approaches to estimation under this setup: \textit{pooled OLS}, \textit{fixed effects}, and \textit{random effects}. 
+\section{Pooled OLS (POLS)}
+\begin{definition}
+    The pooled OLS estimator is given by:
+    \[
+        \hat{\beta}_{POLS} = \left(\sum_{i=1}^N\sum_{t=1}^T x_{it}x_{it}'\right)^{-1}\left(\sum_{i=1}^N\sum_{t=1}^T x_{it}y_{it}\right) = \left(\sum_{i=1}^N X_i'X_i\right)^{-1}\left(\sum_{i=1}^N X_i'y_i\right)
+    \]
+    where $\bar{x} = \frac{1}{NT}\sum_{i=1}^N\sum_{t=1}^T x_{it}$ and $\bar{y} = \frac{1}{NT}\sum_{i=1}^N\sum_{t=1}^T y_{it}$.\\
+    \textbf{Assumptions:}
+    \begin{align*}
+        \text{(POLS1a)}\quad &\E[x_{it}'\alpha_i] = 0 \quad \forall t \\
+        \text{(POLS1b)}\quad & \E[x_{it}'\epsilon_{it}] = 0 \quad \forall t \\
+        \text{(POLS2)} \quad & \text{rank}(\E[x_{it}x_{it}']) = k \quad \forall i
+    \end{align*}
+\end{definition}
+(POLS1) is equivalent to the standard exogeneity assumption, but on the composite error: $\E[x_{it}'v_{it}]$. POLS is consistent under (POLS1) and (POLS2), however the composite errors will be serially correlated on account of the common $\alpha_i$ term. Indeed this correlation does not decrease as $|t-s|$ increases, therefore inference using POLS requires robust standard errors.
+\section{Fixed Effects}
+In many cases we might expect the unobserved effect $\alpha_i$ to be correlated with the observed $x_{it}$, in which case POLS is inconsistent. We can instead use fixed effects in this case. Consider the model in matrix form from above:
+\[
+    \begin{bmatrix}
+        y_{i1} \\ y_{i2} \\ \vdots \\ y_{iT}
+    \end{bmatrix} = \begin{bmatrix}
+        1_T & 0 & \ldots & 0 \\
+        0 & 1_T & \ldots & 0 \\
+        \vdots & \vdots & \ddots & \vdots \\
+        0 & 0 & \ldots & 1_T
+    \end{bmatrix} \begin{bmatrix}
+        \alpha_1 \\ \alpha_2 \\ \vdots \\ \alpha_N
+    \end{bmatrix} + \begin{bmatrix}
+        X_1 \\
+        X_2 \\
+        \vdots \\
+        X_N
+    \end{bmatrix} \beta + \begin{bmatrix}
+        \epsilon_1 \\
+        \epsilon_2 \\
+        \vdots \\
+        \epsilon_N
+    \end{bmatrix}
+\]
+The \textit{Least Squares Dummy Variable} (LSDV) estimator can be computed by running OLS on the stacked equations, giving N fixed effects. However, as N gets large, the inversion of a matrix of dimension $(N+k) \times (N+k)$ becomes computationally infeasible. The Fixed effects transformation by contrast only requires the inversion of a $k \times k$ matrix.
+\begin{definition}
+    The fixed effects estimator is given by:
+    \begin{align*}
+        \hat{\beta}_{FE} &= \left(\sum_{i=1}^N\sum_{t=1}^T (x_{it} - \bar{x}_i)(x_{it} - \bar{x}_i)'\right)^{-1}\left(\sum_{i=1}^N\sum_{t=1}^T (x_{it} - \bar{x}_i)(y_{it} - \bar{y}_i)\right)\\
+        &= \left(\sum_{i=1}^N (Q_T X_i)'(Q_T X_i)\right)^{-1}\left(\sum_{i=1}^N (Q_T X_i)'(Q_T y_i)\right)
+    \end{align*}
+    where $Q_T = I_T - \frac{1}{T}\mathbf{1}_T\mathbf{1}_T'$ and $\bar{x}_i = \frac{1}{T}\sum_{t=1}^T x_{it}$.\\
+    \textbf{Assumptions:}
+    \begin{align*}
+        \text{(FE1)}\quad &\E[\epsilon_{it}|X_i, \alpha_i] = 0 \quad \forall t \\
+        \text{(FE2)}\quad &\text{rank}(\E[X_i'Q_TX_i]) = k\\
+        \text{(FE3)}\quad &\E[\epsilon_{i}\epsilon_{i}'|X_i, \alpha_i] = \sigma^2_{\epsilon}I_T
+    \end{align*}
+\end{definition}
+\textbf{FE1}:\\
+Strict exogeneity conditional on the unobserved effects, however note that $\E[\alpha_i|X_i]$ is allowed to be any function of $X_i$. The cost of this assumption is that we lose the ability to estimate individual specific effects, as there is no way to distinguish between the time invariant unobserved an observed effects.\\
+\textbf{FE2}:\\
+If $x_{it}$ contains an element that is constant over time for any i, then the corresponding column of $X_i'Q_TX_i$ will be zero, and the rank condition will not hold.\\
+\textbf{FE3}:\\
+Constant conditional variance and zero conditional covariance of the idiosyncratic error.\\\\
+The matrix $Q_T$ is an idempotent matrix with all off-diagonal elements equal to $-\frac{1}{T}$ and all diagonal elements equal to $1-\frac{1}{T}$. $Q_T y_i$ simply subtracts individual means from $y_i$.\\ 
+ The FE for $\beta$ is consistent (and unbiased) under (FE1) and (FE2) with both $N \to \infty$ and $T \to \infty$ . Estimates of the fixed effects can be obtained using $\hat \alpha_i = \bar{y}_i - \bar{x}_i'\hat \beta_{FE}$. The FE estimate of $\alpha_i$  is unbiased and consistent for fixed N and $T \to \infty$, however we have an incidental parameters problem with increasing N as the number of fixed effects grows with N.\\
+\section{Random Effects}
+If we assume $\alpha_i \sim iid(0, \sigma^2_{\alpha})$ independent of $\epsilon_{it} \sim iid(0, \sigma^2_{\epsilon})$ and uncorrelated with $x_{it}$, we have a random effects or one-way error-components setup. We effectively put $\alpha_i$ into the error term, under the assumption that it is orthogonal to $x_{it}$, then accounts for the implied serial correlation with GLS.
+\begin{definition}
+    The random effects estimator is a FGLS estimator, given by
+    \[
+        \hat \beta_{RE} = \left(\sum_{i=1}^N X_i' \hat \Omega^{-1} X_i\right)^{-1}\left(\sum_{i=1}^N X_i' \hat \Omega^{-1} y_i\right)
+    \]
+    \textbf{Assumptions:}
+    \begin{align*}
+        \text{(RE1a)} \quad & \E[\epsilon_{it}|X_i, \alpha_i]= 0 \quad \forall t \\
+        \text{(RE1b)} \quad &\E[\alpha_i|X_i]= \E[\alpha_i] = 0 \quad \forall t\\
+        \text{(RE2)} \quad &rank(\E[X_i'\Sigma^{-1}X_i]) = k \\
+        \text{(RE3a)} \quad &\E[\epsilon_{i}\epsilon_{i}'|X_i, \alpha_i] = \sigma^2_{\epsilon}I_T \\
+        \text{(RE3b)} \quad & \E[\alpha_i^2|X_i] = \sigma^2_{\alpha}
+    \end{align*}
+\end{definition}
+\textbf{RE1}:\\
+(RE1a) is the strict exogeneity assumption(\textbf{exactly the same as FE1}), while (RE1b) is the orthogonality assumption, this is implied by the assumption that $x_{it}$ are fixed and $\E[\alpha_i|X_i] = 0$ or that $\alpha_i$ is independent of $X_i$. The important part of this assumption is $\E[\alpha_i|X_i] = \E[\alpha_i]$, that it equals zero is without loss of generality provided an intercept is included in $x_{it}$.\\
+Why do we make (RE1), which is much stronger than (POLS1)? Random effects exploits serial correlation in the composite error in a GLS framework, to ensure it's consistent we need some form of strict exogeneity between the composite error and the regressors.\\
+\textbf{RE2}:\\
+For consistency we need the usual rank condition for GLS, we know GLS and FGLS are consistent under RE1 and RE2. However we have not yet exploited the unobserved effects structure of $v_{it}$.\\
+\textbf{RE3}:\\
+(RE3a) is constant conditional variance and zero conditional covariance of the idiosyncratic error (\textbf{exactly the same as FE3}), this is stronger than constant unconditional variance. I.e.: $\E[\epsilon_{it}^2|X_i, \alpha_i] = \sigma^2_{\epsilon} \quad \forall t$ and $\E[\epsilon_{it}\epsilon_{is}|X_i, \alpha_i] = 0 \quad \forall t \neq s$.\\ 
+(RE3b) is a homoskedasticity assumption on the unobserved effect.
+Taken together these imply the unconditional assumptions:
+\begin{align*}
+    \E[\alpha_i|X_i] &= 0 & \E[\alpha_i^2|X_i] &= \sigma^2_{\alpha} & \E[\alpha_i \alpha_j|X_i] &= 0 & \forall i \neq j \\
+    \E[\epsilon_{it}|X_i] &= 0 & \E[\epsilon_{it}^2|X_i] &= \sigma^2_{\epsilon} & \E[\epsilon_{it}\epsilon_{js}|X_i] &= 0 & \forall i \neq j, t \neq s\\
+    \E[\alpha_i\epsilon_{jt}|X_i] &= 0 & \forall i, j, t
+\end{align*}
+We can now write the unconditional covariance matrix of $v_{it}$ as:
+\begin{align*}
+    \E[v_{i}v_{i}'] &= \E[(\alpha_i + \epsilon_i)(\alpha_i + \epsilon_i)'] \\
+    &= \E[\alpha_i\alpha_i'] + \E[\alpha_i\epsilon_i'] + \E[\epsilon_i\alpha_i'] + \E[\epsilon_i\epsilon_i'] \\
+    &= \sigma^2_{\alpha}\mathbf{1}_T\mathbf{1}_T' + \sigma^2_{\epsilon}I_T \\
+    &= \begin{bmatrix}
+        \sigma^2_{\epsilon} + \sigma^2_{\alpha} & \sigma^2_{\alpha} & \ldots & \sigma^2_{\alpha} \\
+        \sigma^2_{\alpha} & \sigma^2_{\epsilon} + \sigma^2_{\alpha} & \ldots & \sigma^2_{\alpha} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        \sigma^2_{\alpha} & \sigma^2_{\alpha} & \ldots & \sigma^2_{\epsilon} + \sigma^2_{\alpha}
+    \end{bmatrix}
+\end{align*}
+Rather than depending on $T(T+1)/2$ unrestricted covariances (as in normal GLS), $\Sigma$ only depends on 2 parameters, regardless of T. The correlation between composite errors does not depend on the size of the difference between $t$ and $s$, and is given by $\frac{\sigma^2_{\alpha}}{\sigma^2_{\alpha} + \sigma^2_{\epsilon}}$.\\
+$\E[v_{i}v_{i}']$ is written in terms of single individual, we can write the $NT \times NT$ covariance matrix for all individuals as:
+\[
+    \Omega = I_n \otimes \Sigma = \begin{bmatrix}
+        \Sigma & 0 & \ldots & 0 \\
+        0 & \Sigma & \ldots & 0 \\
+        \vdots & \vdots & \ddots & \vdots \\
+        0 & 0 & \ldots & \Sigma
+    \end{bmatrix}
+\]
+We can write this as block diagonal due to random sampling in the cross section (i.e. observations $i$ and $j$ are independent). This is convenient as we can invert $\Omega$ by focusing on inverting $\Sigma$.
+\begin{lemma}[Inverse of a block diagonal matrix]
+    \[
+        \begin{bmatrix}
+            A_1 & 0 & \ldots & 0 \\
+            0 & A_2 & \ldots & 0 \\
+            \vdots & \vdots & \ddots & \vdots \\
+            0 & 0 & \ldots & A_n
+        \end{bmatrix}^{-1} = \begin{bmatrix}
+            A_1^{-1} & 0 & \ldots & 0 \\
+            0 & A_2^{-1} & \ldots & 0 \\
+            \vdots & \vdots & \ddots & \vdots \\
+            0 & 0 & \ldots & A_n^{-1}
+        \end{bmatrix}
+    \]
+\end{lemma}
+Observe that by transforming the regression by premultiplying with $\Sigma^{-1/2}$, we can see $Var(\Sigma^{-1/2}v_i) = I_T$ and $\E[v_i v_j] = 0$ for $i \neq j$.
+\begin{lemma}[Matrix inversion lemma]
+    If $a$ and $b$ are nonzero scalars and $P$ and $Q$ are symmetric idempotent matrices such that $PQ = QP = 0$ and $P + Q = I$, then:
+    \[
+        (aP + bQ)^{-1} = \frac{1}{a}P + \frac{1}{b}Q
+    \]
+\end{lemma}
+\begin{theorem}
+    The GLS transformation
+    \[
+        \Sigma^{-1/2}y_i = \Sigma^{-1/2}\mathbf{1_T}\lambda + \Sigma^{-1/2}X_i\beta + \Sigma^{-1/2}v_i
+    \]
+    takes the form of a quasi-demeaning transformation, corresponding to an OLS regression of $y^*_{it} \equiv y_{it} - \theta \bar{y}_i$ on $x^*_{it} \equiv x_{it} - \theta \bar{x}_i$ where $\theta = 1-\frac{\sigma_\alpha}{\sqrt{T \sigma^2_{\epsilon} + \sigma^2_{\epsilon}}}$.
+\end{theorem}
+\begin{proof}
+    We know:
+    \[
+        \Sigma = \sigma^2_{\alpha}\mathbf{1}_T\mathbf{1}_T' + \sigma^2_{\epsilon}I_T
+    \]
+    Define $P = \frac{\mathbf{1}_T\mathbf{1}_T'}{T}$ and $Q = I_T - \frac{\mathbf{1}_T\mathbf{1}_T'}{T}$. Clearly these are the residual maker and projection matrices onto the space spanned by the constant vector, and thus have all the required properties to apply the lemma.
+    \begin{align*}
+        \Sigma &= \sigma^2_{\alpha}\mathbf{1}_T\mathbf{1}_T' + \sigma^2_{\epsilon}I_T\\
+        &= T \sigma^2_{\alpha}P + \sigma^2_{\epsilon}(P+Q)\\
+        &= (T \sigma^2_{\alpha} + \sigma^2_{\epsilon})P + \sigma^2_{\epsilon}Q\\
+        \implies \Sigma^{-1} &= \frac{1}{T \sigma^2_{\alpha} + \sigma^2_{\epsilon}}P + \frac{1}{\sigma^2_{\epsilon}}Q\\
+        &= \frac{1}{T \sigma^2_{\alpha} + \sigma^2_{\epsilon}}\left( P + \psi^{-1}Q\right)\quad \text {where } \psi = \frac{\sigma^2_{\epsilon}}{T \sigma^2_{\alpha} + \sigma^2_{\epsilon}}\\
+        \text{note that } (P + \psi^{-1/2}Q)^2 &= P + \phi^{-1/2} PQ + \phi^{-1/2} QP + \phi^{-1}Q\\
+        &= P + \psi^{-1}Q \quad \text{since } PQ = QP = 0\\
+        \text{thus } \Sigma^{-1/2} &= \frac{1}{\sqrt{T \sigma^2_{\alpha} + \sigma^2_{\epsilon}}}\left( P + \psi^{-1/2}Q\right)\\
+        &= \frac{1}{\sigma_\epsilon}\psi^{1/2}\left(\psi^{-1/2} I_T +(1-\psi^{-1/2})P\right)\\
+        &= \frac{1}{\sigma_\epsilon}\left( I_T - (1-\psi^{1/2})P\right)
+    \end{align*}
+    Define $\theta = 1-\frac{\sigma_\alpha}{\sqrt{T \sigma^2_{\epsilon} + \sigma^2_{\epsilon}}}$. Note that P is a $T \times T$ matrix with every element equal to $\frac{1}{T}$. We apply the transformation to $y_i$:
+    \begin{align*}
+        \Sigma^{-1/2}y_i &= \frac{1}{\sigma_\epsilon}\left( I_T - \theta P\right)y_i\\
+        &= \frac{1}{\sigma_\epsilon} \begin{bmatrix}
+            1-\frac{\theta}{T} & -\frac{\theta}{T} & \ldots & -\frac{\theta}{T} \\
+            -\frac{\theta}{T} & 1-\frac{\theta}{T} & \ldots & -\frac{\theta}{T} \\
+            \vdots & \vdots & \ddots & \vdots \\
+            -\frac{\theta}{T} & -\frac{\theta}{T} & \ldots & 1-\frac{\theta}{T}
+        \end{bmatrix}\begin{bmatrix}
+            y_{i1} \\
+            y_{i2} \\
+            \vdots \\
+            y_{iT}
+        \end{bmatrix}\\
+        &= \frac{1}{\sigma_\epsilon} \begin{bmatrix}
+            y_{i1} - \frac{\theta}{T}\sum_{t=1}^T y_{it} \\
+            y_{i2} - \frac{\theta}{T}\sum_{t=1}^T y_{it} \\
+            \vdots \\
+            y_{iT} - \frac{\theta}{T}\sum_{t=1}^T y_{it}
+        \end{bmatrix}\\
+        &= \frac{1}{\sigma_\epsilon} \begin{bmatrix}
+            y_{i1} - \theta \bar{y}_i \\
+            y_{i2} - \theta \bar{y}_i \\
+            \vdots \\
+            y_{iT} - \theta \bar{y}_i
+        \end{bmatrix}
+    \end{align*}
+\end{proof}
+Note that the GLS estimator itself is not implementable since $\sigma^2_{\alpha}$ and $\sigma^2_{\epsilon}$ are unknown. We instead estimate $\hat \sigma^2_{\alpha}$ and $\hat \sigma^2_{\epsilon}$ and perform FGLS. Note that this estimator may be inefficient for a number of reasons, for example $\epsilon_{it}$ may be heteroskedastic over time or serially correlated. To combat this (and for fixed T and large N), a robust covariance matrix should be used.
+\begin{explanation}
+\textit{\textbf{The random effects (equicorrelated) panel model may be viewed as a Pooled model, with the random effect subsumed within the error term}}\\
+In the random effects set up the composite error is independent of the regressors, so we could indeed run POLS with the composite error. Random effects performs a GLS transformation to account for the specific form of correlation in the composite error, and is subsequently efficient.
+\end{explanation}
+\begin{explanation}
+    \textit{\textbf{How might we generalise the FGLS estimator which follows from RE1-RE3?}}\\
+    If the idiosyncratic errors are generally heteroskedastic and serially correlated across $t$, a more general estimator of $\Omega$ could be used: \[
+        \hat \Omega = N^{-1}\sum_{i=1}^N \hat v_i \hat v_i'
+    \]
+    where $\hat v_i$ is the POLS residual. We would not use this normally since it has $T(T+1)/2$ estimated elements (v.s. 2 for RE), however if N is sufficiently large we can use this to perform FGLS instead.
+    \end{explanation}
+    \begin{explanation}
+        \textit{\textbf{Inference should be based on panel-robust standard errors (SE) that permit errors to be correlated over time for a given individual and allow variances and covariances to differ across i.}}\\
+        Default SE assumes independence of model errors over t for a given i; this overestimates the benefit of an additional T resulting in downward biased SEs. In reality there is correlation across time for a given i so an extra T is less informative than if it was independent.\\
+        Ignoring heteroskedasticity in errors also leads to biased SEs, though this could be in either direction.
+        \end{explanation}
+\subsection{RE as a nested model}
+We can see how the random effects estimator nests both the POLS and FE estimators by examining the limits of $\theta$:\\
+\textbf{POLS: $\theta = 0$}\\
+When $\psi = 1$ (because $\sigma_{\alpha} = 0$) there is no error covariance across observations for a given $i$, so GLS reduces to OLS. This is because the fixed effects are absorbed into the constant term (since they are the same for all individuals), and the error term is just the idiosyncratic error.\\
+\textbf{FE: $\theta = 1$}\\
+When $\psi = 0$ (because $\sigma_\alpha$ or $T \to \infty$) GLS converges to FE as we give more weight to within individual sample means, and quasi-demeaning becomes full demeaning.\\
+Case 1 $\mathit{\sigma_{\alpha} \to \infty}$: The effect of time-constant explanatory variables becomes harder to estimate due to noise in the unobserved component. \\
+Case 2 $\mathit{T \to \infty}$: The unobserved $\alpha_{i}$ becomes observable, we know our estimator of $[\alpha, \beta]$ is consistent in T or n, thus:
+\[
+   y_{it} - x_{it}'\beta = \alpha_i + \epsilon_{it}  
+\] becomes observable. The individual means give:
+\[
+    \bar y_i - \bar x_i'\beta = \alpha_i + \bar \epsilon_i
+\]
+and by LLN $\bar \epsilon_i \to 0$, revealing $\alpha_i$.\\
+\section{Comparing estimators}
+A useful way of comparing estimators is by examining how they use variation within and between individuals. We can decompose the total variation of a series as\footnote{ the final equality follows from $ \sum_{i=1}^N \sum_{t=1}^T (y_{it} - \bar{y}_i)(\bar{y}_i - \bar{y}) = \sum_{i=1}^N \left((\bar{y}_i - \bar{y})\sum_{t=1}^T (y_{it} - \bar{y}_i)\right) 
+= \sum_{i=1}^N (\bar{y}_i - \bar{y})(T\bar{y}_i - T\bar{y}_i) 
+= 0$}:
+\begin{align*}
+    T_{yy} &= \sum_{i=1}^N \sum_{t=1}^T (y_{it} - \bar{y})^2 \\
+    &= \sum_{i=1}^N \sum_{t=1}^T (y_{it} - \bar{y}_i + \bar{y}_i - \bar{y})^2 \\
+    &= \sum_{i=1}^N \sum_{t=1}^T (y_{it} - \bar{y}_i)^2 + \sum_{i=1}^N \sum_{t=1}^T (\bar{y}_i - \bar{y})^2 + 2\sum_{i=1}^N \sum_{t=1}^T (y_{it} - \bar{y}_i)(\bar{y}_i - \bar{y}) \\
+    &= \underset{\text{within}}{\sum_{i=1}^N \sum_{t=1}^T (y_{it} - \bar{y}_i)^2} + \underset{\text{between}}{\sum_{i=1}^N \sum_{t=1}^T (\bar{y}_i - \bar{y})^2}
+\end{align*}
+\textbf{POLS:} Minimises the total sum of squares, weighting within and between variation equally.\\
+\textbf{FE:} Disregards between variation, only uses variation within individuals.\\
+\textbf{RE:} Uses both within and between variation, but never weighting between more than within.\\\\
+We can see a bias-variance tradeoff here, we can completely drop between variation (resulting in a higher variance estimate) to get unbiasedness through dropping $\alpha_i$ as in fixed effects, or we can use both within and between variation to get a lower variance estimate, but potentially with a bias from the unobserved effects. We can think of RE as optimally picking these weights under certain assumptions on the structure of the unobserved effects.\\
+The fundamental differences come from how we treat the unobserved effects, as shown below.
+
+\begin{table}[h]
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        & Constant & Random & Fixed \\
+        & $\alpha_i = \alpha$ & $\alpha_i \sim (\alpha, \sigma^2_\alpha)$ & $\E[\alpha_i|X_i] \not = 0$ \\
+        \hline
+        POLS & \textcolor{ForestGreen}{\textbf{BLUE}} & \textcolor{ForestGreen}{\textbf{Unbiased}} & \textcolor{BrickRed}{\textbf{Biased}} \\
+        & \textcolor{ForestGreen}{\textbf{Consistent}} & \textcolor{ForestGreen}{\textbf{Consistent}} & \textcolor{BrickRed}{\textbf{Inconsistent}} \\
+        & & \textcolor{BrickRed}{\textbf{Inefficient}} & \\
+        \hline
+        FE & \textcolor{ForestGreen}{\textbf{Unbiased}} & \textcolor{ForestGreen}{\textbf{Unbiased}} & \textcolor{ForestGreen}{\textbf{BLUE}} \\
+        & \textcolor{ForestGreen}{\textbf{Consistent}} & \textcolor{ForestGreen}{\textbf{Consistent}} & \textcolor{ForestGreen}{\textbf{Consistent}} \\
+        & \textcolor{BrickRed}{\textbf{Inefficient}} & \textcolor{BrickRed}{\textbf{Inefficient}} &  \\
+        \hline
+        RE & \textcolor{ForestGreen}{\textbf{Unbiased}} & \textcolor{ForestGreen}{\textbf{BLUE}} & \textcolor{BrickRed}{\textbf{Biased}} \\
+        & \textcolor{ForestGreen}{\textbf{Consistent}} & \textcolor{ForestGreen}{\textbf{Consistent}} & \textcolor{BrickRed}{\textbf{Inconsistent}} \\
+        & \textcolor{magenta}{\textbf{Efficient(?)}}&  & \\
+        \hline
+    \end{tabular}
+\end{table}
+\subsection{Hausman test}
+We can test whether the random effects specification is supported by the data. The basis for this is that RE is only consistent under the assumption that $\alpha_i$ is uncorrelated with the regressors, whereas FE is always consistent regardless of the conditional distribution of $\alpha_i$. We thus test on the difference between the RE and FE estimators, which should be zero if RE is correctly specified.\\
+We want to test: $H_0: \E[\alpha_i|X_i] = 0$ against $H_1: \E[\alpha_i|X_i] \not = 0$. We can summarise our estimators:
+
+\begin{table}[h]
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        Estimator & Under $H_0$ & Under $H_1$ \\
+        \hline
+        POLS & \textcolor{ForestGreen}{\textbf{Consistent}} & \textcolor{BrickRed}{\textbf{Inconsistent}} \\
+        FE & \textcolor{ForestGreen}{\textbf{Consistent}} & \textcolor{ForestGreen}{\textbf{Consistent}} \\
+        RE & \textcolor{LimeGreen}{\textbf{Efficient}} & \textcolor{BrickRed}{\textbf{Inconsistent}}\\
+        Between & \textcolor{ForestGreen}{\textbf{Consistent}} & \textcolor{BrickRed}{\textbf{Inconsistent}} \\
+        \hline
+    \end{tabular}
+\end{table}
+Define : \[
+    \hat \kappa = \hat \beta_{RE_s} - \hat \beta_{FE_s}
+\]
+Where $\hat \beta_{RE_s}$ is the subcomponent of $\hat \beta_{RE}$ relating to time-varying regressors. Under $H_0$, $\hat \kappa \overset{p}{\to} 0$ and $Cov(\hat \kappa, \hat \beta_{RE_s}) = 0$ (???), thus $Var(\hat \kappa) = Var(\hat \beta_{FE_s}) - Var(\hat \beta_{RE_s})$ (???). The Hausman test statistic is then:
+\[
+    H = \hat \kappa' \left(Var(\hat \kappa)\right)^{-1} \hat \kappa \sim \chi^2(k_s)
+\]
+where $k_s$ is the number of time-varying regressors.
+\begin{note}
+    \textbf{Problems with the Hausman test}
+    \begin{itemize}
+        \item This form of the Hausman test is invalid if $\alpha_i$ or $\epsilon_it$ are not i.i.d.
+        \item There is no guarantee that Var($\hat \kappa$) is positive definite.
+    \end{itemize}
+    A moment based test of the RE model can be used given that the model is over-identified. We know FE is consistent under RE1 (since RE1a = FE1) but we can test whether the extra moment condition from RE1b is satisfied by an overid test.
+\end{note}
+\begin{example}
+    Suppose $\hat \beta_{FE} = 0.168$ and $\hat \beta_{RE} = 0.119$ with standard deviations 0.019 and 0.014 respectively, is there evidence of correlation between $\alpha_i$ and $X_i$?
+    \[
+        H = \frac{(0.168 - 0.119)^2}{0.019^2 - 0.014^2} \approx 14 > \chi^2_{.05}(1) = 3.84
+    \]
+    so the random effects model is rejected. The statistic $H$ seems inflated because we have used default standard errors (which are greatly downward biased). This is a signal that a more general form of the Hausman test should be used.
+\end{example}
+\section{Correlated Random Effects}
+We can extend the random effects model to allow for correlation between the unobserved effects and the regressors. Given random sampling in the cross section, an analyst starts with the following conditional mean assumption:
+\[
+    \E[\epsilon_{it}|x_{i1}, x_{i2}, \dots, x_{iT}, \alpha_i] = 0 \quad \forall t
+\]
+Further we now impose the additional moment condition\footnote{we are now overidentified}:
+\[
+    \E[\alpha_i|X_i] = \psi + \bar x_i ' \delta
+\]
+where $\alpha_i = \psi + \bar x_i ' \delta + \nu_i$ and $\E[\nu_i|X_i] = 0$. Note that previously we were only using $\alpha_i = \psi + \nu_i$, now we are allowing for a linear relationship between $\alpha_i$ and $\bar x_i$. \textbf{Thus when $\delta = 0$, we have the standard random effects model}.\\
+Given this, we can find an expression for $\E[y_{it}|X_i]$:
+\begin{align*}
+    y_{it} &= \alpha_i + \beta'x_{it} + \epsilon_{it} \\
+    &= \psi + x_{it}'\beta + \bar x_i'\delta + \nu_i + \epsilon_{it} \\
+    \implies \E[y_{it}|X_i] &= \psi + x_{it}'\beta + \bar x_i'\delta
+\end{align*}
+\textbf{Assumptions:}\\
+\[ 
+    \E[\nu_i|X_i] = 0 \quad \E[\epsilon_{it}|X_i] = 0 \quad \forall t
+\]
+This allows us to keep the modelling structure of RE (with $\alpha_i$ randomly distributed), but allows for some correlation between $\alpha_i$ and $x_{it}$. By adding $\bar x_i$ we control for some correlation between $\alpha_i$ and $x_{it}$, the remainder $\nu_i$ is uncorrelated with $x_{it}$.\\
+Under the assumptions above, the estimating equation is given by:
+\begin{align*}
+    y_{it} &= \psi + x_{it}'\beta + \bar x_i'\delta + \nu_i + \epsilon_{it}\\
+    &= \psi + x_{it}'\beta + \bar x_i'\delta + u_{it}
+\end{align*}
+and we can just use POLS to consistently estimate all parameters, including $\delta$. Further we can include time constant variables, for example if we begin with 
+\[
+    y_{it} = \alpha_i + g_t'\theta + z_i' \zeta + x_{it}'\beta + \epsilon_{it}
+\]
+we can use the CRE estimating equation
+\[
+    y_{it} =  g_t'\theta + z_i' \zeta + x_{it}'\beta + \psi + \bar x_i'\delta + u_{it}
+\]
+which is algebraically equivalent to a fixed effects transformation! Thus we get the FE estimates of $\theta$ and $\beta$ (the coefficients on the time varying covariates). This equivalence implies an interesting interpretation of the FE estimator: it controls for the average level $\bar x_i$ when measuring the partial effects of $x_{it}$ on $y_{it}$. It would not be necessary to control for this average level of $\bar x_i$ , as with RE, if $\delta = 0$. A test of $H_0: \delta = 0$ is then a test of the RE specification.
+\end{document}
