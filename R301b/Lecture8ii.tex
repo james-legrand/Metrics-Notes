@@ -1,0 +1,196 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\pagenumbering{gobble}
+\vspace{-10pt}
+\setcounter{chapter}{6}
+
+
+\chapter{Hierarchical Models for Combining Data}
+Hierarchical refers to the situation where there may be a natural structure to the data, e.g.: Individuals within regions within countries. In exploiting this we can manage instances where the parameter space is large and we may wish to reduce the dimension through distributional assumptions. For example, when we considered random effects, $\alpha_i$ was potentially high dimensional, but the distributional assumption that $\alpha_i \sim N(0, \sigma^2_\alpha)$ allowed us to reduce the dimension of the parameter space.
+\section{Multilevel Data}
+We now have new interpretations of within and between variability:
+\begin{itemize}
+    \item \textbf{Within variability} Variation of individual-level data around individual time means in a panel data model. Variation of individual-level data around village means in a two-level model.
+    \item \textbf{Between variability} Variation of individual time means around the overall mean in a panel data model. Variation of village means around the overall mean in a two-level model.
+\end{itemize}
+Considering a population with $J$ groups and $n_j$ individuals per group:
+\begin{align*}
+    \{y_1, \ldots, y_{n_j}\} & \overset{\text{iid}}{\sim} p(y_j|\theta_j) \quad \text{within group} \\
+    p(\theta_1, \ldots, \theta_J) & = \prod_{j=1}^J p(\theta_j|\phi) \quad \text{between groups}\\
+    \phi & \sim p(\phi) \quad \text{prior}
+\end{align*}
+Within group parameters $\theta_j = (\mu_j, \sigma^2)$, between group parameters $\phi = (\psi, \tau^2)$. $p(\theta_j|\phi)$ describes heterogeneity between group means, while $p(y_j|\theta_j)$ describes within group variability. We assume the within group sampling variability is constant across groups. We can use Gibbs Sampling\footnote{Train has a concise intro to Gibbs and other MCMC} to approximate the posterior distribution\[
+    p(\mu_1, \ldots, \mu_J, \sigma^2, \psi, \tau^2|y_1, \ldots, y_J)
+\]
+\subsection{Posterior Distributions}
+We can write this posterior distribution using Bayes rule:
+\begin{align}
+    p(\mu_1, \ldots, \mu_J, \sigma^2, \psi, \tau^2|y_1, \ldots, y_J) \propto & \underset{\text{likelihood}}{p(y_1, \ldots, y_J|\mu_1, \ldots, \mu_J, \sigma^2, \psi, \tau^2)} \nonumber \\
+    & \times \underset{\text{posterior for }\mu}{p(\mu_1, \ldots, \mu_J| \psi, \tau^2)} \times \underset{\text{priors}}{p(\psi)p(\tau^2)p(\sigma^2)} \label{eq:posterior}
+\end{align}
+Note that there would normally be a large set of parameters to estimate here, by imposing the hierarchical structure we only need to estimate within group means (governed by the priors).
+\[
+    = \underset{A}{\left[\prod_{j=1}^J \prod_{i=1}^{n_j} p(y_{ij}|\mu_j, \sigma^2) \right]} \underset{B}{\left[\prod_{j=1}^J p(\mu_j|\psi, \tau^2) \right]} \underset{C}{p(\psi)p(\tau^2)p(\sigma^2)}
+\]
+\begin{itemize}
+    \item $A$ is the conditional likelihood, since we have independence across both groups and individuals it can be expressed as 2 products.
+    \item $B$ is the prior for the parameters, by independence across groups we write this as a product.
+    \item $C$ is the prior for the hyperparameters
+\end{itemize}
+\begin{explanation}
+\textit{\textbf{How does the form of B relate to the distinction between FE and RE in the classical panel data model?}}\\
+RE can be represented by the full hierarchical model, we set the hyperprior mean to $\bar y$ (the empirical Bayes approach) and get estimates equal to classical RE estimates. The RE model involved a hyperprior that gives a distribution with a common mean for the $\mu_j$'s. \\
+The FE model does not have a hyperprior, ie C is not included. For example each fixed effect $\mu_j$ has a prior distribution with mean 0 and variance $\infty$.
+\end{explanation}
+If the sample size is small, the estimated variance of the group means $\bar y_j$ - the estimator of $\mu_j$ - will be large. It might be that the data supports some degree of pooling or shrinkage across groups to get a better estimate of $\mu_j$\footnote{See Stein's paradox which defines situations in which there are estimators better than the arithmetic average.}.
+\subsection{Empirical Bayes}
+The form of the posterior in \eqref{eq:posterior} can cause computational problems given the number of parameters and potentially small sample size. An Empirical Bayes approach represents an approximation to full Bayesian model.\\
+Consider the following hierarchical model for group means:
+\begin{align*}
+    \bar y_j | \mu_j &\overset{\text{iid}}{\sim} N(\mu_j, \sigma^2) \quad j=1, \ldots, J \quad \text{($\sigma^2$ known)}\\
+    \mu_j & \overset{\text{iid}}{\sim} N(\psi, \tau^2) \quad j=1, \ldots, J \quad \text{($\tau^2$ and $\psi$ unknown)}
+\end{align*}
+We can write the posterior distribution for $\mu_j$ as:
+\[
+    p(\mu_j|\bar y_j, \psi, \tau^2) = \frac{f(\bar y_j|\mu_j)p(\mu_j|\psi, \tau^2)}{\int f(\bar y_j|\mu_j)p(\mu_j|\psi, \tau^2)d\mu_j}
+\]
+Here we have assumed $\sigma^2$ is known, so no prior is required, however there is no prior for $\psi$ and $\tau^2$. We can construct the posterior using estimates of these hyperparameters from the data:
+\[
+    p(\mu_j|\bar y_j, \hat \psi, \hat \tau^2) \sim N (\hat S \bar y + (1-\hat S)\hat y_j, (1-\hat S)\hat \sigma^2)
+\]
+The EB estimator of the mean of the posterior distribution is a weighted average of the sample mean and the prior mean, where the weight is the shrinkage factor $\hat S$. We derive this in the following section.
+\subsection{Panel Data}
+Consider the following unobserved linear panel data model:
+\[
+    y_{it} = \mu + \delta_i +\omega_{it}
+\]
+The individual unobserved effects are $\mu_i = \mu + \delta_i$. Let us assume:
+\begin{align*}
+    var(y_{it}) & = var(\delta_i) + var(\omega_{it}) \\
+    &= \tau^2 + \sigma^2
+\end{align*}
+Here we're making the same assumption as in RE, that $\delta_it$ and $\omega_{it}$ are independent. This gives us a Bayesian representation for the RE estimator:
+\begin{align}
+    y_{it}|\mu_i & \sim N(\mu_i, \sigma^2) \label{eq:likelihood}\\
+    \mu_i & \sim N(\mu, \tau^2) \label{eq:prior}\\
+    \mu_i | y &\sim N(\hat \mu_i, \sigma^2 + \tau^2) \label{eq:posterior1}
+\end{align}
+Note that unlike in RE we need to make assumptions on the full distributions from the outset, we can's just use moments as before.\\
+\eqref{eq:likelihood} is the likelihood, we assume normal data here. \eqref{eq:prior} is the normal prior for individual effects, and \eqref{eq:posterior1} is the posterior distribution for $\mu_i$. $\hat \mu_i$ is the RE estimator and the mean of the posterior distribution for $\mu_i$. It is also an EB estimator.
+\begin{claim}\label{claim:product_gaussian}
+The product of two univariate Gaussian PDFs is proportional to a Gaussian PDF.
+\end{claim}
+\begin{proof}
+    Let $f(x)$ and $g(x)$ be two Gaussian PDFs with means $\mu_f$ and $\mu_g$ and variances $\sigma^2_f$ and $\sigma^2_g$ respectively:
+    \[
+        f(x) = \frac{1}{\sqrt{2\pi \sigma^2_f}}\exp\left(-\frac{(x-\mu_f)^2}{2\sigma^2_f}\right) \quad \text{and} \quad g(x) = \frac{1}{\sqrt{2\pi \sigma^2_g}}\exp\left(-\frac{(x-\mu_g)^2}{2\sigma^2_g}\right)
+    \]
+    Their product is:
+    \[
+        f(x)g(x) = \frac{1}{2\pi \sigma_f \sigma_g}\exp-\left(\frac{(x-\mu_f)^2}{2\sigma^2_f} + \frac{(x-\mu_g)^2}{2\sigma^2_g}\right)
+    \]
+    Examine the term in the exponent:
+    \begin{align*}
+        \frac{(x-\mu_f)^2}{2\sigma^2_f} + \frac{(x-\mu_g)^2}{2\sigma^2_g} &= \frac{(\sigma^2_g(x-\mu_f)^2 + \sigma^2_f(x-\mu_g)^2)}{2\sigma^2_f\sigma^2_g}\\
+        &= \frac{(\sigma^2_g + \sigma^2_f)x^2 - 2(\sigma^2_g\mu_f + \sigma^2_f\mu_g)x + \sigma^2_f\mu_g^2 + \sigma^2_g\mu_f^2}{2\sigma^2_f\sigma^2_g}\\
+        &= \frac{x^2 - 2\frac{\sigma^2_g\mu_f + \sigma^2_f\mu_g}{\sigma^2_g + \sigma^2_f}x + \frac{\sigma^2_f\mu_g^2 + \sigma^2_g\mu_f^2}{\sigma^2_g + \sigma^2_f}}{2\frac{\sigma^2_f\sigma^2_g}{\sigma^2_g + \sigma^2_f}}
+    \end{align*}
+    This is a quadratic in $x$, and is thus also a Gaussian function. To pin down the new parameters we just need to complete the square and compare with the standard form of the Gaussian PDF. Since a term $\epsilon$ can be added that is independent of $x$ to complete the square, we can write the exponent wlog as:
+    \[
+        \frac{\left(x-\frac{\sigma^2_g\mu_f + \sigma^2_f\mu_g}{\sigma^2_g + \sigma^2_f}\right)^2}{2\frac{\sigma^2_f\sigma^2_g}{\sigma^2_g + \sigma^2_f}} + \epsilon
+    \]
+    Thus we have:
+    \[
+        \mu_{fg} = \frac{\sigma^2_g\mu_f + \sigma^2_f\mu_g}{\sigma^2_g + \sigma^2_f} = \frac{\mu_f/\sigma^2_f + \mu_g/\sigma^2_g}{1/\sigma^2_f + 1/\sigma^2_g} \quad \text{and} \quad \sigma^2_{fg} = \frac{\sigma^2_f\sigma^2_g}{\sigma^2_g + \sigma^2_f}
+    \]
+\end{proof}
+We can now derive (with some abuse of notation) the posterior distribution for $\mu_i$:
+\begin{align*}
+    p(\mu_i|y) & \propto p(y|\mu_i)p(\mu_i)\\
+    &= N(\mu_i, \sigma^2)N(\mu, \tau^2)
+    \end{align*}
+Using \ref{claim:product_gaussian} we can write the mean of the posterior distribution as:
+\[
+    \E[\mu_i|y] = \frac{\frac{\mu}{\tau^2} + \frac{\mu_i}{\sigma^2}}{\frac{1}{\tau^2} + \frac{1}{\sigma^2}} 
+\]
+We can write our finite sample estimate $\hat \mu_i$ as:
+\begin{align*}
+    \hat \mu_i & = \frac{\frac{\bar y_i}{\hat \sigma^2} + \frac{\bar y}{\hat \tau^2}}{\frac{1}{\hat \sigma^2} + \frac{1}{\hat \tau^2}} \\
+    & = \frac{\hat \sigma^2 \bar y_i + \hat \tau^2 \bar y}{\hat \sigma^2 + \hat \tau^2}\\
+    & = (1-\hat S)\bar y_i + \hat S \bar y \quad \text{where} \quad \hat S = \frac{\hat \sigma^2}{\hat \sigma^2 + \hat \tau^2}
+\end{align*}
+For $0 < \hat S < 1$, $\hat \mu_i$ is a compromise between the pooled estimator $\hat S =1$ and the (individual means) FE estimator $\hat S = 0$.\\
+\begin{explanation}
+    \textit{\textbf{What happens when $\tau^2 \to 0$?}}\\
+    As $\tau^2 \to 0$, there is no longer any variation between individuals, so it is optimal to use the fully pooled model. Clearly we can see:
+    \[
+        \underset{\tau^2 \to 0}{\lim} \hat S= 1 \quad \implies \quad \underset{\tau^2 \to 0}{\lim} \hat \mu_i = \bar y
+    \]
+    that our estimator of $\mu_i$ becomes the population mean.\\
+    \textit{\textbf{What happens when $\tau^2 \to \infty$?}}\\
+    As $\tau^2 \to \infty$, the individual means are too noisy to be informative, so it is optimal to use the individual means estimator (FE). This is analogous to RE $\to$ FE when $\sigma_\alpha^2 \to \infty$.
+    \[
+        \underset{\tau^2 \to \infty}{\lim} \hat S= 0 \quad \implies \quad \underset{\tau^2 \to \infty}{\lim} \hat \mu_i = \bar y_i
+    \]
+\end{explanation}
+\begin{explanation}
+    \textit{\textbf{How does \eqref{eq:posterior} differ from the RE distribution?}}\\
+    The distribution we considered in RE was $\alpha_i \sim i.i,d,(0, \sigma^2_\alpha)$, however the mean is unimportant since any mean would be absorbed by the constant terms. \\
+    We are making the same $i.d.d.$ assumption here, with similar assumptions on the variance. The difference is that now we require the full distribution, not just the moments.
+\end{explanation}
+How do Bayesians conceptualise fixed versus random effects estimators when all effects are random? The classical fixed vs RE dichotomy is not relevant. Here the distinction is:
+\begin{itemize}
+    \item RE: Hierarchical prior $\mu_i \sim N(\mu, \tau^2)$
+    \item FE: Non-hierarchical independence prior for each $\mu_i$
+\end{itemize}
+\section{Model Averaging}
+The problem: Estimation and inference on the determinants of $y$, where the set of regressors is large. Let $\theta$ denote the parameters of the regressors included in a model, we can estimate the posterior density as $p(\theta|y, M_j)$, where $M_j$ is the $j$th model. Suppose there are $K$ potential regressors, model $M_j$ is described by a $K\times 1$ binary vector $\gamma_j$  where $\gamma_{jk} = 1$ if regressor $k$ is included in model $M_j$, and $\gamma_{jk} = 0$ otherwise.\\
+The model space $M$ is thus the set of all $2^K$ possible models. \textit{How do we account for model uncertainty in making unconditional (on the space of models) inference on any given element of $\theta$?}
+\subsection{Marginal Likelihood, Prior and Posterior Odds and the Bayes Factor}
+Marginal likelihood (integrated over the parameter space):
+\[
+    \ell (y|M_j) = \int_{\theta} p(y|\theta, M_j)\ell(\theta|M_j)d\theta
+\]
+For two models $M_i$ and $M_j$ the posterior odds is given by:
+\[
+    \frac{p(M_i|y)}{p(M_j|y)} = \frac{p(M_i)}{p(M_j)}\frac{\ell(y|M_i)}{\ell(y|M_j)}   
+\]
+Using Bayes theorem we can write the posterior model probabilities as:
+\[
+    p(M_j|y) = \frac{p(M_j)\ell(y|M_j)}{\ell (y)} \propto p(M_j)\ell(y|M_j)
+\]
+If the set of models is exhaustive, we can write:
+\[
+    p(M_j|y) = \frac{p(M_j)\ell(y|M_j)}{\sum_{i=1}^{2^K} p(M_i)\ell(y|M_i)}
+\]
+We can compute the posterior distribution of $\theta$ given model $M_j$ as:
+\[
+    p(\theta|y, M_j) = \frac{\ell(y|M_j, \theta)p(\theta|M_j)}{p(y|M_j)}
+\]
+And the unconditional posterior distribution of $\theta$ is:
+\[
+    p(\theta|y) = \sum_{j=1}^{2^K} p(\theta|y, M_j)p(M_j|y)
+\]
+We can thus think of the posterior model probabilities as the weights $p(M_j|y)$ that we should attach to the posterior distributions $p(\theta|y, M_j)$ when averaging over the model space.
+\subsection{Prior}
+How do we get priors for:
+\begin{itemize}
+    \item The model space $p(M_j)$
+    \item Elements of $\theta$ that are model=specific (EG regression parameters)
+    \item Elements of $\theta$ that are common to all models (EG variance parameters)
+\end{itemize}
+Here we will focus on $p(M_j)$. Recall that a linear model is described by a set of binary variables responsible for including/excluding regressors. An independent Bernoulli prior for a given model $p(M_j|\pi)$ can be written as:
+\[
+    p(M_j|\pi) = p(\gamma|\pi) = \prod_{k=1}^K \pi_k^{\gamma_{jk}}(1-\pi_k)^{1-\gamma_{jk}}
+\]
+where $\pi_k$ is the independent prior probability that regressor $k$ is included in the model. For example a uniform prior across all elements, $\pi = 0.5$ implies the number of covariates should be large. Note the limitation of this approach, we would expect the presence of some regressors to be correlated with the presence of others. 
+\begin{definition}[Prior Inclusion Probability]
+    \[
+        p(\gamma_{jk} = 1|y) = \sum_{j=1}^{2^K} \mathbb{1}(\gamma_{jk} = 1|y, M_j)p(M_j|y)
+    \]
+\end{definition}
+Note that this is essentially a counting rule, we are summing the probabilities of a model being selected which includes $\gamma_{jk} = 1$. This can be thought of as a measure of how important regressor $k$ is in the model space.
+\end{document}
