@@ -133,7 +133,7 @@ we can see that the reduced form is an ARIMA(0,1,1). Setting the autocovariances
     & \implies \sigma^2_\xi = -\frac{\sigma^2_\epsilon}{\theta}\\    
     \gamma_0 &= \sigma^2_\eta + 2 \sigma^2_\epsilon \coloneq (1+\theta^2)\sigma^2_\xi\\
     & \implies \sigma^2_\eta + \sigma^2_\epsilon = (1+\theta^2)\left(-\frac{\sigma^2_\epsilon}{\theta}\right)\\
-    & \implies q +2 = -\frac{1+\theta^2}{\theta}
+    & \implies q +2 = -\frac{1+\theta^2}{\theta}\\
     & \implies \theta = \frac{-q-2 \pm \sqrt{q^2+4q}}{2}
 \end{align*}
 \subsection{Local linear trend model}
@@ -228,7 +228,19 @@ Observe that the model collapses to an AR(1) model when the cycle has frequency 
         y_t &= \mu_t + \psi_t + \epsilon_t\\
         \mu_t &= \mu_{t-1} + \beta_{t-1} + \eta_t\\
         \beta_t &= \beta_{t-1} + \zeta_t\\
-        \psi_t &= \rho \cos \lambda_c \psi_{t-1} + \rho \sin \lambda_c \psi_{t-1} + \kappa_t
+        \begin{bmatrix}
+            \psi_t\\
+            \psi_{t}^*
+          \end{bmatrix}  &= \rho \begin{bmatrix}
+            \cos \lambda_c & \sin \lambda_c\\
+            -\sin \lambda_c & \cos \lambda_c
+            \end{bmatrix} \begin{bmatrix}
+            \psi_{t-1}\\
+            \psi_{t-1}^*
+            \end{bmatrix} + \begin{bmatrix}
+            \kappa_t\\
+            \kappa_t^*
+            \end{bmatrix}
     \end{align*}
 \end{definition}
 \begin{claim}
@@ -510,12 +522,12 @@ The most common implementation of this very broad class of models is known as th
     \end{align*}
     Thus we can write the seasonally differenced series as:
     \begin{align*}
-        \Delta_s y_t &= \sum_{j=1}^s \eta_{t-j} + \epsilon_t - \epsilon_{t-s}
+        \Delta_s y_t &= \sum_{j=1}^s \eta_{t-j} + \epsilon_t - \epsilon_{t-s}\\
         &= S(L) \eta_t + \Delta_s \epsilon_t
     \end{align*}
     Now we first difference the series:
     \begin{align*}
-        \Delta \Delta_s y_t &= \Delta S(L) \eta_t + \Delta \Delta_s \epsilon_t
+        \Delta \Delta_s y_t &= \Delta S(L) \eta_t + \Delta \Delta_s \epsilon_t\\
         &= \Delta_s \eta_t + \Delta \Delta_s \epsilon_t \quad \text{ since $\Delta S(L) = \Delta_s$}\\
         &= (1-L^s) (\eta_t + \epsilon_t - \epsilon_{t-1}) 
     \end{align*}
