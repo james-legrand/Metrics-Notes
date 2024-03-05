@@ -1,0 +1,533 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\pagenumbering{gobble}
+\setcounter{chapter}{3}
+\vspace{-10pt}
+
+
+\chapter{Trends, Cycles and Seasonality}
+
+\section{Deterministic trends}
+A deterministic trend model takes the form
+\[
+    y_t = \mu (t) + \xi_t
+\]
+where $\xi_t$ is a stationary process (EG some ARMA) and $\mu(t)$ is a deterministic function of time. This function can be modelled as a polynomial in time, where $\mu(t) = \beta_0 + \beta_1 t + \beta_2 t^2 + \ldots + \beta_h t^h$. The linear trend model $\mu(t) = \beta_0 + \beta_1 t$ is obtained by setting $h=1$.\\
+The drawback with deterministic time trend models is that a time series rarely keeps on the same path indefinitely. Structural time series models achieve this aim directly by allowing the trend parameters to evolve over time as stochastic processes.
+
+\section{ARIMA models}
+ARMA$(p,q)$ models may be fitted to nonstationary series by differencing the observations. When forecasting is carried out, the differencing must be reversed; Box and Jenkins (1976) called this operation integration If differencing $d$ times gives a stationary and invertible model, then the original series is said to be \textit{integrated of order d}, or $ y_t \sim I(d)$.
+\begin{definition}
+    An auto-regressive integrated moving average (ARIMA) model of order $(p,d,q)$ is defined as:
+    \begin{equation}
+        \label{eq:arima}
+        \phi (L) \Delta^d y_t = \theta (L) \epsilon_t
+    \end{equation}
+    and denoted as $ARIMA(p,d,q)$.
+\end{definition}
+\begin{explanation}
+\textit{\textbf{When a series has been overdifferenced, it will be stationary, but strictly non-invertible due to the presence of a unit root in the MA polynomial}}
+Suppose we have a random walk model: 
+\[y_t = y_{t-1} + \epsilon_t\]
+ where $\epsilon_t \sim WN(0,\sigma^2)$. Clearly the first difference is stationary: \[\Delta y_t = \epsilon_t\]
+however suppose we over-difference:
+\[ \Delta^2 y_t = \Delta y_t - \Delta y_{t-1} = \epsilon_t - \epsilon_{t-1}. \]
+We have introduced a unit root in the MA polynomial: $\Theta (L) = 1-L$, and the series is no longer invertible.
+\end{explanation}
+\subsection{Prediction}
+Prediction from stationary models tend towards the mean as the lead time, $\ell$, increases. When $\ell$ is large, the dynamic structure of the model is irrelevant. This is no longer the case with integrated models, where the forecast function contains a deterministic component. The term $\phi(L)\Delta^d y_t$ in \eqref{eq:arima} is expanded to give an AR polynomial of order $p+d$:
+\[
+    \phi (L) \Delta^d = \varphi (L) = 1 - \varphi_1 L - \varphi_2 L^2 - \ldots - \varphi_{p+d} L^{p+d}
+\]
+and predictions are made from the recursive equation
+\[
+    \hat{y}_{T+\ell|T} = \varphi_1 \hat{y}_{T+\ell-1|T}  + \ldots + \varphi_{p+d} \hat{y}_{T+\ell-p-d|T} + \hat \epsilon_{T+\ell|T} + \ldots + \theta_q \hat \epsilon_{T+\ell-q|T} \quad \ell = 1,2,\ldots
+    \]
+The eventual forecast function (EG for stationary processes forecasts converge to the mean) is a polynomial of order $d-1$. When the model includes a constant it is a polynomial of order $d$. 
+\begin{example}[Prediction in ARIMA(0,1,1)]
+    \[
+        \Delta y_t = \epsilon_t + \theta \epsilon_{t-1} 
+    \]
+    \[
+        \begin{cases*}
+            \hat{y}_{T+1|T} = y_T + \theta \epsilon_T\\
+            \hat{y}_{T+\ell|T} = \hat y_{T+\ell-1|T}
+        \end{cases*}
+    \]
+    Thus for all lead times, the forecasts made at time T follow a horizontal line. The disturbance term can be obtained from the recursive equation:
+    \[
+        \epsilon_t = y_t - y_{t-1} - \theta \epsilon_{t-1}
+    \]
+    with $\epsilon_1 = 0$. Substitute repeatedly for lagged values of $\epsilon_t$:
+    \begin{align*}
+        \epsilon_2 &= y_2 - y_1 - \theta \epsilon_1 = y_2 - y_1\\
+        \epsilon_3 &= y_3 - y_2 - \theta (y_2 - y_1) = y_3 - (1+\theta)y_2 + \theta y_1\\
+        \epsilon_4 &= y_4 - y_3 - \theta (y_3 - (1+\theta)y_2 + \theta y_1) = y_4 - (1+\theta)y_3 + \theta(1+\theta)y_2 - \theta^2 y_1\\
+        &\vdots\\
+        \epsilon_T &= y_T - (1+\theta) \sum_{j=1}^{T-1} (-\theta)^{j-1} y_{T-j}
+    \end{align*}
+    So the expression for the one-step ahead predictor can be written as:
+    \begin{align*}
+        \hat{y}_{T+1|T} &= y_T + \theta \epsilon_T\\
+        &= y_T + \theta \left( y_T - (1+\theta) \sum_{j=1}^{T-1} (-\theta)^{t-1} y_{T-t} \right)\\
+        &= (1+\theta) \sum_{j=0}^{T-1} (-\theta)^{j} y_{T-j}
+    \end{align*}
+    This predictor is an EWMA, with weights that decrease geometrically with time.
+\end{example}
+\begin{example}[Prediction in ARIMA(0,1,1) + constant]
+    When the model above includes a constant:
+    \[
+        \Delta y_t = \theta_0  + \epsilon_t + \theta \epsilon_{t-1}
+    \]
+    the forecasts are
+    \[
+        \hat{y}_{T+1|T} = y_T + \theta_0 + \theta \epsilon_T
+    \]
+    and
+    \[
+        \hat{y}_{T+\ell|T} = y_T + \ell \theta_0 + \theta \epsilon_T
+    \]
+    The eventual forecast function is therefore a linear time trend.
+\end{example}
+\begin{example}[ARIMA(1,1,0)]
+    \[
+        \varphi(L) = (1-\phi L)(1-L) = 1 - (1+\phi)L + \phi L^2
+    \]
+    and forecasts are constructed from the difference equation:
+    \[
+        \hat y_{T+\ell|T} = (1+\phi) \hat y_{T+\ell-1|T} - \phi \hat y_{T+\ell-2|T}
+    \]
+    The corresponding forecast function:
+    \[
+        \hat y_{T+\ell|T} = y_T + (y_T - y_{T-1}) \frac{\phi(1-\phi^\ell)}{1-\phi} \quad \ell = 1,2,\ldots
+    \]
+    As $\ell \to \infty$, $\hat y_{T+\ell|T} \to y_T + (y_T - y_{T-1}) \frac{\phi}{1-\phi}$, a horizontal line. In contrast to the $ARIMA(0,1,1)$ model where the eventual forecast function is also horizontal, but depends on all past values, the eventual forecast function here depends only on the last two observations.
+\end{example}
+\begin{note}
+\textbf{Model Selection:} First plot the series in levels and differences, judge which show trending movements. Checking the correlogram is also useful, for stationary processes the autocorrelations tend towards zero as the lag increases, whilst non-stationary processes do not damp so quickly. Keep differencing the model until a correlogram having the characteristics of a stationary model is obtained.
+\end{note}
+\section{Structural Time Series Models}
+\subsection{Local level model}
+\begin{definition}[Local level model]
+    The local level model consists of a random walk plus noise:
+\[
+    \begin{cases*}
+        y_t = \mu_t + \epsilon_t \quad \epsilon_t \sim NID(0,\sigma^2_\epsilon)\\
+        \mu_t = \mu_{t-1} + \eta_t \quad \eta_t \sim NID(0,\sigma^2_\eta)
+    \end{cases*}
+\]
+where $\E(\epsilon_t \eta_t) = 0$.
+\end{definition}
+When $\sigma^2_\eta$ is zero the level is constant and the process is just noise around a mean. The signal noise ratio $q = \sigma^2_\eta / \sigma^2_\epsilon$ plays a key role in determining how observations should be weighted for prediction and signal extraction. The higher $q$, the more past observations are discounted in forecasting.\\
+By taking first differences of $y_t$:
+\begin{align*}
+    \Delta y_t &= \mu_t - \mu_{t-1} + \epsilon_t\\
+    &= \eta_t + \epsilon_t
+\end{align*}
+we can see that the reduced form is an ARIMA(0,1,1). Setting the autocovariances of the first differences equal to those of an MA(1) model [$y_t = \xi_t + \theta_{t-1}$] yields:
+\begin{align*}
+    \gamma_1 &= -\sigma^2_\epsilon \coloneq \theta \sigma^2_\xi\\
+    & \implies \sigma^2_\xi = -\frac{\sigma^2_\epsilon}{\theta}\\    
+    \gamma_0 &= \sigma^2_\eta + 2 \sigma^2_\epsilon \coloneq (1+\theta^2)\sigma^2_\xi\\
+    & \implies \sigma^2_\eta + \sigma^2_\epsilon = (1+\theta^2)\left(-\frac{\sigma^2_\epsilon}{\theta}\right)\\
+    & \implies q +2 = -\frac{1+\theta^2}{\theta}
+    & \implies \theta = \frac{-q-2 \pm \sqrt{q^2+4q}}{2}
+\end{align*}
+\subsection{Local linear trend model}
+A linear time trend of the form $\mu (t) = \beta_0 + \beta_1 t$ can be constructed recursively from $\mu_t = \mu_{t-1} + \beta_1$ with $\beta_0 = \mu_0$. It can then be made stochastic by adding a disturbance to the level $\mu_t$ (random walk + drift), or the slope itself can be made stochastic - resulting in the local linear trend model:
+\begin{definition}[Local linear trend model]
+    \begin{align*}
+        y_t &= \mu_t + \epsilon_t \quad \epsilon_t \sim NID(0,\sigma^2_\epsilon)\\
+        \mu_t &= \mu_{t-1} + \beta_{t-1} + \eta_t \quad \eta_t \sim NID(0,\sigma^2_\eta)\\
+        \beta_t &= \beta_{t-1} + \zeta_t \quad \zeta_t \sim NID(0,\sigma^2_\zeta)
+    \end{align*}
+    where all disturbances are mutually independent.
+\end{definition}
+Only when $\sigma^2_\zeta = 0$ the slope is fixed and the trend reduces to random walk plus drift. Allowing $\sigma^2_\zeta > 0$, but setting $\sigma^2_\eta = 0$ makes $\mu_t$ an integrated random walk.\\
+The SSF of the local linear trend model is:
+\[
+    y_t = \begin{bmatrix} 1 & 0 \end{bmatrix} \begin{bmatrix} \mu_t \\ \beta_t \end{bmatrix} + \epsilon_t = \begin{bmatrix} 1 & 0 \end{bmatrix} \begin{bmatrix} 1 & 1 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} \mu_{t-1} \\ \beta_{t-1} \end{bmatrix} + \begin{bmatrix} 1 & 0 \end{bmatrix} \begin{bmatrix} \eta_t \\ \zeta_t \end{bmatrix} + \epsilon_t
+\]
+where the state vector is $\alpha_t = \begin{bmatrix} \mu_t \\ \beta_t \end{bmatrix}$ and covariance matrix is $Q = \begin{bmatrix} \sigma^2_\eta & 0 \\ 0 & \sigma^2_\zeta \end{bmatrix}$.
+\begin{claim}
+    The reduced form of the local linear trend model is an ARIMA(0,2,2) model.
+\end{claim} 
+\begin{proof}
+    Begin with the trend, and difference until we find a stationary expression for $y_t$:
+    \begin{align*}
+        \beta_t &= \beta_{t-1} + \zeta_t\\
+        \implies \Delta \beta_t &= \zeta_t\\
+        \mu_t &= \mu_{t-1} + \beta_{t-1} + \eta_t\\
+        \implies \Delta \mu_t &= \beta_{t-1} + \eta_t\\
+        \implies \Delta^2 \mu_t &= \Delta \beta_{t-1} + \eta_t + \eta_{t-1} = \zeta_{t-1} + \eta_t + \eta_{t-1}\\
+        y_t &= \mu_t + \epsilon_t\\
+        \implies \Delta^2 y_t &= \Delta^2 \mu_t + (1-L)^2 \epsilon_t = \zeta_{t-1} + \eta_t + \eta_{t-1} + \epsilon_t - 2\epsilon_{t-1} + \epsilon_{t-2}
+    \end{align*}
+    The ACF is thus:
+    \begin{align*}
+        \gamma(0) &= \sigma^2_\zeta + 2\sigma^2_\eta + 6\sigma^2_\epsilon\\
+        \gamma(1) &= -\sigma^2_\eta -4\sigma^2_\epsilon\\
+        \gamma(2) &= \sigma^2_\epsilon\\
+        \gamma(\tau) &= 0 \quad \tau > 2
+    \end{align*}
+    Which we could match to the ACF of an ARIMA(0,2,2) model and solve for the parameters.
+\end{proof}
+\begin{question}
+    Show that the reduced form of the modified damped trend model with a mean is ARIMA(1,1,2):
+    \begin{align*}
+        y_t &= \mu_t + \epsilon_t\\
+        \mu_t &= \mu_{t-1} + \beta_{t-1} + \eta_t\\
+        \beta_t &= (1-\rho)\beta + \rho \beta_{t-1} + \zeta_t
+    \end{align*}
+    In other words the slope is an AR(1) with mean $\beta$.
+\end{question}
+\begin{solution}
+\begin{align*}
+    \beta_t &= (1-\rho)\beta + \rho \beta_{t-1} + \zeta_t\\
+    \implies (1-\rho L) \beta_t &= (1-\rho)\beta + \zeta_t\\
+    \implies \beta_t &= \beta + \frac{\zeta_t}{1-\rho L} \quad \text{ since $\beta$ constant}\\
+    \mu_t &= \mu_{t-1} + \beta_{t-1} + \eta_t\\
+    \implies \Delta \mu_t &= \beta_{t-1} + \eta_t\\
+    &= \beta + \frac{\zeta_{t-1}}{1-\rho L} + \eta_t\\
+    y_t &= \mu_t + \epsilon_t\\
+    \implies \Delta y_t &= \Delta \mu_t + \epsilon_t - \epsilon_{t-1}\\
+    &= \beta + \frac{\zeta_{t-1}}{1-\rho L} + \eta_t + \epsilon_t - \epsilon_{t-1}\\
+    \implies (1- \rho L) \Delta y_t &= (1-\rho)\beta + \zeta_{t-1} + (1-\rho L) (\eta_t + \epsilon_t - \epsilon_{t-1})
+\end{align*}
+The left hand side is an AR(1) on the differenced series, and the RHS is a mean + an MA(2) component. Thus it is an ARIMA(1,1,2) model.
+\end{solution}
+\section{Trend-cycle models}
+We consider stochastic cycles with frequency $\lambda_c$ and damping term $\rho$. 
+\begin{definition}[Stochastic cycle]
+The stochastic cycle model is given by:
+\begin{equation} 
+\label{eq:stochseasonal}   
+  \begin{bmatrix}
+    \psi_t\\
+    \psi_{t}^*
+  \end{bmatrix}  = \rho \begin{bmatrix}
+    \cos \lambda_c & \sin \lambda_c\\
+    -\sin \lambda_c & \cos \lambda_c
+    \end{bmatrix} \begin{bmatrix}
+    \psi_{t-1}\\
+    \psi_{t-1}^*
+    \end{bmatrix} + \begin{bmatrix}
+    \kappa_t\\
+    \kappa_t^*
+    \end{bmatrix}
+\end{equation}
+where $\kappa_t$ is a white noise process with the same variance as $\kappa_t^*$ and $0\leq \rho \leq 1$.
+\end{definition}
+Observe that the model collapses to an AR(1) model when the cycle has frequency zero or $\pi$ (giving positive and negative AR coefficients respectively\footnote{See lecture on Spectral Analysis}).
+\begin{definition}[Trend-cycle models]
+    The trend plus cycle plus noise model is:
+    \begin{align*}
+        y_t &= \mu_t + \psi_t + \epsilon_t\\
+        \mu_t &= \mu_{t-1} + \beta_{t-1} + \eta_t\\
+        \beta_t &= \beta_{t-1} + \zeta_t\\
+        \psi_t &= \rho \cos \lambda_c \psi_{t-1} + \rho \sin \lambda_c \psi_{t-1} + \kappa_t
+    \end{align*}
+\end{definition}
+\begin{claim}
+    The reduced form of the trend-cycle model is an ARIMA(2,2,4) model.
+\end{claim}
+\begin{proof}
+    Recall that the reduced form of the local linear trend model is an ARIMA(0,2,2), thus the second difference of $y_t$ has the form:
+    \[
+        \Delta ^2 y_t = \zeta_{t-1} + \eta_t + \eta_{t-1} + \epsilon_t - 2\epsilon_{t-1} + \epsilon_{t-2} + \Delta^2 \psi_t
+    \]
+    The stochastic seasonal is defined via the recursions in \eqref{eq:stochseasonal}:
+    \begin{align*}
+        \psi_t &= \rho \cos \lambda_c \psi_{t-1} + \rho \sin \lambda_c \psi^*_{t-1} + \kappa_t\\
+        \implies (1-\rho \cos \lambda_c L) \psi_t &= \rho \sin \lambda_c L \psi^*_{t} + \kappa_t\\
+        \psi_t^* &= -\rho \sin \lambda_c \psi_{t-1} + \rho \cos \lambda_c \psi^*_{t-1} + \kappa_t^*\\
+        \implies (1-\rho \cos \lambda_c L) \psi_t^* &= -\rho \sin \lambda_c L \psi_{t} + \kappa_t^*
+    \end{align*}
+    We can thus express the evolution of the cycle $\psi_t$ as:
+    \begin{align*}
+        (1-\rho \cos \lambda_c L)\psi_t &= \rho \sin \lambda_c L \left( \frac{-\rho \sin \lambda_c L \psi_t + \kappa_t^*}{1 - \rho \cos \lambda_c L} \right) + \kappa_t\\
+        (1-\rho \cos \lambda_c L)^2 \psi_t &= \rho \sin \lambda_c L \left( -\rho \sin \lambda_c L \psi_t + \kappa_t^* \right) + (1-\rho \cos \lambda_c L) \kappa_t\\
+        (1-2\rho \cos \lambda_c L + (\rho L )^2( \cos^2 \lambda_c + \sin^2 \lambda_c)) \psi_t &= \kappa_t +\rho L (\sin \lambda_c \kappa_t^* - \cos \lambda_c \kappa_t^*)\\
+        \psi_t &= \frac{\kappa_t +\rho L (\sin \lambda_c \kappa_t^* - \cos \lambda_c \kappa_t^*)}{1-2\rho \cos \lambda_c L + \rho^2L^2}
+    \end{align*}
+    This has the structure of an ARMA(2,1) model. We can take second differences and substitute into the expression for $\Delta^2 y_t$:
+    \begin{align*}
+        \Delta^2 y_t &= \zeta_{t-1} + \eta_t + \eta_{t-1} + \epsilon_t - 2\epsilon_{t-1} + \epsilon_{t-2} + \Delta^2 \psi_t\\
+        &= \zeta_{t-1} + \eta_t + \eta_{t-1} + \epsilon_t - 2\epsilon_{t-1} + \epsilon_{t-2} + \frac{(1-L)^2(\kappa_{t-1} +\rho L (\sin \lambda_c \kappa_{t-1}^* - \cos \lambda_c \kappa_{t-1}^*))}{1-2\rho \cos \lambda_c L + \rho^2L^2}
+    \end{align*}
+    We can rearrange to show:
+    \begin{align*}
+        (1-2\rho \cos \lambda_c L + \rho^2L^2)\Delta^2 y_t &= (1-2\rho \cos \lambda_c L + \rho^2L^2)(\zeta_{t-1} + \eta_t + \eta_{t-1} + \epsilon_t - 2\epsilon_{t-1} + \epsilon_{t-2}) \\
+        & \quad + (1-L)^2(\kappa_{t-1} +\rho L (\sin \lambda_c \kappa_{t-1}^* - \cos \lambda_c \kappa_{t-1})^*)
+    \end{align*}
+    The left hand side is an AR(2) on the second difference of the series, and the right hand side is an MA(4) (the deepest lag is $\rho^2 \epsilon_{t-4}$). Thus the reduced form of the trend-cycle model is an ARIMA(2,2,4) model.
+\end{proof}
+The state space form of the model is:
+\[
+    y_t = \begin{bmatrix} 1 & 0 & 1 & 0 \end{bmatrix} \alpha_t + \epsilon_t
+    \]
+\[
+    \alpha_t = \begin{bmatrix} \mu_t \\ \beta_t \\ \psi_t \\ \psi_t^* \end{bmatrix} = \begin{bmatrix} 1 & 1 & 0 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & \rho \cos \lambda_c & \rho \sin \lambda_c \\ 0 & 0 & -\rho \sin \lambda_c & \rho \cos \lambda_c \end{bmatrix} \begin{bmatrix} \mu_{t-1} \\ \beta_{t-1} \\ \psi_{t-1} \\ \psi_{t-1}^* \end{bmatrix} + \begin{bmatrix} \eta_t \\ \zeta_t \\ \kappa_t \\ \kappa_t^* \end{bmatrix}
+\]
+Note that this matrix is block diagonal, this is because the trend and cycle are uncorrelated.
+
+\begin{definition}[Cyclical trend model]
+    The cyclical trend model incorporates the cycle into the slope by moving it into the level equation:
+    \begin{align*}
+        y_t &= \mu_t + \epsilon_t\\
+        \mu_t &= \mu_{t-1} + \beta_{t-1} + \eta_t\\
+        \beta_t &= \rho \beta_{t-1} + \zeta_t
+    \end{align*}
+\end{definition}
+We can write this in state space form:
+\[
+    y_t = \begin{bmatrix} 1 & 0 & 0 & 0 \end{bmatrix} \alpha_t + \epsilon_t
+\]
+\[
+    \alpha_t = \begin{bmatrix} \mu_t \\ \beta_t \\ \psi_t \\ \psi_t^* \end{bmatrix} = \begin{bmatrix} 1 & 1 & 1 & 0 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & \rho \cos \lambda_c & \rho \sin \lambda_c \\ 0 & 0 & -\rho \sin \lambda_c & \rho \cos \lambda_c \end{bmatrix} \begin{bmatrix} \mu_{t-1} \\ \beta_{t-1} \\ \psi_{t-1} \\ \psi_{t-1}^* \end{bmatrix} + \begin{bmatrix} \eta_t \\ \zeta_t \\ \kappa_t \\ \kappa_t^* \end{bmatrix}
+\]
+and see that the trend and cycle are now correlated!
+\begin{claim}
+    The cyclical trend model, where the cycle appears in the slope by moving it into the level equation:
+    \[
+        \mu_t = \mu_{t-1} + \beta_{t-1} + \psi_{t-1} + \eta_t
+    \]
+    has reduced form ARIMA(2,2,4).
+\end{claim}
+\begin{proof}
+    Fuck off
+\end{proof}
+\begin{question}
+    Show that the damped trend model:
+    \begin{align*}
+        y_t &= \mu_t + \epsilon_t\\
+        \mu_t &= \mu_{t-1} + \beta_{t-1} + \eta_t\\
+        \beta_t &= \rho \beta_{t-1} + \zeta_t
+    \end{align*}
+    Is a special case of the cyclical trend model.
+\end{question}
+\begin{solution}
+    Let us suppose our cycles have frequency zero, then $\lambda_c=0$. Thus $\sin \lambda_c=0$ and the second part of the recursion is redundant. Using $\cos 0 = 1$:
+    \[
+        \psi_t = \rho \psi_{t-1} + \kappa_t
+    \]
+    Consider the special case of the cyclical trend model where $\beta_t$ does not appear in the level equation:
+    \begin{align*}
+        y_t &= \mu_t + \epsilon_t\\
+        \mu_t &= \mu_{t-1} + \psi_{t-1} + \eta_t
+    \end{align*}
+    However this is exactly the same as the damped trend model, just with a change of notation! We can see this clearly by writing the structural forms side by side:
+    \begin{align*}
+        \text{ \textbf{ Damped }}&\text{\textbf{Trend Model}}  & \quad \text{ \textbf{ Cyclical }}&\text{\textbf{Trend Model}}\\
+        y_t &= \mu_t + \epsilon_t & y_t &= \mu_t + \epsilon_t\\
+        \mu_t &= \mu_{t-1} + \beta_{t-1} + \eta_t & \mu_t &= \mu_{t-1} + \psi_{t-1} + \eta_t\\
+        \beta_t &= \rho \beta_{t-1} + \zeta_t & \psi_t &= \rho \psi_{t-1} + \kappa_t
+    \end{align*}
+    These are the same, just interchanging the roles of $\beta_t$ and $\psi_t$.
+\end{solution}
+\section{Unit roots and Stationarity tests}
+Two classes of tests are available to help distinguish between models that are integrated of different orders. In stationarity tests, nonstationarity appears under the alternative hypothesis. In unit root tests, the situation is reversed, with nonstationarity corresponding to the null hypothesis. This duality between the two sets of tests can also be seen in terms of AR and MA models. For example, the local level model is equivalent to an MA(1) in first differences, and the test of a zero variance driving the random walk corresponds to a test that the MA parameter is strictly noninvertible.
+\subsection{Unit root tests: Dickey-Fuller}
+The basic unit root test is of the null hypothesis that a series is a random walk against the alternative that it's a stationary AR(1). Thus in
+\[
+    y_t = \phi y_{t-1} + \epsilon_t
+\]
+with $y_0$ fixed, the null hypothesis is $\phi = 1$ and the alternative is $\phi < 1$. The Dickey-Fuller test is a one sided test based on the 't-statistic' obtained from the OLS estimate of $\phi$. This is not asymptotically normal, but critical values are tabulated by Dickey and Fuller (1979). There are different critical values when the model includes a constant and/or a time trend:
+\[
+    y_t = \alpha + \beta t + \phi y_{t-1} + \epsilon_t \quad \epsilon_t \sim NID(0,\sigma^2)
+\]
+\begin{note}
+    If the true model is a random walk plus drift and a constant, but no time trend ($y_t = \alpha + y_{t-1} + \epsilon_t$) then the t statistic is asymptotically normal. See Hamilton (1994, p 495-7) if you're feeling brave.
+\end{note}
+We can subtract $y_{t-1}$ from both sides to obtain the dickey fuller test:
+\begin{definition}[Dickey-Fuller test]
+    \[
+        \Delta y_t = \rho y_{t-1} + \epsilon_t \quad \rho = \phi - 1
+    \]
+    $H_0: \rho = 0$ and $H_1: \rho < 0$ using Dickey-Fuller tables.
+\end{definition}
+More generally we can consider the augmented Dickey-Fuller test, based on an AR(p):
+\[
+    y_t = \phi_1 y_{t-1} + \ldots + \phi_p y_{t-p} + \epsilon_t
+\]
+\begin{definition}[Augmented Dickey-Fuller test]
+    \[
+        \Delta y_t = \rho y_{t-1} + \sum_{i=1}^{p-1} \gamma_i \Delta y_{t-i} + \epsilon_t
+    \]
+    where
+    \[
+        \gamma_i = -\sum_{j=i+1}^p \phi_j \quad \text{ and } \quad \rho = \sum_{i=1}^p \phi_i - 1
+    \]
+    $H_0: \rho = 0$ and $H_1: \rho < 0$ using Dickey-Fuller tables.
+\end{definition}
+The distribution of $\hat \rho$ is unaffected by the lagged differences since it converges at a faster rate. Thus we use the standard DF tables. That $\rho = 0$ implies a unit root follows because when it holds the polynomial associated with the AR(p) factorises as $\phi(L) = (1-L) \phi^*(L)$. Setting L=1 then gives $\phi(1) = 0$ and the equation for $\rho$ given above.
+\subsection{Stationarity tests}
+Consider the random walk plus noise model (or local level model):
+\[
+    y_t = \mu_t + \epsilon_t \quad \mu_t = \mu_{t-1} + \eta_t
+\]
+When $\sigma^2_\eta = 0$ the random walk becomes a constant level. Thus a nonstationary model becomes stationary and standard asymptotic theory no longer applies to a test of $H_0: \sigma^2_\eta = 0$ against $H_1: \sigma^2_\eta > 0$. 
+\begin{definition}[Nyblom-Makelainen test]
+    \[
+        NM = \frac{1}{T^2 s^2} \sum_{i=1}^T \left[ \sum_{t=1}^i e_t \right]^2>c
+    \]
+    where $e_t = y_t - \bar y$, $s^2 = T^{-1} \sum_{t=1}^T e_t^2$ and c is a critical value.    
+\end{definition}
+Asymptotically NM has a Cramer-von Mises distribution under the null when the irregular's are iid. This model can be extended such that $\epsilon_t$ follows any indeterministic stationary process, giving us the KPSS test.
+\begin{definition}[KPSS test]
+    Replace $s^2$ in the NM statistic with an estimator of the long run variance of $\epsilon_t$:
+    \[
+        \sigma^2_L (m) = \hat \gamma(0) + 2 \sum_{\tau=1}^m w(\tau, m) \hat \gamma(\tau)
+    \]
+    where $w(\tau, m)$ is a weighting function, such as $w(\tau, m) = 1- |\tau|/(m+1)$, and $\hat \gamma(\tau)$ is the sample autocovariance at lag $\tau$. The lag length m is specified by the researcher.
+\end{definition}
+\section{Seasonality}
+\subsection{Deterministic seasonality}
+A seasonal component, $\gamma_t$ may be added to a model consisting of a trend and irregular to give the \textit{basic structural model} (BSM):
+\[
+    y_t = \mu_t + \gamma_t + \epsilon_t
+\]
+where the components evolve as before. The signal noise ratio associated with the seasonal component is $q_\omega = \sigma^2_\omega / \sigma^2_\epsilon$.\\
+a fixed seasonal pattern may be modelled as:
+\[
+    \gamma_t = \sum_{j=1}^s \gamma_j z_{jt}
+\]
+where s is the number of seasons and the dummy variables $z_{jt}$ take the value 1 in the jth season and 0 otherwise. In order to not confound trend with seasonality, we constrain $\sum_{j=1}^{s} \gamma_j = 0$.\\
+Of course seasonal patterns are not fixed in time, but the requirement that the terms sum to zero must be maintained when the seasonal pattern changes.
+\subsection{Stochastic seasonality}
+Let $\gamma_{jt}$ denote the effect of season $j$ at time $t$ and define $\gamma_t = [\gamma_{1t} , \ldots , \gamma_{st}]^T$. The seasonals evolve according to a multivariate random walk:
+\[
+    \gamma_t = \gamma_{t-1} + \omega_t \quad \equiv \quad \begin{bmatrix}
+    \gamma_{1t}\\
+    \vdots\\
+    \gamma_{st}
+    \end{bmatrix} = \begin{bmatrix}
+        \gamma_{1,t-1}\\
+        \vdots\\
+        \gamma_{s,t-1}
+    \end{bmatrix} + \begin{bmatrix}
+        \omega_{1t}\\
+        \vdots\\
+        \omega_{st}
+    \end{bmatrix}
+\]
+where $\omega_t = [\omega_{1t} , \ldots , \omega_{st}]^T$ is a zero-mean disturbance with 
+\[
+    Var(\omega_t) = \sigma^2_\omega \left(I-\frac{ii'}{s}\right) = \sigma^2 \begin{bmatrix}
+    1-\frac{1}{s} & -\frac{1}{s} & \ldots & -\frac{1}{s}\\
+    -\frac{1}{s} & 1-\frac{1}{s} & \ldots & -\frac{1}{s}\\
+    \vdots & \vdots & \ddots & \vdots\\
+    -\frac{1}{s} & -\frac{1}{s} & \ldots & 1-\frac{1}{s}
+    \end{bmatrix}
+    \]
+This structure is necessary to ensure that the seasonal components always sum to zero. The sum of the elements of $\gamma_t$ can be written as $i'\gamma_t$. From this structure we can see that $Var(i'\omega_t) = \sigma^2_\omega (i' - \frac{i'ii'}{s}) = \sigma^2_\omega (i'-i') = 0$. Combining this with an initial condition setting the sum 0 at t=0, we have that the expectation and variance of $i'\gamma_t$ are always zero.\\
+Note that here although all $s$ seasonal components are continually changing, only one affects the observation at time $t$, that is $\gamma_t = \gamma_{jt}$ when $j$ is prevailing at $t$.\\
+We can write this in state-space form:
+\[
+    y_t = \begin{bmatrix} 1 & 0 &  z_t ' \end{bmatrix} \alpha_t + \epsilon_t
+\]
+\[
+    \alpha_t = \begin{bmatrix} \mu_t \\ \beta_t \\ \gamma_t \end{bmatrix} = \begin{bmatrix} 1 & 1 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & I_s \end{bmatrix} \begin{bmatrix} \mu_{t-1} \\ \beta_{t-1} \\ \gamma_{t-1} \end{bmatrix} + \begin{bmatrix} \eta_t \\ \zeta_t \\ \omega_t \end{bmatrix}
+\]
+where the bottom row in the transition equation is just rewriting the multivariate random walk. We can write the reduced form of the dummy variable stochastic seasonal model as:
+\[
+    \gamma_t = - \sum_{j=1}^{s-1} \gamma_{t-j} + \omega_t
+\]
+which is simply rearranging the fact that the sum of the seasonals equals a random disturbance.
+\begin{claim}
+    The reduced form of the BSM with stochastic seasonality is $\Delta \Delta_s y_t \sim MA(s+1)$
+\end{claim}
+\begin{proof}
+    \begin{align*}
+        y_t &= \mu_t + \gamma_t + \epsilon_t\\
+        \mu_t &= \mu_{t-1} + \beta_{t-1} + \eta_t\\
+        \beta_t &= \beta_{t-1} + \zeta_t\\
+        \gamma_t &= - \sum_{j=1}^{s-1} \gamma_{t-j} + \omega_t
+    \end{align*}
+    We can make the stochastic trend component stationary by second differencing as usual:
+    \[
+        \Delta^2 \mu_t = \Delta \beta_{t-1} + \eta_t - \eta_{t-1} = \zeta_{t-1} + \eta_t - \eta_{t-1}
+    \]
+    The seasonal component can be made stationary by applying the seasonal summation operator
+    \begin{definition}[Seasonal summation operator]
+        \[
+            S(L) = 1 + L + L^2 + \ldots + L^{s-1}
+        \]
+        which is a special case of the summation operator.
+    \end{definition}
+    Thus $S(L)\gamma_t = \omega_t$ (by rearranging the reduced form, we see the sum of seasonals is $\omega_t$). The stationary form of the BSM is obtained by multiplying through by $\Delta^2 S(L) = \Delta \Delta_s$. This follows from 
+    \[
+        (1-L)S(L) = 1 - L^s = \Delta_s \implies \Delta^2 S(L) = \Delta \Delta_s
+    \]
+    The result is:
+    \[
+        \Delta \Delta_s y_t = \Delta_s \eta_t + S(L) \zeta_{t-1} + \Delta^2 \omega_t + \Delta \Delta_s \epsilon_t
+    \]
+    Which is clearly an Ma(s+1) from the deepest lag on epsilon.
+\end{proof}
+\begin{note}
+    If the slope were deterministic in the above, we would not need to difference out the trend and the observations are rendered stationary by the seasonal difference alone, giving $\Delta_s y_t \sim MA(s+1)$ plus a constant trend $\beta$.
+\end{note}
+\section{Seasonal ARIMA models}
+\begin{definition}[SARIMA(p,d,q)(P,D,Q)$_s$]
+    The seasonal ARIMA model is given by:
+    \[
+        \phi(L)\Phi(L^s)\Delta^d \Delta_s^D y_t = \theta_0 + \theta(L)\Theta(L^s)\epsilon_t
+    \]
+    where $\theta_0$ is a constant, while $\Phi(L^s)$ and $\Theta(L^s)$ are polynomials in the seasonal lag operator $L^s$:
+    \[
+        \Phi(L^s) = 1 - \Phi_1 L^s - \ldots - \Phi_P L^{sP} \quad \Theta(L^s) = 1 - \Theta_1 L^s - \ldots - \Theta_Q L^{sQ}
+    \]
+\end{definition}
+The most common implementation of this very broad class of models is known as the \textit{airline model}, which is a SARIMA(0,1,1)(0,1,1)$_s$ model:
+\[
+    \Delta \Delta_s y_t = (1+\theta L)(1+\Theta L^s)\epsilon_t
+\]
+\begin{claim}
+    With a deterministic seasonal and no trend, the airline model is equivalent to the BSM when $\Theta = -1$.
+\end{claim}
+\begin{proof}
+    The BSM is:
+    \begin{align*}
+        y_t &= \mu_t + \gamma_t + \epsilon_t\\
+        \mu_t &= \mu_{t-1}  + \eta_t\\
+        \gamma_t &= \sum_{j=1}^s \gamma_j z_{jt}
+    \end{align*}
+    We can write the seasonally differenced series as:
+    \begin{align*}
+        \Delta_s y_t &= \Delta_s \mu_t + \Delta_s \gamma_t + \Delta_s \epsilon_t\\
+        &= \mu_t - \mu_{t-s} + \epsilon_t - \epsilon_{t-s}
+    \end{align*}
+    Since $\gamma_t - \gamma_{t-s} = 0$. We now iterate on the level equation:
+    \begin{align*}
+        \mu_t &= \mu_{t-1} + \eta_t\\
+        &= \mu_{t-2} + \eta_{t-1} + \eta_t\\
+        &= \ldots\\
+        &= \mu_{t-s} + \sum_{j=1}^s \eta_{t-j}
+    \end{align*}
+    Thus we can write the seasonally differenced series as:
+    \begin{align*}
+        \Delta_s y_t &= \sum_{j=1}^s \eta_{t-j} + \epsilon_t - \epsilon_{t-s}
+        &= S(L) \eta_t + \Delta_s \epsilon_t
+    \end{align*}
+    Now we first difference the series:
+    \begin{align*}
+        \Delta \Delta_s y_t &= \Delta S(L) \eta_t + \Delta \Delta_s \epsilon_t
+        &= \Delta_s \eta_t + \Delta \Delta_s \epsilon_t \quad \text{ since $\Delta S(L) = \Delta_s$}\\
+        &= (1-L^s) (\eta_t + \epsilon_t - \epsilon_{t-1}) 
+    \end{align*}
+    This is an MA(s+1) process, and we can compare it to the airline model:
+    \[
+        \Delta \Delta_s y_t = (1+\Theta L^s)(\epsilon_t + \theta \epsilon_{t-1}) \quad \Delta \Delta_s y_t = (1-L^s)(\eta_t + \epsilon_t - \epsilon_{t-1})
+    \]
+    Thus the airline model is equivalent to the BSM when $\Theta = -1$, since both final terms are MA(1) processes.\\
+    The airline model thus provides a good approximation to the reduced form when the slope and seasonal are close to being deterministic.
+\end{proof}
+\section{Model Selection}
+Structural models aim to capture the most obvious parts of a time series; when there are obvious trends or seasonal patterns to capture. ARIMA models are more parsimonious, however they may miss some of the more subtle features of the data.\\
+ARIMA selection is based on the premise that ACFs are stable over time. Even if this is the case, it is still difficult to identify complex models from the ACF alone, and we may miss important features of the series. In practice sampling error in the correlogram can make it difficult to identify even simple ARIMA models. STMs are more robust as the choice of model is not dependent on correlograms.\\
+Model selection for ARIMAs is normally straightforward, unit root tests determine the degree of differencing and lags are included according to some information criterion or statistical significance. However, these tests often have poor size and power properties.
+\end{document}
