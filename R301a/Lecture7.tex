@@ -1,0 +1,395 @@
+\documentclass[DIV=14,titlepage=false]{scrreprt}
+\input{preamble.tex}
+\setuptoc{toc}{leveldown}
+
+\begin{document}
+\pagenumbering{gobble}
+\vspace{-10pt}
+\setcounter{chapter}{6}
+
+
+\chapter{Nonlinear Models}
+Non-linearities can enter a model in a variety of ways. Some common examples are:
+\begin{itemize}
+    \item ARMA models with multiplicative terms:
+     \[
+        ,y_t = \phi y_{t-1} +\epsilon_t + \beta \epsilon_{t-1} y_{t-1}, \quad \epsilon_t \sim NID(0,\sigma^2)
+    \]
+    \item Nonlinear functional forms
+    \item Non-Gaussian, EG disturbances follow a t-distribution
+    \item Dynamics in scale rather than location (e.g. GARCH)
+    \item Switching regimes
+\end{itemize}
+There are 2 broad classes of models, parameter-driven and observation-driven.\\
+An observation driven model is set up in terms of conditional distribution for the $t$-th observation: $p(y_t|Y_{t-1}|\phi)$. THe likelihood function is immediately available.\\
+A parameter driven model typically does not allow for a likelihood function, where we have some link function: $ y_t = \mu e^{\beta_t} + \epsilon_t, \quad \beta_t = \phi \beta_{t-1} + \eta_t$, here it is exponential.
+\section{Nonlinear modelling and white noise}
+\subsection{Law of iterated expectations}
+\begin{definition}[Law of iterated expectations (LIE)]
+    \[
+        \E[y] = \E_x[\E[y|x]]
+    \]
+\end{definition}
+\begin{proof}
+    \[
+        \E_x[\E[y|x]] = \int \left[ \int y p(y|x) dy \right] p(x) dx = \int \int y p(y,x) dy dx = \int y p(y) dy = \E[y]
+    \]
+\end{proof}
+This is useful, since we can find a sequence of one step ahead expectations:
+\[
+    \E_{t-j}[g(y_t)] = \E_{t-j}\cdots \E_{t-1}[g(y_t)]
+\]
+where the unconditional expectation is found by letting $j \to \infty$.
+\begin{exercise}
+    Show
+    \[
+        Var[y] = \E_x[Var[y|x]] + Var_x[\E[y|x]]
+    \]
+\end{exercise}
+\begin{solution}
+\begin{align*}
+    Var[y] &= \E[y^2] - \E[y]^2\\
+    &= \E_x[\E[y^2|x]] - \E_x[\E[y|x]]^2\\
+    &= \E_x[Var[y|x] + \E[y|x]^2] - \E_x[\E[y|x]]^2\\
+    &= \E_x[Var[y|x]] + \E_x[\E[y|x]^2] - \E_x[\E[y|x]]^2\\
+    &= \E_x[Var[y|x]] + Var[\E[y|x]]
+\end{align*}
+\end{solution}
+\subsection{White noise}
+\textbf{White noise} is uncorrelated, i.e. $\E[y_t y_s] = 0, \quad t \neq s$ with constant variance (and zero mean).\\
+\textbf{Strict white noise} is stronger, we require independence, not just uncorrelatedness\footnote{These are the same with Gaussian noise, since the distribution is fully defined by the first 2 moments}.\\
+\textbf{Martingale Difference} has a zero (or constant) conditional expectation:
+\[
+    \E_{t-1}[y_t] = 0
+\]
+and thus is uncorrelated with any function of past observations:
+\[
+    \E[y_t f(Y_{t-1})|Y_{t-1}] = f(Y_{t-1})\E[y_t|Y_{t-1}] = 0
+\]
+\begin{example}
+    \[
+        y_t = \epsilon_t + \beta \epsilon_{t-1} \epsilon_{t-2} \quad \epsilon_t \sim NID(0,\sigma^2)
+    \]
+    The autocovariance at lag $\tau$ can be derived as:
+    \begin{align*}
+        \E(y_t y_{t-\tau}) &= \E(\epsilon_t + \beta \epsilon_{t-1} \epsilon_{t-2} )(\epsilon_{t-\tau} + \beta \epsilon_{t-\tau-1} \epsilon_{t-\tau-2})\\
+        &= \E(\epsilon_t \epsilon_{t-\tau}) + \beta \E(\epsilon_t \epsilon_{t-\tau-1} \epsilon_{t-\tau-2}) + \beta \E(\epsilon_{t-1} \epsilon_{t-\tau} \epsilon_{t-\tau-1}) + \beta^2 \E(\epsilon_{t-1} \epsilon_{t-2} \epsilon_{t-\tau} \epsilon_{t-\tau-1})\\
+        &= 0 \quad \text{if} \quad \tau \neq 0
+    \end{align*}
+    Since all observations are uncorrelated the series is white noise, however the observations are not independent, the conditional mean is:
+    \[
+        \E_{t-1}[y_t] = \E_{t-1}[\epsilon_t] + \beta \E_{t-1}[\epsilon_{t-1} \epsilon_{t-2}] = \beta \epsilon_{t-1} \epsilon_{t-2}
+    \]
+    so the series is not a martingale difference.
+\end{example}
+\begin{example}[ARCH]
+    \begin{align*}
+        y_t &= \sigma_{t|t-1} \epsilon_t, \quad \epsilon_t \sim NID(0,1)\\
+        \sigma_{t|t-1}^2 &= \gamma + \alpha y_{t-1}^2
+    \end{align*}
+    This is a Martingale difference since 
+    \[
+        \E_{t-1}[y_t] = \sigma_{t|t-1} \E_{t-1}[\epsilon_t] = 0
+    \]
+    implying it is also white noise.
+\end{example}
+\subsection{Linearity and Prediction}
+When disturbances in an ARMA are IID, the MMSE predictor is the conditional mean. It is linear in the observations and disturbances.\\
+Assuming instead that the disturbances are MDs with mean zero and constant variance, the MMSE predictor is again the conditional expectation by the LIE.\\
+When disturbances are WN (not strict WN) the MMSE = MMSLE, however if disturbances are not independent the MMSE is not the MMSLE.
+\begin{example}
+    \[
+        y_t = \epsilon_t + \beta \epsilon_{t-1} \epsilon_{t-2}, \quad \epsilon_t \sim NID(0,\sigma^2)
+    \]
+The MMSLE of future observations is zero, with MSE equal to the variance of future observations:
+\begin{align*}
+    Var(y_t) &= \E[\epsilon_t^2] + 2 \beta \E[\epsilon_t \epsilon_{t-1} \epsilon_{t-2}] + \beta^2 \E[\epsilon_{t-1}^2 \epsilon_{t-2}^2]\\
+    &= \sigma^2 + 0 + \beta^2 \sigma^4 
+\end{align*}
+However the MMSE (the conditional mean) is:
+\[
+    \E[y_t|Y_{t-1}] = \beta \epsilon_{t-1} \epsilon_{t-2}
+\]
+which has MSE:
+\[
+    \E[y_t - \beta \epsilon_{t-1} \epsilon_{t-2}]^2 = \E[\epsilon_t]^2 = \sigma^2
+\]
+We can use the LIE to compute multi-step predictions:
+\[
+        \E_T[y_{T+\ell}] = \begin{cases*}
+            \E_T[\beta \epsilon_{T} \epsilon_{T-1}] = \beta \epsilon_{T} \epsilon_{T-1} & $\ell = 1$\\
+            \E_T[\beta \epsilon_{T+1} \epsilon_{T}] = 0 & $\ell = 2$\\
+             0 & $\ell > 2$
+        \end{cases*}
+\]
+\end{example}
+\section{Stationarity}
+\begin{theorem}[Krengel's Theorem]
+If $y_t$ is strictly stationary and ergodic (SE) then a continuous transformation $g(y_t, y_{t-1}, \dots)$ is also SE. 
+\end{theorem}
+Weak stationarity of $g$ doesn't follow from weak stationarity of $y_t$ since the moments may not exist. E.g. if $y_t \sim t \nu$ then $g(y_t) = e^{y_t}$ has no finite moments.
+\begin{definition}[Linear stochastic recurrence equation]
+    \[
+        y_{t+1} = x_t y_t + z_t 
+    \]
+    where $x_t$ and $z_t$ are strictly stationary and ergodic.
+\end{definition}
+\begin{theorem}
+    The conditions:
+    \begin{enumerate}
+        \item $\E(\max(0, \ln |z_t|)) = \E(\ln ^+ |z_t|) < \infty$
+        \item $\E(\ln|x_t|) < 0$
+    \end{enumerate}
+    are sufficient for the existence and uniqueness of a strictly stationary solution for $y_t$.
+\end{theorem}
+Condition 1 usually holds, it is the second condition that is important. It is known as the \textbf{contraction condition} and can be interpreted as saying that the $x_t$'s are on average smaller than 1 (in absolute value). We can see this by applying Jensen's inequality:
+\[
+    \E(\ln|x_t|) \leq \ln \E(|x_t|) \implies \E(|x_t|) < 1
+\]
+\begin{example}
+    If $x_t$ is lognormal, $ln x_t \sim N(\mu, \sigma^2)$ the contraction condition is $\E(\ln x_t) = \mu < 0$, whereat $\E(x_t) = e^{\mu + \sigma^2/2}$, thus $\ln \E(x_t) = \mu + \sigma^2/2 > \mu$ is stronger than needed.
+\end{example}
+\begin{exercise}
+    What is the stationarity condition for the bilinear model?
+    \begin{equation}
+        \label{eq:bilinear} y_t = \phi y_{t-1} + \epsilon_t + \beta \epsilon_{t-1} y_{t-1}
+    \end{equation}
+\end{exercise}
+\begin{solution}
+    We can write the model as:
+    \[
+        y_t= (\phi + \beta \epsilon_{t-1})y_{t-1} + \epsilon_t
+    \]
+    which is a SRE with $x_t = \phi + \beta \epsilon_{t-1}$ and $z_t = \epsilon_t$. The contraction condition is:
+    \[
+        \E(\ln|x_t|) = \E(\ln|\phi + \beta \epsilon_{t-1}|) < 0
+    \]
+\end{solution}
+\subsection{Asymptotic Stationarity}
+Consider a non-linear generalisation of the linear SRE above:
+\[
+    y_{t+1} = \mathbf{\varphi}(y_t, \mathbf{z}_t, \mathbf{\psi})
+\]
+where $\mathbf{z}_t$ is a vector of SE variables\footnote{When $\mathbf{z_t}$ is a vector of IID variables, the equation is known as a Markov system} and $\mathbf{\psi}$ is a vector of parameters.
+\begin{theorem}[Bougerol's Theorem]
+    If \begin{itemize}
+        \item There exists $y_1$ such that $\E(\ln^+|\varphi(y_1, \mathbf{z}_1|)) < \infty$
+        \item $\E(\ln \sup_y |\frac{\partial \varphi(y, \mathbf{z})}{\partial y}|) < 0$
+    \end{itemize}
+    then for any starting value $y_1$, a series $y_t$ converges exponentially and almost surely to a unique SE solution. In other words $|y_t(y_1,\mathbf{\psi}) - y_t(\mathbf{\psi})| \overset{e.a.s.}{\to} 0$ as $t \to \infty$.
+\end{theorem}
+Intuitively this just means that it doesn't matter where we start, we will always converge to the same solution. 
+\begin{example}
+    Consider this cursed AR(1) model:
+    \[
+        y_t = \phi \frac{e^{y_{t-1}}-1}{e^{y_{t-1}}+1} + \epsilon_t \quad \epsilon_t \sim NID(0,\sigma^2)
+    \]
+    Clearly
+    \[
+        -1 < \frac{e^{y_{t-1}}-1}{e^{y_{t-1}}+1} < 1
+    \]
+    so the first condition holds for any finite $y_1$. We now examine the second condition:
+    \begin{align*}
+        \left| \frac{\partial}{\partial y} \left(\phi \frac{e^y-1}{e^y+1} + \epsilon_t \right)\right| &= \left| \phi \frac{(e^y+1)e^y - (e^y-1)e^y}{(e^y+1)^2} \right|\\
+        &= |\phi| \left| \frac{2e^y}{(e^y+1)^2} \right|\\
+        &= |\phi| \frac{2e^y}{(e^y+1)^2}
+    \end{align*}
+    To solve for the supremum we take the derivative and set it to zero:
+    \begin{align*}
+        0 &= \frac{d}{dy} \frac{2e^y}{(e^y+1)^2} \\
+        \implies 0 &= (e^y+1)^2e^y - 2e^y(e^y+1)e^y\\
+        \implies e^y + 1 &= 2\\
+        \implies y &= 0 \quad \text{with} \quad \frac{2e^y}{(e^y+1)^2} = \frac{1}{2}
+    \end{align*}
+    Thus:
+    \[
+        \E(\ln \sup_y |\frac{\partial \varphi(y, \mathbf{z})}{\partial y}|) = \E(\ln \frac{|\phi|}{2}) = \E(\ln |\phi|) - \ln 2 < 0 \equiv |\phi| < 2
+    \]
+\end{example}
+\section{Distributions}
+\begin{definition}[Survival function]
+    \[
+        S(y) = P(Y > y) = 1 - F(y)
+    \]
+\end{definition}
+\begin{example}[Exponential]
+    \[
+        F(y) = 1 - e^{-y/\theta} \implies S(y) = e^{-y/\theta}
+    \]
+\end{example}
+\begin{definition}[Probability integral transform]
+The PIT of Y is the standard uniform, i.e. $F(Y) \sim U(0,1)$
+\[
+    f(F(Y)) = f(y) \frac{dy}{dF(y)} = 1
+\]    
+Thus we can generate any distribution by transforming a standard uniform.
+\end{definition}
+\begin{definition}[t-distribution]
+    \[
+        f(y) = \frac{\Gamma(\frac{\nu+1}{2})}{\sqrt{\nu \pi} \Gamma(\frac{\nu}{2})} \left(1 + \frac{(y-\mu)^2}{\nu \phi^2} \right)^{-\frac{\nu+1}{2}}
+    \]    
+    where $\mu$ is median and $\phi$ is scale.
+\end{definition}
+The location-dispersion model is:
+\[
+    y_t = \mu + \psi \epsilon_t
+\]
+where $\epsilon_t$ has mean zero, and $\psi$ is called the dispersion for $y_t$. For non-negative variables a location + scale model is needed:
+\[
+    y_t = \psi \epsilon_t
+\]
+where $\epsilon_t$ has mean one. When $y_t>0$ taking logarithms gives:
+\[
+    \ln y_t = \ln \psi + \ln \epsilon_t
+\]
+so $\ln \psi$ is now a location parameter.
+\begin{definition}[Gamma distribution]
+    A gamma($\psi, \gamma$) distribution has density:
+    \[
+        f(y) = \psi^{-\gamma} \frac{y^{\gamma-1}e^{-y/\psi}}{\Gamma(\gamma)}
+    \]
+\end{definition}
+The chi-squared distribution is gamma($2, \nu/2$), setting $\gamma = 1$ gives an exponential distribution.
+\begin{definition}[Log-logistic distribution]
+    A log-logistic($\psi, \gamma$) distribution has density:
+    \[
+        f(y) = \frac{\nu \frac{y}{\psi}^{\nu-1}}{\psi \left(1 + \left(\frac{y}{\psi}\right)^\nu\right)^2}
+    \]
+\end{definition}
+\begin{definition}[Quantiles]
+    The $\alpha$-quantile of a distribution is the value $y_\alpha$ such that $F(y_\alpha) = \alpha$. The median is the 0.5-quantile.
+\end{definition}
+\begin{definition}[Heavy tails]
+    A distribution is said to be heavy tailed if
+    \[
+        \underset{y \to \infty}{\lim} \exp(y/\alpha) S(y) = \infty \quad \forall \alpha > 0
+    \]
+\end{definition}
+\begin{example}[Exponential distribution]
+    $S(y) = e^{-y/\alpha}$ so 
+    \[
+        \exp(y/\alpha) S(y) = e^{y/\alpha} e^{-y/\alpha} = 1
+    \]
+    thus it is not heavy tailed.
+\end{example}
+\begin{definition}[Fat tails]
+    A distribution is said to have fat tails if
+    \[
+        S(y) = c L(y)y^{-\alpha} \quad \alpha > 0
+    \]
+    where $L(y)$ is slowly varying, i.e. $\lim_{y \to \infty} L(\lambda y)/L(y) = 1$ for all $\lambda > 0$ and $c$ is a non-negative constant.
+\end{definition}
+\begin{claim}
+    Fat tailed $\implies$ heavy tailed, but not the reverse.
+\end{claim}
+\section{Nonlinear state space models}
+Parameter driven models may be nonlinear in the measurement equation, the transition equation or both. The basic model is:
+\begin{align*}
+    y_t &= f(\theta_t,\epsilon_t|\varphi)\\
+    \theta_{t+1} &= \psi(\theta_t,\eta_t|\varphi)
+\end{align*}
+where $\theta$ is the signal, $\varphi$ parameters and $\epsilon,\eta$ disturbances with specified distributions.
+\begin{example}[AR1 dynamic equation]
+    Consider
+    \begin{align*}
+        y_t &= \mu \exp(\beta_t)+\epsilon_t \quad \epsilon_t \sim NID(0,\sigma^2_\epsilon) \\
+        \beta_{t+1} &= \phi \beta_{t} + \eta_t \quad \eta_t \sim NID(0,\sigma^2_\eta) \quad |\phi|<1
+    \end{align*}
+    Clearly the state equation follows an AR1 with parameter less than 1, it is SE. We can thus apply Krengel's theorem to show that $y_t$ is also SE.
+\end{example}
+\begin{example}[Non-negativity]
+    When $y_t$ is non-negative, any model must be non-linear. Consider the measurement equation below, with time varying mean $\mu_t$:
+    \[
+        y_t = \mu_t \epsilon_t \quad 0 \leq y_t < \infty  
+    \]
+    where $\epsilon_t$ has a gamma distribution with mean 1. We can use an exponential link function to model the logarithm of $mu_t$ to ensure $mu_t$ remains positive:
+    \[
+        \ln \mu_{t+1} = \delta + \phi \ln \mu_t + \alpha \eta_t
+    \]
+    The restriction $|phi|<1$ guarantees the stationarity of $\ln \mu_t$, and hence of $y_t$. 
+\end{example}
+We can also consider conditionally Gaussian state space models, allowing the possibility of feedback from past observations to the system matrices that would otherwise be a linear SSM. We can derive the Kalman filter exactly as before and construct the likelihood function since the system matrixes are fixed at time $t-1$. It is not usually possible to predict more than one-step ahead however.
+\begin{example}
+    An example of a conditionally Gaussian process is
+    \[
+        y_t = \phi_t y_{t-1} + \epsilon_t
+    \]
+    \[
+        \phi_{t+1} = \phi (1-\alpha)+\alpha\phi_t+\eta_t
+    \]
+    where $\alpha$ is a fixed parameter. When $\phi_t$ is regarded as the state, we have a conditionally Gaussian SSM with $z=y_{t-1}$. When $|\alpha|<1$ the model is SE. 
+\end{example}
+\section{Observation driven models}
+An observation driven model is set up to give a conditional distribution for each observation, that is:
+\[
+    p(y_t|Y_{t-1}|\varphi)
+\]
+where $Y_{t-1}$ denotes all past observations. We can then construct the likelihood in the usual way.
+\begin{example}[Bilinear model]
+    \[
+        y_t = \phi y_{t-1} + \epsilon_t + \beta \epsilon_{t-1} y_{t-1}
+    \]
+    We can compute the ML estimate by minimising the SSR. Setting up the model in SSF:
+    \begin{align*}
+        y_t &= \mu_{t|t-1} + \epsilon_t\\
+        \mu_{t+1|t} = \phi y_t + \beta \epsilon_t y_t = (\phi + \beta \epsilon_t)\mu_{t|t-1} + \phi \epsilon_t + \beta \epsilon_t^2
+    \end{align*}
+\end{example}
+More general observation models can be written:
+\[
+    p(y_t | \alpha_{t|t-1}, Y_{t-1}|\varphi)
+\]
+with the transition equation becoming a filtering equation\[
+    \alpha_{t+1|t} = g(\alpha_{t|t-1}, y_t, Y_{t-1}|\varphi)
+\]
+The signal $\theta$ is the dynamic parameter in the conditional distribution. It depends on $\alpha_{t+1|t}$ so \[
+    \theta_{t|t-1} = h(\alpha_{t|t-1}, y_t, Y_{t-1}|\varphi)
+    \]
+    and we can write
+    \[
+        p(y_t|h(\alpha_{t|t-1}, Y_{t-1}|\varphi))   
+    \]
+\subsection{Moment-driven and score-driven models}
+Consider the linear Gaussian AR1N model. The finite sample Kalman filter begins at $t=1$ taking account of the uncertainty with a diffuse prior. However we might consider a model based on the steady-state (constant Kalman gain), but initialised at $t=1$. We write this as:
+\[
+    y_t = \mu + \mu_{t|t-1} + \nu_t
+\]
+\[
+    \mu_{t+1|t} = \phi \mu_{t|t-1} + \kappa \nu_t
+\]
+where the innovations $\nu_t$  are NID and $\mu_{1|0}$ is fixed. We can write the filter as
+\begin{align*}
+    \mu_{t+1|t} &= \phi \mu_{t|t-1} + \kappa \nu_t\\
+    &= \phi \mu_{t|t-1} + \kappa (y_t - \mu - \mu_{t|t-1})\\
+    &= (\phi - \kappa)\mu_{t|t-1} + \kappa (y_t - \mu)
+\end{align*}
+Substituting repeatedly gives 
+\[
+    \mu{t+1|t} = \kappa \sum_{j=0}^{t-1} (\phi - \kappa)^j (y_{t-j} - \mu) + (\phi - \kappa)^t \mu_{1|0}
+\]
+Although the filter is typically started with $\mu_{1|0} = 0$, as long as $|\phi - \kappa | <1$ the filtered level will converge to the same value for any starting value.\\
+In a score-driven model the dynamic equation for the above is driven by a variable that is proportional to the score of the conditional distribution, that is:
+\[
+    \mu_{t+1|t} = \phi \mu_{t|t-1} + \kappa \left( k \frac{\partial \ln p(y_t|\mu_{t|t-1})}{\partial \mu_{t|t-1}} \right)
+    \]
+The inverse of the information matrix is a common choice for $k$.
+\begin{example}[Non-negativity - Gamma distribution]
+    For non-negative variables we use a location-scale model. Suppose $p(y_t|\mu_{t|t-1}, \psi)$ is gamma with shape parameter $\gamma$. A filter for the conditional mean can be written as:
+    \[
+        \mu_{t+1|t} = \delta + \beta \mu_{t|t-1} + \alpha y_t
+    \]
+    We can write the likelihood function as 
+    \[
+        L = \prod_{t=1}^T \frac{1}{\Gamma(\gamma)}\left(\frac{\gamma}{\mu_{t|t-1}}\right) ^ \gamma y_t^{\gamma-1} e^{-\frac{\gamma y_t}{\mu_{t|t-1}}}
+    \]
+    and thus the log-likelihood is:
+    \[
+        \ln L = -T \ln \Gamma(\gamma) + T \gamma \ln \gamma -\gamma \sum_{t=1}^T \ln \mu_{t|t-1} + (\gamma - 1) \sum_{t=1}^T \ln y_t - \gamma \sum_{t=1}^T \frac{y_t}{\mu_{t|t-1}}
+    \]
+    Differentiating with respect to $\mu_{t|t-1}$ gives the score:
+    \[
+        \frac{\partial \ln L}{\partial \mu_{t|t-1}} = -\frac{\gamma}{\mu_{t|t-1}} + \frac{\gamma y_t}{\mu_{t|t-1}^2} = \frac{\gamma(y_t - \mu_{t|t-1})}{\mu_{t|t-1}^2}
+    \]
+    HOW DOES THIS GIVE $I(\mu) = \frac{\gamma}{\mu_{t|t-1}^2}$?
+\end{example}
+\end{document}
