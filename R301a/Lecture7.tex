@@ -248,6 +248,7 @@ so $\ln \psi$ is now a location parameter.
     \[
         f(y) = \psi^{-\gamma} \frac{y^{\gamma-1}e^{-y/\psi}}{\Gamma(\gamma)}
     \]
+    Where $\psi$ is the scale parameter and $\gamma$ is the shape parameter. The mean is $\gamma \psi$ and the variance is $\gamma \psi^2$.
 \end{definition}
 The chi-squared distribution is gamma($2, \nu/2$), setting $\gamma = 1$ gives an exponential distribution.
 \begin{definition}[Log-logistic distribution]
@@ -349,7 +350,19 @@ The signal $\theta$ is the dynamic parameter in the conditional distribution. It
     \[
         p(y_t|h(\alpha_{t|t-1}, Y_{t-1}|\varphi))   
     \]
+Commonly it is useful to keep the state variable $\alpha$ positive, so we can use an exponential link function:
+\[
+    \alpha_{t+1|t} = e^{\theta_{t+1|t}}
+\]
 \subsection{Moment-driven and score-driven models}
+In a moment-driven model the dynamic equation for the state is driven by observed $y_t$, E.G.:
+\[
+    \mu_{t+1|t} = \delta + \beta \mu_{t|t-1} + \alpha y_t
+\]
+The score-driven model is driven by the score of the conditional distribution, that is:
+\[
+    \mu_{t+1|t} = \lambda + \phi \mu_{t|t-1} + \kappa \left( k \frac{\partial \ln p(y_t|\mu_{t|t-1})}{\partial \mu_{t|t-1}} \right)
+\]
 Consider the linear Gaussian AR1N model. The finite sample Kalman filter begins at $t=1$ taking account of the uncertainty with a diffuse prior. However we might consider a model based on the steady-state (constant Kalman gain), but initialised at $t=1$. We write this as:
 \[
     y_t = \mu + \mu_{t|t-1} + \nu_t
@@ -374,7 +387,10 @@ In a score-driven model the dynamic equation for the above is driven by a variab
     \]
 The inverse of the information matrix is a common choice for $k$.
 \begin{example}[Non-negativity - Gamma distribution]
-    For non-negative variables we use a location-scale model. Suppose $p(y_t|\mu_{t|t-1}, \psi)$ is gamma with shape parameter $\gamma$. A filter for the conditional mean can be written as:
+    For non-negative variables we use a location-scale model. Suppose $p(y_t|\mu_{t|t-1}, \psi)$ is gamma with shape parameter $\gamma$ and evolving scale parameter $\mu_{t|t-1}$. 
+    
+    \textbf{Moment-driven Model}\\
+    A filter for the scale can be written as:
     \[
         \mu_{t+1|t} = \delta + \beta \mu_{t|t-1} + \alpha y_t
     \]
@@ -386,10 +402,193 @@ The inverse of the information matrix is a common choice for $k$.
     \[
         \ln L = -T \ln \Gamma(\gamma) + T \gamma \ln \gamma -\gamma \sum_{t=1}^T \ln \mu_{t|t-1} + (\gamma - 1) \sum_{t=1}^T \ln y_t - \gamma \sum_{t=1}^T \frac{y_t}{\mu_{t|t-1}}
     \]
-    Differentiating with respect to $\mu_{t|t-1}$ gives the score:
+
+    We can use MLE to find the optimal values of $\delta, \beta, \alpha$.
+
+    \textbf{Score-driven Model}\\
+    The scale evolves according to:
+    \[
+        \mu_{t+1|t} = \lambda + \phi \mu_{t|t-1} + \kappa u_t
+        \]
+    Differentiating the likelihood with respect to $\mu_{t|t-1}$ gives the score:
     \[
         \frac{\partial \ln L}{\partial \mu_{t|t-1}} = -\frac{\gamma}{\mu_{t|t-1}} + \frac{\gamma y_t}{\mu_{t|t-1}^2} = \frac{\gamma(y_t - \mu_{t|t-1})}{\mu_{t|t-1}^2}
     \]
-    HOW DOES THIS GIVE $I(\mu) = \frac{\gamma}{\mu_{t|t-1}^2}$?
+    To normalise the score we first need to find the Fisher information, i.e. the expectation of the square of the score:
+    \[
+        \E\left(\frac{\partial \ln L}{\partial \mu_{t|t-1}}^2\right) = \frac{\gamma}{\mu_{t|t-1}^4} \E(y_t - \mu_{t|t-1})^2
+    \]
+    However note that this is just the variance of $y_t$ which follows a gamma distribution, so the Fisher information is:
+    \[
+        \E\left(\frac{\partial \ln L}{\partial \mu_{t|t-1}}^2\right) = \frac{\gamma}{\mu_{t|t-1}^4}\mu_{t|t-1}^2 = \frac{\gamma}{\mu_{t|t-1}^2}
+    \]
+    Thus we can compute the standardised score as:
+    \[
+        \hat u_t = \frac{\partial \ln L}{\partial \mu_{t|t-1}} \left(I(\mu_{t|t-1})\right)^{-1} = y_t - \mu_{t|t-1}
+    \]
+    \textbf{Equivalence}\\
+    By substituting the score back into the filter we can see it takes the same form as the moment-driven model, this is an exceptional case - generally the two models are not equivalent.
+    \begin{align*}
+        \mu_{t+1|t} &= \lambda +\phi \mu_{t|t-1} + \kappa u_t\\
+        &= \lambda +\phi \mu_{t|t-1} + \kappa (y_t - \mu_{t|t-1})\\
+        &= \lambda + (\phi - \kappa) \mu_{t|t-1} + \kappa y_t
+    \end{align*}
 \end{example}
+\subsection{Multiplicative Error Models (MEMs)}
+Models for location/scale based on the moment-driven filter were called MEMs by Engle (2002). These are called as such since we can write the model as:
+\[
+    y_t = \mu_{t|t-1} \epsilon_t
+\]
+where $\epsilon_t$ follows the same distribution as $y_t$ but with unit scale. The dynamic equation for the scale is thus:
+\[
+    \mu_{t+1|t} = \delta + \beta \mu_{t|t-1} + \alpha \epsilon_t \mu_{t|t-1}
+\]
+\subsection{Stationarity}
+We can write the above as:
+\[
+    \mu_{t+1|t} = \delta + (\beta  + \alpha  \epsilon_t)\mu_{t|t-1} \coloneq \delta + x_t \mu_{t|t-1}
+\]
+\textbf{Contraction condition} is: $\E(\ln|x_t|) = \E(\ln|\beta + \alpha \epsilon_t|) < 0$. Thus strict stationarity is guaranteed if $\beta + \alpha < 1$. However we have used Jensen's here, so it is possible to have a stationary solution even if $\beta + \alpha \geq 1$.\\
+If this holds, we know $\mu_{t|t-1}$ is stationary, and thus $y_t$ is also stationary by Krengel's theorem.\\
+\subsection{Invertibility}
+The model is invertible if the signal can be recovered from the observations, a property we need to forecast. Denote the state as $\theta_{t|t-1}$.
+\begin{definition}[Lipschitz Coefficient]
+    The stochastic Lipschitz coefficient is:
+    \[
+        \Lambda_t(\psi) = \sup_{\theta_{t|t-1}} \left| \frac{\partial \theta_{t+1|t}}{\partial \theta_{t|t-1}} \right|
+    \]
+\end{definition}
+
+    When $\theta_{t+1|t}$ and hence $y_t$ is strictly stationary and ergodic, invertibility is guaranteed by the Lyapunov condition:
+    \begin{definition}[Lyapunov Condition]
+     \[
+        \underset{\psi}{sup}\E \left(\ln \Lambda_t(\psi)\right) < 0
+     \]
+\end{definition}
+\begin{example}
+    Consider the gamma example from before, since observations are taken as given in the moment driven filter we have:
+    \[
+        \frac{\partial \mu_{t+1|t}}{\partial \mu_{t|t-1}} = \beta
+    \]
+    giving us a Lipschitz coefficient of $\Lambda_t(\psi) = |\beta|$. The Lyapunov condition is thus satisfied if $|\beta| < 1$.
+    \end{example}
+\subsection{Moments}
+Given the SRE: $\mu_{t+1|t} = \delta + x_t \mu_{t|t-1}$ where $x_t = \alpha+\beta \epsilon_t$ we can find the moments of $\mu_{t|t-1}$ with stationarity.\\
+\textbf{Mean:}
+\begin{align*}
+    \E_{t-1}[\mu_{t+1|t}] &= \delta + \E_{t-1}[x_t \mu_{t|t-1}]= \delta + (\alpha + \beta) \mu_{t|t-1}\\
+    \E_{t-2} \E_{t-1}[\mu_{t+1|t}] &= \delta + (\alpha + \beta) (\delta + (\alpha + \beta) \mu_{t-1|t-2}) = \delta + (\alpha + \beta) \delta + (\alpha + \beta)^2 \mu_{t-1|t-2}\\
+    &= \cdots\\
+    \E \mu_{t+1|t} &= \frac{\delta}{1 - \alpha - \beta}
+\end{align*}
+Provided that $|\alpha + \beta| < 1$. Obviously if we are happy to assume the unconditional mean exists, just take expectations of the SRE.\\
+\textbf{Variance:}
+Squaring both sides of the SRE gives us:
+\begin{align*}
+    \mu_{t+1|t}^2 &= \delta^2 + 2\delta x_t \mu_{t|t-1} + x_t^2 \mu_{t|t-1}^2\\
+    \E_{t-1}[\mu_{t+1|t}^2] &= \delta^2 + 2\delta \E_{t-1}[x_t \mu_{t|t-1}] + \E_{t-1}[x_t^2 \mu_{t|t-1}^2]\\
+    &= \delta^2 + 2\delta (\alpha + \beta) \mu_{t|t-1} + ((\alpha+\beta)^2 + \alpha^2 \sigma^2_\epsilon) \mu_{t|t-1}^2
+\end{align*}
+We can iterate as above, or just take unconditional expectations:
+\begin{align*}
+    \E[\mu_{t+1|t}^2] &= \frac{\delta^2 + 2\delta^2 \frac{\alpha + \beta}{1 - \alpha - \beta}}{1 - (\alpha + \beta)^2 - \alpha^2 \sigma^2_\epsilon}\\
+    \implies Var[\mu_{t+1|t}] &= \E[\mu_{t+1|t}^2] - \E[\mu_{t+1|t}]^2\\
+    &= \frac{\delta^2}{(1 - \alpha - \beta)^2} \frac{(1-\beta^2-2\alpha\beta)\sigma^2_\epsilon}{(1 - (\alpha + \beta)^2 - \alpha^2 \sigma^2_\epsilon)}
+\end{align*}
+\textbf{ACF}\\
+We can rewrite the model in innovations form by letting $v_t = y_t-\mu_{t|t-1}$ so
+\[
+    \mu_{t+1|t} = \delta + (\alpha+\beta)\mu_{t|t-1} +\kappa v_t
+\]
+We can see that $v_t$ is a martingale difference, since $\E v_t = \mu_{t|t-1}\E(\epsilon_t -1)=0$. It is also WN since MD + constant variance $\implies$ WN:
+\[
+    \E v_t^2 = \E \mu_{t|t-1}^2(\epsilon_t-1)^2=\sigma^2_\epsilon \E \mu_{t|t-1}^2
+\]
+which we know is constant from variance proof above. Subbing the filter into the definition of the innovation we can see:
+\begin{align*}
+    \mu_{t+1|t} &= \delta + (\alpha+\beta)\mu_{t|t-1} +\kappa v_t\\
+    &= \frac{\delta + \kappa v_t}{1-(\alpha+\beta)L}\\
+    \implies y_t &= \frac{\delta + \kappa v_{t-1}}{1-(\alpha+\beta)L}+v_t
+\end{align*}
+which follows an ARMA(1,1) and the ACF has autocorrelations from $\tau=1$ decaying exponentially.
+\subsection{Prediction}
+Multi-step predictions can be found using the Law of Iterated Expectations. Taking conditional expectations in the the filter gives:
+\begin{align*}
+    \mu_{T+\ell|T+\ell -1} &= \delta + (\beta + \alpha \epsilon_{T+\ell -1})\mu_{T+\ell-1|T+\ell -2}\\
+    \implies \E_{t+\ell-2} \mu_{T+\ell|T+\ell -1} &= \delta + (\beta + \alpha )\mu_{T+\ell-1|T+\ell -2}\\
+    &= \cdots\\
+    \implies \E_T \mu_{T+\ell|T+\ell -1} &= \frac{1-(\alpha+\beta)^{\ell -1}}{1-\alpha-\beta}\delta + (\alpha+\beta)^{\ell-1}\mu_{T+1|T}
+\end{align*}
+Using the MEM we can see:
+\begin{align*}
+    y_{T+\ell}&=\mu_{T+\ell|T}\epsilon_{T+\ell}\\
+    \E_T y_{T+\ell}&=\mu_{T+\ell|T}\\
+    \underset{\ell \to \infty}{\lim} \E_T y_{T+\ell}&=\frac{\delta}{1-\alpha-\beta}
+\end{align*}
+As the forecast becomes infinitely distant, we revert to the unconditional mean.
+\section{Log-Logistic example}
+The choice of link function is important for the invertibility and stationarity of a model. With a direct link function stationarity requires the contraction condition, and the MEM is invertible by construction. However, the invertibility of a model with an exponential link function is not easy to check. We give an example for a fat-tailed log-logistic distribution with an exponential link function.
+\begin{align*}
+    p(y_t|\nu, \psi_{t|t-1}) &= (\nu \psi_{t|t-1})(y_t\psi_{t|t-1})^{\nu-1}(1+(y_t\psi_{t|t-1})^\nu)^{-2}\\
+    \psi_{t|t-1} &= e^{\lambda_{t|t-1}}\\
+    \lambda_{t+1|t} &= \delta + \phi \lambda_{t|t-1} + \kappa u_t
+\end{align*}
+We can derive the score as usual by setting up the log-likelihood and differentiating with respect to $\psi_{t|t-1}$:
+\begin{align*}
+    \ln p(y_t|\nu, \psi_{t|t-1})&=\ln \nu + \ln \psi_{t|t-1} + (\nu-1)\ln y_t + (\nu-1)\ln \psi_{t|t-1}-2\ln (1+(y_t\psi_{t|t-1})^\nu)\\
+    \frac{d \ln p(y_t)}{d\psi_{t|t-1}} &= \frac{1}{\psi_{t|t-1}} + \frac{\nu -1}{\psi_{t|t-1}} -\frac{2\nu y_t^\nu \psi_{t|t-1}^{\nu-1}}{1+(y_t\psi_{t|t-1})^\nu}\\
+    &= \frac{\nu}{\psi_{t|t-1}} -\frac{2\nu y_t^\nu \psi_{t|t-1}^{\nu-1}}{1+(y_t\psi_{t|t-1})^\nu}\\
+    \psi_{t|t-1} &= e^{\lambda_{t|t-1}} \implies \frac{d\psi_{t|t-1}}{d\lambda_{t|t-1}} = \psi_{t|t-1}\quad \text{From definition of exponential link}\\
+    \implies \frac{d \ln p(y_t)}{d\lambda_{t|t-1}} &= \frac{d \ln p(y_t)}{d\lambda_{t|t-1}} \frac{d\psi_{t|t-1}}{d\lambda_{t|t-1}}\\
+     &= \frac{d \ln p(y_t)}{d\lambda_{t|t-1}} \psi_{t|t-1}\\
+    u_t &\coloneq \nu - \frac{2\nu (y_t \psi_{t|t-1})^{\nu}}{1+(y_t\psi_{t|t-1})^\nu}
+\end{align*}
+We can write the model in MEM form, where $y_t = \psi_{t|t-1} \epsilon_t$ and $\epsilon_t$ is a log-logistic random variable with shape parameter $\nu$ and scale parameter 1. Thus we can rewrite the score in terms of $\epsilon_t$:
+\[
+    u_t = \nu - \frac{2\nu \epsilon_t^{\nu}}{1+\epsilon_t^\nu}
+\]
+We know the distribution of $\epsilon_t$: $p(\epsilon_t)= \nu \epsilon_t^{\nu-1}(1+\epsilon_t^\nu)^{-2}$, we just need to find the distribution of $b_t \coloneq \frac{ \epsilon_t^{\nu}}{1+\epsilon_t^\nu}$ to find the variance of $u_t$ (to derive Fisher Information).
+\begin{lemma}
+    $
+        p(f(x)) = p(x) \frac{dx}{df(x)}
+    $
+\end{lemma}
+Thus we can write the distribution of $b_t$ as:
+\begin{align*}
+    p(b_t) &= p(\epsilon_t) \frac{d\epsilon_t}{db_t}\\
+    &= p(\epsilon_t) \left(\frac{\nu \epsilon_t^{\nu-1}}{(1+\epsilon_t^\nu)^2}\right)^{-1}\\
+    &= \nu \epsilon_t^{\nu-1}(1+\epsilon_t^\nu)^{-2} \left(\frac{\nu \epsilon_t^{\nu-1}}{(1+\epsilon_t^\nu)^2}\right)^{-1}\\
+    &= 1
+\end{align*}
+Thus $b_t$ is a standard uniform random variable, with mean 0.5 and variance $\frac{1}{12}$. We can now find the Fisher Information:
+\begin{align*}
+    Var(u_t) &= Var \left(\nu - \frac{2\nu \epsilon_t^{\nu}}{1+\epsilon_t^\nu}\right)\\
+    &= 4\nu^2 Var(b_t)\\
+    &= \frac{4\nu^2}{12}\\
+    &= \frac{\nu^2}{3}
+\end{align*}
+We can now find the standardised score:
+\[
+    \hat u_t = \frac{3-6b_t}{\nu} \in \left[-\frac{3}{\nu}, \frac{3}{\nu}\right]
+\]
+The bounded score gives us a nicer invertibility condition, as well as making the model more robust to outliers, plotted below:\\
+\includegraphics[width=\textwidth]{./Images/Log-Logistic Score.png}
+\subsection{Stationarity and Invertibility}
+\textbf{Stationarity}\\
+Stationarity of the filter follows from $\phi < 1$, Krengel's theorem implies stationarity of $y_t$.\\
+\textbf{Invertibility}\\
+The Lipschitz coefficient is 
+\begin{align*}
+    \Lambda_t(\psi) &= \underset{\lambda_{t|t-1}}{sup}\left| \frac{\partial \lambda_{t+1|t}}{\partial \lambda_{t|t-1}} \right| \\
+    &= \underset{\lambda_{t|t-1}}{sup}\left| \phi + \frac{\partial \hat{u_t}}{\partial \lambda_{t|t-1}} \right|\\
+    &= \underset{\lambda_{t|t-1}}{sup}|\phi-6\kappa b_t (1-b_t)|\\
+    &= \left|\phi-\frac{3}{2}\kappa\right| \quad \text{since $x(1-x)$ is maximised at 0.5, with value 0.25}
+\end{align*}
+The Lyapunov condition is thus satisfied if:
+\begin{align*}
+    \underset{\nu}{sup} \E \ln \Lambda_t(\psi) &= \E \ln \left|\phi-\frac{3}{2}\kappa\right| < 0\\
+    \left|\phi-\frac{3}{2}\kappa\right| &< 1 \quad \text{by Jensen's}\\
+    \left|\frac{3}{2}\kappa\right| - |\phi| &< 1 \quad \text{by triangle inequality} \\
+    |\kappa| &< \frac{2}{3}(1+|\phi|)
+\end{align*}
 \end{document}
