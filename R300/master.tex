@@ -2,10 +2,13 @@
 
 \input{preamble.tex}
 
-\title{\Huge\textbf{R300 Econometrics}}
-\author{\Large Metrics Enjoyers} 
-\date{\Large Michaelmas Term, 2023-2024} 
+\makeatletter
+\let\@fnsymbol\@arabic
+\makeatother
 
+\title{\Huge\textbf{R300 Econometrics}}
+\author{\Large Ben Blaker and James Legrand\thanks{A changelog and archive can be found at \url{github.com/james-legrand/Metrics-Notes}.}}
+\date{\Large Michaelmas Term, 2023-2024} 
 
 \setuptoc{toc}{leveldown}
 
@@ -15,7 +18,6 @@
 
 \tableofcontents
 \newpage
-
 
 % Include Lecture1.pdf
 \includepdf[pages=-,pagecommand={}, addtotoc={1, chapter, 1, Basic probability. Conditional expectation function., lect1}]{Lecture1.pdf}
@@ -42,7 +44,7 @@
 \includepdf[pages=-,pagecommand={}, addtotoc={1, chapter, 1, Heteroskedasticity and serial correlation. HAC standard errors., lect8}]{Lecture8.pdf}
 
 % Include Lecture9.pdf
-%\includepdf[pages=-,pagecommand={}, addtotoc={1, chapter, 1, Functional CLT. %Fixed-b asymptotics., lect9}]{Lecture9.pdf}
+\includepdf[pages=-,pagecommand={}, addtotoc={1, chapter, 1, Functional CLT. Fixed-b asymptotics., lect9}]{Lecture9.pdf}
 
 % Include Lecture10.pdf
 \includepdf[pages=-,pagecommand={}, addtotoc={1, chapter, 1, Probit. Maximum Likelihood., lect10}]{Lecture10.pdf}

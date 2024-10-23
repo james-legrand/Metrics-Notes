@@ -115,7 +115,7 @@ Let $\mathbf{u}=\mathbf{H'}\boldsymbol{\epsilon}$, and partition $\underset{n \t
         \end{bmatrix}\\
     &=\mathbf{u'_1} \mathbf{u_1}
 \end{align*}
-where $\mathbf{u'_1} \mathbf{u_1}$ is the sum of $n-k$ squared standard normals , thus it is distributed $\chi^2_{n-k}$. Since $\boldsymbol{\epsilon}$ is independent of $\boldsymbol{\hat\beta}$ it follows that $\hat\sigma^2$ is independent of $\boldsymbol{\hat\beta}$ as well.
+where $\mathbf{u'_1} \mathbf{u_1}$ is the sum of $n-k$ squared normals with mean $0$ and variance $\sigma^2$. We can transform each normal into a standard normal with division by $\sigma$; since each normal is squared we divide by $\sigma^2$. A sum of $j$ squared standard normals is distributed $\chi^2_j$, thus $\frac{(n-k)\hat\sigma^2}{\sigma^2}$ is distributed $\chi^2_{n-k}$. Since $\boldsymbol{\epsilon}$ is independent of $\boldsymbol{\hat\beta}$ it follows that $\hat\sigma^2$ is independent of $\boldsymbol{\hat\beta}$ as well.
 \begin{theorem} 
 In normal regression, \[\frac{(n-k)\hat\sigma^2}{\sigma^2}\sim\chi^2_{n-k}\] and is independent of $\boldsymbol{\hat\beta}$.
 \label{thm:distributionOfVariance}
